@@ -101,7 +101,7 @@ exports.handler = async (event) => {
       return { statusCode: 400, headers, body: JSON.stringify({ error: 'Unknown query type: ' + queryType }) };
     }
 
-    const [rows] = await bq.query({ query: sql });
+    const [rows] = await bq.query({ query: sql, location: 'US' });
     return { statusCode: 200, headers, body: JSON.stringify({ data: rows }) };
 
   } catch (err) {

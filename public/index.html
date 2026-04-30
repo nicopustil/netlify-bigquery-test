@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leadership Victoria · Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #faf9f7;
+    --bg2: #f2f0ec;
+    --border: #e8e3db;
+    --text: #1a1814;
+    --text2: #6b6560;
+    --text3: #a09890;
+    --accent: #2d6a4f;
+    --accent2: #1d3557;
+    --warn: #c0392b;
+    --gold: #b8860b;
+  }
+  html, body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+  ::-webkit-scrollbar { width: 3px; } ::-webkit-scrollbar-thumb { background: var(--border); }
+
+  /* LOADING */
+  #loading { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 999; transition: opacity .5s; }
+  #loading.hidden { opacity: 0; pointer-events: none; }
+  .load-logo { font-family: 'Cormorant Garamond', serif; font-size: 28px; color: var(--text); margin-bottom: 24px; }
+  .load-bar { width: 200px; height: 1px; background: var(--border); position: relative; overflow: hidden; }
+  .load-bar::after { content: ''; position: absolute; left: -100%; width: 100%; height: 100%; background: var(--text); animation: load 2s ease infinite; }
+  @keyframes load { to { left: 200%; } }
+  .load-msg { font-size: 11px; color: var(--text3); margin-top: 16px; letter-spacing: 1px; text-transform: uppercase; }
+
+  /* HEADER */
+  .header { padding: 16px 32px; border-bottom: 0.5px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: var(--bg); position: sticky; top: 0; z-index: 100; }
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  .logo { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 400; }
+  .logo-sub { font-size: 10px; color: var(--text3); letter-spacing: 1.5px; text-transform: uppercase; margin-top: 1px; }
+  .agency-badge { font-size: 10px; padding: 3px 10px; border-radius: 20px; background: var(--accent2); color: white; font-weight: 500; display: none; }
+  .agency-badge.show { display: inline-flex; }
+
+  /* DATE FILTER */
+  .date-bar { padding: 10px 32px; border-bottom: 0.5px solid var(--border); display: flex; align-items: center; gap: 12px; background: var(--bg); }
+  .date-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; }
+  .date-btn { border: 0.5px solid var(--border); border-radius: 6px; padding: 5px 14px; font-size: 12px; color: var(--text2); background: none; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all .15s; }
+  .date-btn:hover, .date-btn.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+  .date-sep { color: var(--border); }
+  .date-input { border: 0.5px solid var(--border); border-radius: 6px; padding: 4px 10px; font-size: 12px; color: var(--text); background: var(--bg2); font-family: 'DM Sans', sans-serif; }
+  .date-input:focus { outline: none; border-color: var(--text3); }
+  .date-apply { border: none; border-radius: 6px; padding: 5px 16px; font-size: 12px; background: var(--text); color: var(--bg); cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all .15s; }
+  .date-apply:hover { opacity: .8; }
+  .last-updated { margin-left: auto; font-size: 11px; color: var(--text3); }
+
+  /* TABS */
+  .tabs { padding: 0 32px; border-bottom: 0.5px solid var(--border); display: flex; overflow-x: auto; }
+  .tab { border: none; background: none; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 12px; color: var(--text3); padding: 10px 16px 12px; border-bottom: 2px solid transparent; transition: all .15s; white-space: nowrap; }
+  .tab.active { color: var(--text); border-bottom-color: var(--text); font-weight: 500; }
+  .tab.agency-only { display: none; }
+  .tab.agency-only.show { display: block; }
+
+  /* BODY */
+  .body { padding: 24px 32px; max-width: 1200px; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* KPI GRID */
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 12px; margin-bottom: 20px; }
+  .kpi { background: white; border: 0.5px solid var(--border); border-radius: 10px; padding: 16px 18px; }
+  .kpi-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
+  .kpi-value { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 400; color: var(--text); letter-spacing: -0.5px; line-height: 1; }
+  .kpi-sub { font-size: 11px; color: var(--text3); margin-top: 6px; }
+  .kpi-delta { font-size: 11px; margin-top: 4px; }
+  .delta-up { color: var(--accent); }
+  .delta-down { color: var(--warn); }
+
+  /* TWO COL */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+
+  /* PANEL */
+  .panel { background: white; border: 0.5px solid var(--border); border-radius: 10px; padding: 18px 20px; margin-bottom: 14px; }
+  .panel-title { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text3); margin-bottom: 14px; font-weight: 500; }
+
+  /* ROWS */
+  .data-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 0.5px solid var(--border); font-size: 13px; }
+  .data-row:last-child { border-bottom: none; }
+  .row-name { flex: 1; color: var(--text2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bar-wrap { width: 100px; height: 3px; background: var(--bg2); border-radius: 2px; flex-shrink: 0; }
+  .bar { height: 3px; border-radius: 2px; }
+  .row-val { min-width: 70px; text-align: right; font-size: 13px; font-weight: 500; color: var(--text); }
+  .row-sub { min-width: 50px; text-align: right; font-size: 11px; color: var(--text3); }
+
+  /* INSIGHTS */
+  .insight { border-radius: 8px; padding: 13px 15px; margin-bottom: 10px; border-left: 3px solid var(--border); background: var(--bg2); }
+  .insight.good { border-left-color: var(--accent); }
+  .insight.warn { border-left-color: #e67e22; }
+  .insight.critical { border-left-color: var(--warn); }
+  .insight.info { border-left-color: var(--accent2); }
+  .insight-title { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+  .insight-body { font-size: 12px; color: var(--text2); line-height: 1.6; margin-bottom: 6px; }
+  .insight-action { font-size: 11px; color: var(--text3); font-style: italic; }
+
+  /* AGENCY ONLY */
+  .agency-section { display: none; }
+  .agency-section.show { display: block; }
+
+  /* CHAT */
+  .chat-wrap { background: white; border: 0.5px solid var(--border); border-radius: 10px; padding: 18px 20px; }
+  .chat-msgs { min-height: 180px; max-height: 260px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+  .msg { max-width: 85%; padding: 10px 13px; border-radius: 10px; font-size: 13px; line-height: 1.6; }
+  .msg.ai { background: var(--bg2); color: var(--text); align-self: flex-start; border-radius: 2px 10px 10px 10px; }
+  .msg.user { background: var(--text); color: var(--bg); align-self: flex-end; border-radius: 10px 10px 2px 10px; }
+  .chat-input-row { display: flex; gap: 8px; border-top: 0.5px solid var(--border); padding-top: 14px; }
+  .chat-input { flex: 1; border: 0.5px solid var(--border); border-radius: 8px; padding: 9px 13px; font-size: 13px; background: var(--bg2); color: var(--text); font-family: 'DM Sans', sans-serif; }
+  .chat-input:focus { outline: none; border-color: var(--text3); }
+  .chat-btn { border: 0.5px solid var(--border); border-radius: 8px; padding: 9px 16px; background: var(--text); color: var(--bg); font-size: 12px; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+  .sugg-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .sugg { border: 0.5px solid var(--border); border-radius: 20px; padding: 5px 13px; font-size: 11px; color: var(--text2); background: none; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all .15s; }
+  .sugg:hover { background: var(--bg2); color: var(--text); }
+
+  /* SPINNER */
+  .spinner { width: 12px; height: 12px; border: 2px solid var(--border); border-top-color: var(--text3); border-radius: 50%; animation: spin .7s linear infinite; display: inline-block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-row { display: flex; align-items: center; gap: 8px; color: var(--text3); font-size: 12px; padding: 20px 0; }
+
+  /* FUNNEL */
+  .funnel-step { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+  .funnel-label { min-width: 160px; font-size: 12px; color: var(--text2); }
+  .funnel-bar-wrap { flex: 1; height: 24px; background: var(--bg2); border-radius: 5px; overflow: hidden; }
+  .funnel-bar { height: 100%; border-radius: 5px; display: flex; align-items: center; padding-left: 10px; font-size: 11px; font-weight: 500; color: white; transition: width .6s ease; }
+  .funnel-num { min-width: 60px; text-align: right; font-size: 13px; font-weight: 500; color: var(--text); }
+  .funnel-pct { min-width: 40px; text-align: right; font-size: 11px; color: var(--text3); }
+  .funnel-arrow { font-size: 10px; color: var(--text3); margin: 0 0 4px 172px; }
+
+  /* TAG */
+  .tag { display: inline-flex; font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 500; margin-left: 6px; }
+
+  @keyframes fadeUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+  .fade-in { animation: fadeUp .4s ease both; }
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loading">
+  <div class="load-logo">Leadership Victoria</div>
+  <div class="load-bar"></div>
+  <div class="load-msg" id="loadMsg">Connecting to analytics...</div>
+</div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <div>
+      <div class="logo">Leadership Victoria</div>
+      <div class="logo-sub">Marketing Performance Dashboard</div>
+    </div>
+    <span class="agency-badge" id="agencyBadge">HOP Agency View</span>
+  </div>
+  <div style="font-size:11px;color:var(--text3)" id="dataStatus">● Live data</div>
+</div>
+
+<!-- DATE BAR -->
+<div class="date-bar">
+  <span class="date-label">Period</span>
+  <button class="date-btn active" onclick="setPreset(7,this)">7d</button>
+  <button class="date-btn" onclick="setPreset(30,this)">30d</button>
+  <button class="date-btn" onclick="setPreset(90,this)">90d</button>
+  <button class="date-btn" onclick="setPreset(120,this)">120d</button>
+  <span class="date-sep">|</span>
+  <input type="date" class="date-input" id="startDate">
+  <span style="font-size:12px;color:var(--text3)">→</span>
+  <input type="date" class="date-input" id="endDate">
+  <button class="date-apply" onclick="applyCustomDate()">Apply</button>
+  <span class="last-updated" id="lastUpdated"></span>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('overview',this)">Overview</button>
+  <button class="tab" onclick="switchTab('revenue',this)">Revenue</button>
+  <button class="tab" onclick="switchTab('engagement',this)">Engagement</button>
+  <button class="tab" onclick="switchTab('programs',this)">Programs</button>
+  <button class="tab" onclick="switchTab('traffic',this)">Traffic</button>
+  <button class="tab agency-only" id="insightsTab" onclick="switchTab('insights',this)">Internal Insights</button>
+  <button class="tab" onclick="switchTab('ai',this)">AI Analyst</button>
+</div>
+
+<!-- BODY -->
+<div class="body">
+
+  <!-- OVERVIEW -->
+  <div class="tab-content active" id="tab-overview">
+    <div class="kpi-grid" id="kpiGrid">
+      <div class="kpi"><div class="kpi-label">Total Revenue</div><div class="kpi-value" id="kpi-revenue">—</div><div class="kpi-sub" id="kpi-purchases">loading...</div></div>
+      <div class="kpi"><div class="kpi-label">Sessions</div><div class="kpi-value" id="kpi-sessions">—</div><div class="kpi-sub" id="kpi-users">loading...</div></div>
+      <div class="kpi"><div class="kpi-label">Avg Order Value</div><div class="kpi-value" id="kpi-aov">—</div><div class="kpi-sub">per purchase</div></div>
+      <div class="kpi"><div class="kpi-label">Bounce Rate</div><div class="kpi-value" id="kpi-bounce">—</div><div class="kpi-sub">avg across channels</div></div>
+    </div>
+    <div class="two-col">
+      <div class="panel">
+        <div class="panel-title">Revenue by channel</div>
+        <div id="revenueByChannel"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">Sessions by channel</div>
+        <div id="sessionsByChannel"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+      </div>
+    </div>
+    <div class="panel agency-section" id="overviewInsights">
+      <div class="panel-title">Key insights · Agency view</div>
+      <div id="insightsList"></div>
+    </div>
+  </div>
+
+  <!-- REVENUE -->
+  <div class="tab-content" id="tab-revenue">
+    <div class="kpi-grid">
+      <div class="kpi"><div class="kpi-label">Total Revenue</div><div class="kpi-value" id="rev-total">—</div></div>
+      <div class="kpi"><div class="kpi-label">Total Purchases</div><div class="kpi-value" id="rev-purchases">—</div></div>
+      <div class="kpi"><div class="kpi-label">Checkout → Purchase</div><div class="kpi-value">78%</div><div class="kpi-sub">avg completion rate</div></div>
+      <div class="kpi"><div class="kpi-label">Avg Order Value</div><div class="kpi-value" id="rev-aov">—</div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Revenue breakdown by channel</div>
+      <div id="revenueDetail"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Purchase funnel</div>
+      <div id="funnelViz">
+        <div class="funnel-step">
+          <span class="funnel-label">Sessions</span>
+          <div class="funnel-bar-wrap"><div class="funnel-bar" style="width:100%;background:#e2e8f0;color:#64748b" id="f-sessions">—</div></div>
+          <span class="funnel-num" id="fn-sessions">—</span>
+          <span class="funnel-pct">100%</span>
+        </div>
+        <div class="funnel-arrow">↓</div>
+        <div class="funnel-step">
+          <span class="funnel-label">Begin checkout</span>
+          <div class="funnel-bar-wrap"><div class="funnel-bar" style="width:1.7%;background:#93c5fd;color:#1d3557" id="f-checkout">348</div></div>
+          <span class="funnel-num">348</span>
+          <span class="funnel-pct">1.7%</span>
+        </div>
+        <div class="funnel-arrow">↓ 85%</div>
+        <div class="funnel-step">
+          <span class="funnel-label">Add shipping info</span>
+          <div class="funnel-bar-wrap"><div class="funnel-bar" style="width:1.4%;background:#60a5fa;color:white">296</div></div>
+          <span class="funnel-num">296</span>
+          <span class="funnel-pct">85%</span>
+        </div>
+        <div class="funnel-arrow">↓ 61%</div>
+        <div class="funnel-step">
+          <span class="funnel-label">Add payment info</span>
+          <div class="funnel-bar-wrap"><div class="funnel-bar" style="width:0.86%;background:#3b82f6;color:white">180</div></div>
+          <span class="funnel-num">180</span>
+          <span class="funnel-pct">61%</span>
+        </div>
+        <div class="funnel-arrow">↓</div>
+        <div class="funnel-step">
+          <span class="funnel-label">Purchase ✓</span>
+          <div class="funnel-bar-wrap"><div class="funnel-bar" style="background:#2d6a4f;color:white" id="f-purchase">—</div></div>
+          <span class="funnel-num" id="fn-purchase">—</span>
+          <span class="funnel-pct" id="fp-purchase">—</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ENGAGEMENT -->
+  <div class="tab-content" id="tab-engagement">
+    <div class="kpi-grid">
+      <div class="kpi"><div class="kpi-label">Avg Bounce Rate</div><div class="kpi-value" id="eng-bounce">—</div><div class="kpi-sub">lower is better</div></div>
+      <div class="kpi"><div class="kpi-label">Avg Session Duration</div><div class="kpi-value" id="eng-duration">—</div></div>
+      <div class="kpi"><div class="kpi-label">Engaged Sessions</div><div class="kpi-value" id="eng-engaged">—</div></div>
+      <div class="kpi"><div class="kpi-label">Pages per Session</div><div class="kpi-value" id="eng-pages">—</div></div>
+    </div>
+    <div class="two-col">
+      <div class="panel">
+        <div class="panel-title">Bounce rate by channel</div>
+        <div id="bounceByChannel"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">Avg session duration by channel</div>
+        <div id="durationByChannel"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Top landing pages · sessions + engagement</div>
+      <div id="landingPages"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+    </div>
+  </div>
+
+  <!-- PROGRAMS -->
+  <div class="tab-content" id="tab-programs">
+    <div class="panel">
+      <div class="panel-title">Form submissions by program</div>
+      <div id="programForms"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">All key events</div>
+      <div id="allEvents"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+    </div>
+  </div>
+
+  <!-- TRAFFIC -->
+  <div class="tab-content" id="tab-traffic">
+    <div class="panel">
+      <div class="panel-title">Sessions by channel · detailed</div>
+      <div id="trafficDetail"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+    </div>
+  </div>
+
+  <!-- INSIGHTS (AGENCY ONLY) -->
+  <div class="tab-content" id="tab-insights">
+    <div class="panel">
+      <div class="panel-title">Internal analysis · HOP Agency</div>
+      <div id="agencyInsights">
+        <div class="insight good">
+          <div class="insight-title">Direct traffic generates 56% of revenue — brand is strong</div>
+          <div class="insight-body">$126,936 from 179 Direct purchases. This signals loyal, returning audience. Average order value from Direct is $709 — highest across all channels.</div>
+          <div class="insight-action">→ Invest in email marketing and retargeting to keep this audience engaged</div>
+        </div>
+        <div class="insight warn">
+          <div class="insight-title">Paid Search: only 2 purchases from 1,006 sessions but $13,151 revenue</div>
+          <div class="insight-body">0.2% conversion rate is very low but average order value is $6,576 — these are high-value buyers. Campaign needs better keyword targeting focused on program names.</div>
+          <div class="insight-action">→ Review paid search keywords — focus on "Leadership Victoria programs" and specific program names</div>
+        </div>
+        <div class="insight critical">
+          <div class="insight-title">Organic Social drives traffic but barely converts — $463 from 853 sessions</div>
+          <div class="insight-body">Social audiences need more nurturing. They're discovering the brand but not ready to purchase from social alone.</div>
+          <div class="insight-action">→ Use social for awareness, retarget social visitors with paid search or email</div>
+        </div>
+        <div class="insight info">
+          <div class="insight-title">Referral has highest revenue per purchase — $3,291 avg</div>
+          <div class="insight-body">14 purchases, $46,074 revenue. Referral visitors are highly qualified — they come from trusted sources already familiar with Leadership Victoria.</div>
+          <div class="insight-action">→ Identify top referral sources and build partnerships or affiliate relationships</div>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Notes for client meeting</div>
+      <textarea style="width:100%;min-height:120px;border:0.5px solid var(--border);border-radius:6px;padding:10px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:var(--bg2);resize:vertical" placeholder="Add internal notes here..."></textarea>
+    </div>
+  </div>
+
+  <!-- AI ANALYST -->
+  <div class="tab-content" id="tab-ai">
+    <div class="chat-wrap">
+      <div class="panel-title">AI Marketing Analyst · Leadership Victoria</div>
+      <div class="sugg-row">
+        <button class="sugg" onclick="askSugg(this)">Which channel drives the most revenue?</button>
+        <button class="sugg" onclick="askSugg(this)">Why is bounce rate high on paid?</button>
+        <button class="sugg" onclick="askSugg(this)">Write a monthly summary for the client</button>
+        <button class="sugg" onclick="askSugg(this)">Is Paid Search worth the investment?</button>
+        <button class="sugg" onclick="askSugg(this)">How can we improve social conversions?</button>
+      </div>
+      <div class="chat-msgs" id="chatMsgs">
+        <div class="msg ai">Hi! I have Leadership Victoria's real analytics data. Total revenue is $227,047 from 227 purchases across 20,941 sessions over the last 120 days. What would you like to explore?</div>
+      </div>
+      <div class="chat-input-row">
+        <input class="chat-input" id="chatInput" placeholder="Ask anything about Leadership Victoria's marketing..." onkeydown="if(event.key==='Enter')sendChat()" />
+        <button class="chat-btn" onclick="sendChat()">Ask →</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── CONFIG ────────────────────────────────────────────────────────────────────
+const TOKENS = {
+  'HOP2024': 'agency',
+  'LV2024': 'client'
+};
+
+const params = new URLSearchParams(window.location.search);
+const token = params.get('token') || 'LV2024';
+const viewMode = TOKENS[token] || 'client';
+const isAgency = viewMode === 'agency';
+
+// Show agency elements
+if (isAgency) {
+  document.getElementById('agencyBadge').classList.add('show');
+  document.querySelectorAll('.agency-only').forEach(el => el.classList.add('show'));
+  document.querySelectorAll('.agency-section').forEach(el => el.classList.add('show'));
+}
+
+// ── DATE HANDLING ─────────────────────────────────────────────────────────────
+let currentStart = '', currentEnd = '';
+
+function setPreset(days, btn) {
+  document.querySelectorAll('.date-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const end = new Date();
+  const start = new Date();
+  start.setDate(start.getDate() - days);
+  currentStart = start.toISOString().split('T')[0];
+  currentEnd = end.toISOString().split('T')[0];
+  document.getElementById('startDate').value = currentStart;
+  document.getElementById('endDate').value = currentEnd;
+  loadAllData();
+}
+
+function applyCustomDate() {
+  currentStart = document.getElementById('startDate').value;
+  currentEnd = document.getElementById('endDate').value;
+  if (!currentStart || !currentEnd) return;
+  document.querySelectorAll('.date-btn').forEach(b => b.classList.remove('active'));
+  loadAllData();
+}
+
+// Init dates
+const initEnd = new Date();
+const initStart = new Date(); initStart.setDate(initStart.getDate() - 7);
+currentStart = initStart.toISOString().split('T')[0];
+currentEnd = initEnd.toISOString().split('T')[0];
+document.getElementById('startDate').value = currentStart;
+document.getElementById('endDate').value = currentEnd;
+
+// ── API CALLS ─────────────────────────────────────────────────────────────────
+async function queryBQ(queryType) {
+  try {
+    const res = await fetch('/api/bigquery', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: queryType, startDate: currentStart, endDate: currentEnd })
+    });
+    const json = await res.json();
+    return json.data || [];
+  } catch(e) {
+    console.error('BQ error:', e);
+    return [];
+  }
+}
+
+// ── RENDER HELPERS ────────────────────────────────────────────────────────────
+const fmt = n => new Intl.NumberFormat('en-AU').format(Math.round(n || 0));
+const fmtMoney = n => '$' + new Intl.NumberFormat('en-AU').format(Math.round(n || 0));
+const fmtPct = n => (n * 100).toFixed(1) + '%';
+const fmtDur = s => { const m = Math.floor(s/60); return `${m}m ${Math.round(s%60)}s`; };
+
+function renderBarRows(containerId, rows, nameKey, valueKey, formatter, color='#1a1814', subKey=null, subFmt=null) {
+  const el = document.getElementById(containerId);
+  if (!rows.length) { el.innerHTML = '<div style="font-size:12px;color:var(--text3);padding:10px 0">No data for this period</div>'; return; }
+  const max = Math.max(...rows.map(r => parseFloat(r[valueKey] || 0)));
+  el.innerHTML = rows.map(r => {
+    const val = parseFloat(r[valueKey] || 0);
+    const pct = max > 0 ? (val / max * 100).toFixed(1) : 0;
+    const sub = subKey ? `<span class="row-sub">${subFmt ? subFmt(r[subKey]) : r[subKey]}</span>` : '';
+    return `<div class="data-row">
+      <span class="row-name">${r[nameKey] || 'Unknown'}</span>
+      <div class="bar-wrap"><div class="bar" style="width:${pct}%;background:${color}"></div></div>
+      <span class="row-val">${formatter(val)}</span>
+      ${sub}
+    </div>`;
+  }).join('');
+}
+
+// ── LOAD DATA ─────────────────────────────────────────────────────────────────
+async function loadAllData() {
+  updateLoadMsg('Loading analytics data...');
+
+  const [kpis, revenue, traffic, events, engagement, pages] = await Promise.all([
+    queryBQ('kpis'),
+    queryBQ('revenue'),
+    queryBQ('traffic'),
+    queryBQ('events'),
+    queryBQ('engagement'),
+    queryBQ('pages'),
+  ]);
+
+  // KPIs
+  if (kpis.length) {
+    const k = kpis[0];
+    const aov = k.totalPurchases > 0 ? k.totalRevenue / k.totalPurchases : 0;
+    document.getElementById('kpi-revenue').textContent = fmtMoney(k.totalRevenue);
+    document.getElementById('kpi-purchases').textContent = `${fmt(k.totalPurchases)} purchases`;
+    document.getElementById('kpi-sessions').textContent = fmt(k.totalSessions);
+    document.getElementById('kpi-users').textContent = `${fmt(k.totalUsers)} users`;
+    document.getElementById('kpi-aov').textContent = fmtMoney(aov);
+    document.getElementById('kpi-bounce').textContent = fmtPct(k.avgBounceRate || 0);
+    document.getElementById('rev-total').textContent = fmtMoney(k.totalRevenue);
+    document.getElementById('rev-purchases').textContent = fmt(k.totalPurchases);
+    document.getElementById('rev-aov').textContent = fmtMoney(aov);
+
+    // Funnel
+    document.getElementById('fn-sessions').textContent = fmt(k.totalSessions);
+    const purchasePct = k.totalSessions > 0 ? (k.totalPurchases / k.totalSessions * 100).toFixed(1) : 0;
+    document.getElementById('fn-purchase').textContent = fmt(k.totalPurchases);
+    document.getElementById('fp-purchase').textContent = purchasePct + '%';
+    const fBar = document.getElementById('f-purchase');
+    if (fBar) fBar.style.width = Math.min(purchasePct * 10, 100) + '%';
+  }
+
+  // Revenue by channel
+  renderBarRows('revenueByChannel', revenue.slice(0,6), 'channel', 'revenue', fmtMoney, '#2d6a4f', 'purchases', fmt);
+  renderBarRows('revenueDetail', revenue, 'channel', 'revenue', fmtMoney, '#2d6a4f', 'purchases', v => fmt(v) + ' purchases');
+
+  // Sessions by channel
+  renderBarRows('sessionsByChannel', traffic.slice(0,6), 'channel', 'sessions', fmt, '#1a1814');
+  renderBarRows('trafficDetail', traffic, 'channel', 'sessions', fmt, '#1a1814', 'users', fmt);
+
+  // Engagement
+  if (engagement.length) {
+    const totalEng = engagement.reduce((a,b) => a + parseFloat(b.sessions||0), 0);
+    const avgBounce = engagement.reduce((a,b) => a + parseFloat(b.bounceRate||0) * parseFloat(b.sessions||0), 0) / totalEng;
+    const avgDur = engagement.reduce((a,b) => a + parseFloat(b.avgDuration||0) * parseFloat(b.sessions||0), 0) / totalEng;
+    const totalEngaged = engagement.reduce((a,b) => a + parseFloat(b.engagedSessions||0), 0);
+    const avgPages = engagement.reduce((a,b) => a + parseFloat(b.pagesPerSession||0) * parseFloat(b.sessions||0), 0) / totalEng;
+
+    document.getElementById('eng-bounce').textContent = fmtPct(avgBounce);
+    document.getElementById('eng-duration').textContent = fmtDur(avgDur);
+    document.getElementById('eng-engaged').textContent = fmt(totalEngaged);
+    document.getElementById('eng-pages').textContent = avgPages.toFixed(1);
+
+    renderBarRows('bounceByChannel', engagement, 'channel', 'bounceRate', fmtPct, '#c0392b');
+    renderBarRows('durationByChannel', engagement, 'channel', 'avgDuration', fmtDur, '#2d6a4f');
+  }
+
+  // Landing pages
+  const topPages = pages.slice(0, 10);
+  const pagesEl = document.getElementById('landingPages');
+  if (topPages.length) {
+    const maxSes = Math.max(...topPages.map(p => parseFloat(p.sessions||0)));
+    pagesEl.innerHTML = topPages.map(p => `
+      <div class="data-row">
+        <span class="row-name" style="max-width:220px;font-family:monospace;font-size:11px">${p.page}</span>
+        <span style="font-size:11px;color:var(--text3);min-width:60px">${p.channel||''}</span>
+        <div class="bar-wrap"><div class="bar" style="width:${(parseFloat(p.sessions||0)/maxSes*100).toFixed(0)}%;background:#e07b39"></div></div>
+        <span class="row-val">${fmt(p.sessions)}</span>
+        <span class="row-sub">${fmtPct(parseFloat(p.bounceRate||0))}</span>
+      </div>`).join('');
+  }
+
+  // Events
+  const progEvents = events.filter(e => ['igniting_leadership_form_submission','womens_leadership_form_submission','leader_evolution_form_submission','donate_now_clicks','form_submission_id','file_download'].includes(e.event));
+  renderBarRows('programForms', progEvents.slice(0,10), 'event', 'count', fmt, '#1d3557');
+
+  const keyEvents = events.filter(e => ['purchase','begin_checkout','form_submission_id','file_download','scroll'].includes(e.event));
+  const eventTotals = {};
+  keyEvents.forEach(e => {
+    if (!eventTotals[e.event]) eventTotals[e.event] = { count: 0, revenue: 0 };
+    eventTotals[e.event].count += parseFloat(e.count||0);
+    eventTotals[e.event].revenue += parseFloat(e.revenue||0);
+  });
+  const evRows = Object.entries(eventTotals).sort((a,b) => b[1].count - a[1].count);
+  const maxEv = evRows.length ? evRows[0][1].count : 1;
+  document.getElementById('allEvents').innerHTML = evRows.map(([name, vals]) => `
+    <div class="data-row">
+      <span class="row-name" style="font-family:monospace;font-size:11px">${name}</span>
+      <div class="bar-wrap"><div class="bar" style="width:${(vals.count/maxEv*100).toFixed(0)}%;background:#1d3557"></div></div>
+      <span class="row-val">${fmt(vals.count)}</span>
+      <span class="row-sub" style="color:${vals.revenue > 0 ? 'var(--accent)' : 'var(--text3)'}">
+        ${vals.revenue > 0 ? fmtMoney(vals.revenue) : ''}
+      </span>
+    </div>`).join('');
+
+  // Auto-generate insights if agency
+  if (isAgency && revenue.length) {
+    generateInsights(revenue, traffic, engagement);
+  }
+
+  document.getElementById('lastUpdated').textContent = 'Updated ' + new Date().toLocaleTimeString('en-AU', {hour:'2-digit',minute:'2-digit'});
+  document.getElementById('loading').classList.add('hidden');
+}
+
+function generateInsights(revenue, traffic, engagement) {
+  const totalRev = revenue.reduce((a,b) => a + parseFloat(b.revenue||0), 0);
+  const insights = [];
+
+  revenue.forEach(r => {
+    const pct = totalRev > 0 ? (parseFloat(r.revenue||0)/totalRev*100).toFixed(0) : 0;
+    const ppp = parseFloat(r.purchases||0) > 0 ? parseFloat(r.revenue||0)/parseFloat(r.purchases||0) : 0;
+    if (parseFloat(r.revenue||0) > 0) {
+      insights.push({ type: pct > 40 ? 'info' : 'good', title: `${r.channel}: ${pct}% of revenue`, body: `${fmtMoney(r.revenue)} from ${fmt(r.purchases)} purchases. Avg order: ${fmtMoney(ppp)}.`, action: pct > 40 ? `→ Strong channel — nurture with email and retargeting` : `→ Growing channel — consider increasing investment` });
+    }
+  });
+
+  const insightsEl = document.getElementById('insightsList');
+  if (insightsEl) {
+    insightsEl.innerHTML = insights.slice(0,4).map(i => `
+      <div class="insight ${i.type}">
+        <div class="insight-title">${i.title}</div>
+        <div class="insight-body">${i.body}</div>
+        <div class="insight-action">${i.action}</div>
+      </div>`).join('');
+  }
+}
+
+// ── CHAT ──────────────────────────────────────────────────────────────────────
+function askSugg(btn) {
+  document.getElementById('chatInput').value = btn.textContent;
+  sendChat();
+}
+
+async function sendChat() {
+  const input = document.getElementById('chatInput');
+  const msgs = document.getElementById('chatMsgs');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+
+  const uDiv = document.createElement('div');
+  uDiv.className = 'msg user fade-in';
+  uDiv.textContent = text;
+  msgs.appendChild(uDiv);
+
+  const lDiv = document.createElement('div');
+  lDiv.className = 'msg ai';
+  lDiv.innerHTML = '<span class="spinner"></span>';
+  msgs.appendChild(lDiv);
+  msgs.scrollTop = msgs.scrollHeight;
+
+  const sys = `You are a marketing analyst for Leadership Victoria, an Australian not-for-profit leadership development organisation. REAL DATA (last 120 days):
+REVENUE: $227,047 total, 227 purchases, avg order $1,000. By channel: Direct $126,936 (179 purchases), Referral $46,074 (14), Organic Search $31,363 (12), Paid Search $13,151 (2), Cross-network $8,965 (10), Organic Social $463 (9).
+SESSIONS: 20,941 total. Direct 10,072, Organic Search 5,677, Referral 1,233, Paid Search 1,006, Cross-network 866, Paid Social 853.
+BOUNCE RATE: 17.6% avg. Organic Search 7%, Direct 20.8%.
+PROGRAMS: Igniting Leadership 25 submissions, Women's Leadership 17, Leader Evolution 13. File downloads: 583. Donate clicks: 42.
+FUNNEL: 348 begin_checkout → 296 shipping → 180 payment → 227 purchases.
+Reply in 3-5 sentences, specific with numbers. One concrete recommendation at end. Same language as user.`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1000, system: sys, messages: [{ role: 'user', content: text }] })
+    });
+    const data = await res.json();
+    lDiv.textContent = data.content?.find(b => b.type === 'text')?.text || 'Could not get response.';
+  } catch(e) {
+    lDiv.textContent = 'Connection error. Try again.';
+  }
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+// ── TABS ──────────────────────────────────────────────────────────────────────
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  btn.classList.add('active');
+}
+
+function updateLoadMsg(msg) {
+  document.getElementById('loadMsg').textContent = msg;
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+loadAllData();
+</script>
+</body>
+</html>

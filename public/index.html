@@ -449,9 +449,9 @@ async function loadAll(){
   const pf=prevDateFilter();
 
   const [traffic, prevTraffic, pages, events, prevEvents] = await Promise.all([
-    bq(`SELECT sessionSourceMedium as source, SUM(sessions) as sessions, SUM(totalUsers) as users, SUM(engagedSessions) as engaged, AVG(averageSessionDuration) as avgDur, AVG(screenPageViewsPerSession) as pps FROM \`${P}.${D}.ga4_TrafficAcquisition_317130094\` WHERE ${df} GROUP BY source ORDER BY sessions DESC LIMIT 30`),
+    bq(`SELECT sessionSourceMedium as source, SUM(sessions) as sessions, SUM(totalUsers) as users, SUM(engagedSessions) as engaged, AVG(averageSessionDurationSeconds) as avgDur, AVG(screenPageViewsPerSession) as pps FROM \`${P}.${D}.ga4_TrafficAcquisition_317130094\` WHERE ${df} GROUP BY source ORDER BY sessions DESC LIMIT 30`),
     bq(`SELECT SUM(sessions) as sessions, SUM(totalUsers) as users, SUM(engagedSessions) as engaged FROM \`${P}.${D}.ga4_TrafficAcquisition_317130094\` WHERE ${pf}`),
-    bq(`SELECT landingPage as page, SUM(sessions) as sessions, AVG(averageSessionDuration) as avgDur, SUM(engagedSessions) as engaged FROM \`${P}.${D}.ga4_LandingPage_317130094\` WHERE ${df} GROUP BY page ORDER BY sessions DESC LIMIT 20`),
+    bq(`SELECT landingPage as page, SUM(sessions) as sessions, AVG(averageSessionDurationSeconds) as avgDur, SUM(engagedSessions) as engaged FROM \`${P}.${D}.ga4_LandingPage_317130094\` WHERE ${df} GROUP BY page ORDER BY sessions DESC LIMIT 20`),
     bq(`SELECT eventName as event, SUM(eventCount) as count, SUM(totalUsers) as users FROM \`${P}.${D}.ga4_Events_317130094\` WHERE ${df} GROUP BY event ORDER BY count DESC`),
     bq(`SELECT eventName as event, SUM(eventCount) as count FROM \`${P}.${D}.ga4_Events_317130094\` WHERE ${pf} GROUP BY event`),
   ]);

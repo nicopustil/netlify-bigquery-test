@@ -102,7 +102,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 
 /* CHAT */
 .chat-wrap{background:white;border:0.5px solid var(--border);border-radius:10px;padding:16px 18px}
-.chat-msgs{min-height:160px;max-height:240px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
+.chat-msgs{min-height:160px;max-height:340px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
 .msg{max-width:85%;padding:9px 12px;border-radius:10px;font-size:13px;line-height:1.6}
 .msg.ai{background:var(--bg2);color:var(--text);align-self:flex-start;border-radius:2px 10px 10px 10px}
 .msg.user{background:var(--text);color:var(--bg);align-self:flex-end;border-radius:10px 10px 2px 10px}
@@ -183,7 +183,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
         <div class="kpi-sub" id="ov-sessions-sub"></div>
       </div>
       <div class="kpi">
-        <div class="kpi-label">Users</div>
+        <div class="kpi-label">Active Users</div>
         <div class="kpi-value" id="ov-users">—</div>
         <div class="kpi-delta" id="ov-users-d"></div>
       </div>
@@ -232,7 +232,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
         <div class="kpi-sub" id="tr-direct-sub"></div>
       </div>
       <div class="kpi">
-        <div class="kpi-label">Paid</div>
+        <div class="kpi-label">Paid / Other</div>
         <div class="kpi-value" id="tr-paid">—</div>
         <div class="kpi-sub" id="tr-paid-sub"></div>
       </div>
@@ -261,12 +261,12 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
         <div class="kpi-delta" id="eng-dur-d"></div>
       </div>
       <div class="kpi">
-        <div class="kpi-label">Sessions per User</div>
-        <div class="kpi-value" id="eng-spu">—</div>
+        <div class="kpi-label">Events per Session</div>
+        <div class="kpi-value" id="eng-eps">—</div>
       </div>
       <div class="kpi">
-        <div class="kpi-label">Pages per Session</div>
-        <div class="kpi-value" id="eng-pps">—</div>
+        <div class="kpi-label">Key Event Rate</div>
+        <div class="kpi-value" id="eng-ker">—</div>
       </div>
     </div>
     <div class="two-col">
@@ -366,11 +366,11 @@ function applyCustomDate(){
   activeDays=null; loadAll();
 }
 
-function dateFilter(days){
+function dateFilter(){
   const s=document.getElementById('startDate').value;
   const e=document.getElementById('endDate').value;
   if(s&&e) return `_DATA_DATE BETWEEN DATE('${s}') AND DATE('${e}')`;
-  return `_DATA_DATE >= DATE_SUB(CURRENT_DATE(), INTERVAL ${days||activeDays||30} DAY)`;
+  return `_DATA_DATE >= DATE_SUB(CURRENT_DATE(), INTERVAL ${activeDays||30} DAY)`;
 }
 
 function prevDateFilter(){
@@ -386,11 +386,11 @@ document.getElementById('endDate').value=ie.toISOString().split('T')[0];
 // ── QUERY ─────────────────────────────────────────────────────────────────────
 async function bq(sql){
   try{
-    const r=await fetch('/.netlify/functions/bigquery',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:sql})});
+    const r=await fetch('/api/bigquery',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:sql})});
     const j=await r.json();
     if(!j.ok) throw new Error(j.error);
     return j.rows||[];
-  }catch(e){console.error(e);return[];}
+  }catch(e){console.error('BQ error:',e);return[];}
 }
 
 // ── FORMAT ────────────────────────────────────────────────────────────────────
@@ -409,7 +409,7 @@ function setDelta(id,d){
 }
 
 // ── RENDER ROWS ───────────────────────────────────────────────────────────────
-function renderRows(id,rows,nameKey,valKey,fmt2,color,subKey,subFmt,signalFn){
+function renderRows(id,rows,nameKey,valKey,fmt2,color,subKey,subFmt){
   const el=document.getElementById(id);
   if(!el) return;
   if(!rows||!rows.length){el.innerHTML='<div class="no-data">No data for this period</div>';return;}
@@ -417,10 +417,8 @@ function renderRows(id,rows,nameKey,valKey,fmt2,color,subKey,subFmt,signalFn){
   el.innerHTML=rows.map(r=>{
     const val=parseFloat(r[valKey]||0);
     const sub=subKey?`<span class="row-sub">${subFmt?subFmt(r[subKey]):fmt(r[subKey])}</span>`:'';
-    const sig=signalFn?signalFn(r):'';
     return `<div class="data-row">
       <span class="row-name">${r[nameKey]||'Unknown'}</span>
-      ${sig}
       <div class="bar-wrap"><div class="bar" style="width:${(val/max*100).toFixed(0)}%;background:${color}"></div></div>
       <span class="row-val">${fmt2(val)}</span>${sub}
     </div>`;
@@ -431,7 +429,7 @@ function renderRows(id,rows,nameKey,valKey,fmt2,color,subKey,subFmt,signalFn){
 function groupChannel(src){
   const s=(src||'').toLowerCase();
   if(s.includes('organic')||s.includes('/ organic')) return 'organic';
-  if(s.includes('direct')||s==='(none)/(none)') return 'direct';
+  if(s.includes('direct')||s==='(direct) / (none)') return 'direct';
   if(s.includes('paid')||s.includes('cpc')||s.includes('ppc')||s.includes('ads')) return 'paid';
   if(s.includes('email')) return 'email';
   if(s.includes('social')) return 'social';
@@ -441,18 +439,28 @@ function groupChannel(src){
 
 // ── LOAD ALL ──────────────────────────────────────────────────────────────────
 let globalData = {};
+let chatHistory = [];
 
 async function loadAll(){
+  document.getElementById('loading').classList.remove('hidden');
   document.getElementById('loadMsg').textContent='Loading data...';
 
   const df=dateFilter();
   const pf=prevDateFilter();
 
-  const [traffic, prevTraffic, pages, events, prevEvents] = await Promise.all([
-    bq(`SELECT sessionSourceMedium as source, SUM(sessions) as sessions, SUM(totalUsers) as users, SUM(engagedSessions) as engaged, AVG(averageSessionDurationSeconds) as avgDur, AVG(screenPageViewsPerSession) as pps FROM \`${P}.${D}.ga4_TrafficAcquisition_317130094\` WHERE ${df} GROUP BY source ORDER BY sessions DESC LIMIT 30`),
-    bq(`SELECT SUM(sessions) as sessions, SUM(totalUsers) as users, SUM(engagedSessions) as engaged FROM \`${P}.${D}.ga4_TrafficAcquisition_317130094\` WHERE ${pf}`),
-    bq(`SELECT landingPage as page, SUM(sessions) as sessions, AVG(averageSessionDurationSeconds) as avgDur, SUM(engagedSessions) as engaged FROM \`${P}.${D}.ga4_LandingPage_317130094\` WHERE ${df} GROUP BY page ORDER BY sessions DESC LIMIT 20`),
-    bq(`SELECT eventName as event, SUM(eventCount) as count, SUM(totalUsers) as users FROM \`${P}.${D}.ga4_Events_317130094\` WHERE ${df} GROUP BY event ORDER BY count DESC`),
+  // ── CORRECTED QUERIES using confirmed column names ──
+  // TrafficAcquisition columns: sessionSourceMedium, sessions, engagedSessions,
+  //   engagementRate, eventsPerSession, sessionKeyEventRate, userEngagementDurationPerSession, _DATA_DATE
+  // LandingPage columns: landingPage, sessions, activeUsers, keyEvents,
+  //   sessionKeyEventRate, userEngagementDurationPerSession, _DATA_DATE
+  // Events columns: eventName, eventCount, totalUsers, totalRevenue, _DATA_DATE
+
+  const [traffic, prevTraffic, pages, prevPages, events, prevEvents] = await Promise.all([
+    bq(`SELECT sessionSourceMedium as source, SUM(sessions) as sessions, SUM(engagedSessions) as engaged, AVG(engagementRate) as engRate, AVG(eventsPerSession) as eps, AVG(sessionKeyEventRate) as ker, AVG(userEngagementDurationPerSession) as avgDur FROM \`${P}.${D}.ga4_TrafficAcquisition_317130094\` WHERE ${df} GROUP BY source ORDER BY sessions DESC LIMIT 30`),
+    bq(`SELECT SUM(sessions) as sessions, SUM(engagedSessions) as engaged, AVG(engagementRate) as engRate, AVG(userEngagementDurationPerSession) as avgDur FROM \`${P}.${D}.ga4_TrafficAcquisition_317130094\` WHERE ${pf}`),
+    bq(`SELECT landingPage as page, SUM(sessions) as sessions, SUM(activeUsers) as users, SUM(keyEvents) as keyEvents, AVG(sessionKeyEventRate) as ker, AVG(userEngagementDurationPerSession) as avgDur FROM \`${P}.${D}.ga4_LandingPage_317130094\` WHERE ${df} GROUP BY page ORDER BY sessions DESC LIMIT 20`),
+    bq(`SELECT SUM(sessions) as sessions FROM \`${P}.${D}.ga4_LandingPage_317130094\` WHERE ${pf}`),
+    bq(`SELECT eventName as event, SUM(eventCount) as count, SUM(totalUsers) as users, SUM(totalRevenue) as revenue FROM \`${P}.${D}.ga4_Events_317130094\` WHERE ${df} GROUP BY event ORDER BY count DESC`),
     bq(`SELECT eventName as event, SUM(eventCount) as count FROM \`${P}.${D}.ga4_Events_317130094\` WHERE ${pf} GROUP BY event`),
   ]);
 
@@ -460,34 +468,41 @@ async function loadAll(){
 
   // ── TOTALS ──
   const totS=traffic.reduce((a,r)=>a+parseFloat(r.sessions||0),0);
-  const totU=traffic.reduce((a,r)=>a+parseFloat(r.users||0),0);
   const totE=traffic.reduce((a,r)=>a+parseFloat(r.engaged||0),0);
-  const engRate=totS>0?totE/totS:0;
-  const avgDur=traffic.length?traffic.reduce((a,r)=>a+parseFloat(r.avgDur||0)*parseFloat(r.sessions||0),0)/Math.max(totS,1):0;
-  const avgPPS=traffic.length?traffic.reduce((a,r)=>a+parseFloat(r.pps||0)*parseFloat(r.sessions||0),0)/Math.max(totS,1):0;
+  // Weighted average engagement rate
+  const avgEngRate=totS>0?traffic.reduce((a,r)=>a+parseFloat(r.engRate||0)*parseFloat(r.sessions||0),0)/totS:0;
+  const avgDur=totS>0?traffic.reduce((a,r)=>a+parseFloat(r.avgDur||0)*parseFloat(r.sessions||0),0)/totS:0;
+  const avgEps=totS>0?traffic.reduce((a,r)=>a+parseFloat(r.eps||0)*parseFloat(r.sessions||0),0)/totS:0;
+  const avgKer=totS>0?traffic.reduce((a,r)=>a+parseFloat(r.ker||0)*parseFloat(r.sessions||0),0)/totS:0;
+  // Active users from landing pages (best proxy)
+  const totU=pages.reduce((a,r)=>a+parseFloat(r.users||0),0);
 
-  const prevS=prevTraffic[0]?.sessions||0;
-  const prevU=prevTraffic[0]?.users||0;
-  const prevE=prevTraffic[0]?.engaged||0;
+  const prevS=parseFloat(prevTraffic[0]?.sessions||0);
+  const prevE=parseFloat(prevTraffic[0]?.engaged||0);
+  const prevEngRate=parseFloat(prevTraffic[0]?.engRate||0);
+  const prevDur=parseFloat(prevTraffic[0]?.avgDur||0);
+  const prevPS=parseFloat(prevPages[0]?.sessions||0);
 
-  // Key events grouping
-  const formEvents=['igniting_leadership_form_submission','womens_leadership_form_submission','leader_evolution_form_submission','form_submission_id'];
-  const downloadEvents=['file_download'];
-  const intentEvents=['donate_now_clicks','calltracking','click','begin_checkout','add_payment_info','purchase'];
-  const keyEvents=[...formEvents,...downloadEvents,...intentEvents];
-  const totActions=events.filter(e=>keyEvents.includes(e.event)).reduce((a,r)=>a+parseFloat(r.count||0),0);
-  const prevActMap={};
-  prevEvents.forEach(e=>{prevActMap[e.event]=parseFloat(e.count||0);});
-  const prevActions=keyEvents.reduce((a,k)=>a+(prevActMap[k]||0),0);
+  // Key events
+  const formKeys=['igniting_leadership_form_submission','womens_leadership_form_submission','leader_evolution_form_submission','form_submission_id','form_submit','generate_lead'];
+  const downloadKeys=['file_download'];
+  const intentKeys=['donate_now_clicks','calltracking','begin_checkout','add_payment_info','purchase'];
+  const keyEvents=[...formKeys,...downloadKeys,...intentKeys];
+  const evMap={};
+  events.forEach(e=>{evMap[e.event]={count:parseFloat(e.count||0),users:parseFloat(e.users||0),revenue:parseFloat(e.revenue||0)};});
+  const prevEvMap={};
+  prevEvents.forEach(e=>{prevEvMap[e.event]=parseFloat(e.count||0);});
+  const totActions=keyEvents.reduce((a,k)=>a+(evMap[k]?.count||0),0);
+  const prevActions=keyEvents.reduce((a,k)=>a+(prevEvMap[k]||0),0);
 
   // ── OVERVIEW ──
   document.getElementById('ov-sessions').textContent=fmt(totS);
   document.getElementById('ov-users').textContent=fmt(totU);
   document.getElementById('ov-engaged').textContent=fmt(totE);
-  document.getElementById('ov-eng-rate').textContent=fmtPct(engRate)+' engagement rate';
+  document.getElementById('ov-eng-rate').textContent=fmtPct(avgEngRate)+' engagement rate';
   document.getElementById('ov-actions').textContent=fmt(totActions);
   setDelta('ov-sessions-d',delta(totS,prevS));
-  setDelta('ov-users-d',delta(totU,prevU));
+  setDelta('ov-users-d',delta(totU,prevPS)); // using prev page sessions as proxy
   setDelta('ov-engaged-d',delta(totE,prevE));
   setDelta('ov-actions-d',delta(totActions,prevActions));
 
@@ -497,71 +512,75 @@ async function loadAll(){
   // ── TRAFFIC ──
   const grouped={organic:0,direct:0,paid:0,email:0,social:0,referral:0,other:0};
   const groupedEng={organic:0,direct:0,paid:0,email:0,social:0,referral:0,other:0};
+  const groupedEngRate={organic:[],direct:[],paid:[],email:[],social:[],referral:[],other:[]};
   traffic.forEach(r=>{
     const g=groupChannel(r.source);
-    grouped[g]+=parseFloat(r.sessions||0);
+    const s=parseFloat(r.sessions||0);
+    grouped[g]+=s;
     groupedEng[g]+=parseFloat(r.engaged||0);
+    groupedEngRate[g].push({sessions:s,er:parseFloat(r.engRate||0)});
   });
 
+  function weightedEr(arr){
+    const totSess=arr.reduce((a,x)=>a+x.sessions,0);
+    if(!totSess) return 0;
+    return arr.reduce((a,x)=>a+x.er*x.sessions,0)/totSess;
+  }
+
   document.getElementById('tr-organic').textContent=fmt(grouped.organic);
-  document.getElementById('tr-organic-sub').textContent=grouped.organic>0?fmtPct(groupedEng.organic/grouped.organic)+' engagement':'—';
+  document.getElementById('tr-organic-sub').textContent=grouped.organic>0?fmtPct(weightedEr(groupedEngRate.organic))+' engagement':'—';
   document.getElementById('tr-direct').textContent=fmt(grouped.direct);
-  document.getElementById('tr-direct-sub').textContent=grouped.direct>0?fmtPct(groupedEng.direct/grouped.direct)+' engagement':'—';
-  document.getElementById('tr-paid').textContent=fmt(grouped.paid+grouped.other);
-  document.getElementById('tr-paid-sub').textContent=(grouped.paid+grouped.other)>0?fmtPct((groupedEng.paid+groupedEng.other)/(grouped.paid+grouped.other))+' engagement':'—';
+  document.getElementById('tr-direct-sub').textContent=grouped.direct>0?fmtPct(weightedEr(groupedEngRate.direct))+' engagement':'—';
+  const paidOther=grouped.paid+grouped.other;
+  document.getElementById('tr-paid').textContent=fmt(paidOther);
+  document.getElementById('tr-paid-sub').textContent=paidOther>0?fmtPct(weightedEr([...groupedEngRate.paid,...groupedEngRate.other]))+' engagement':'—';
 
-  // Traffic quality signal
-  const signalFn=r=>{
-    const er=parseFloat(r.sessions||0)>0?parseFloat(r.engaged||0)/parseFloat(r.sessions||0):0;
-    if(er>=0.6) return `<span class="signal-badge signal-high">high quality</span>`;
-    if(er>=0.35) return `<span class="signal-badge signal-med">medium</span>`;
-    return `<span class="signal-badge signal-low">low quality</span>`;
-  };
-
+  // Traffic detail table
   const trEl=document.getElementById('tr-detail');
   if(traffic.length){
+    const maxS=Math.max(...traffic.map(x=>parseFloat(x.sessions||0)))||1;
     trEl.innerHTML=traffic.map(r=>{
-      const er=parseFloat(r.sessions||0)>0?parseFloat(r.engaged||0)/parseFloat(r.sessions||0):0;
-      const maxS2=Math.max(...traffic.map(x=>parseFloat(x.sessions||0)))||1;
+      const er=parseFloat(r.engRate||0);
+      let sigClass='signal-low', sigLabel='low quality';
+      if(er>=0.6){sigClass='signal-high';sigLabel='high quality';}
+      else if(er>=0.35){sigClass='signal-med';sigLabel='medium';}
+      const sig=isAgency?`<span class="signal-badge ${sigClass}">${sigLabel}</span>`:'';
       return `<div class="data-row">
         <span class="row-name">${r.source||'Unknown'}</span>
-        ${signalFn(r)}
-        <div class="bar-wrap"><div class="bar" style="width:${(parseFloat(r.sessions||0)/maxS2*100).toFixed(0)}%;background:#1a1814"></div></div>
+        ${sig}
+        <div class="bar-wrap"><div class="bar" style="width:${(parseFloat(r.sessions||0)/maxS*100).toFixed(0)}%;background:#1a1814"></div></div>
         <span class="row-val">${fmt(r.sessions)}</span>
         <span class="row-sub">${fmtPct(er)}</span>
       </div>`;
     }).join('');
   }
 
-  // Traffic signals (agency)
+  // Traffic quality signals (agency)
   if(isAgency){
     const signals=[];
     traffic.forEach(r=>{
-      const er=parseFloat(r.sessions||0)>0?parseFloat(r.engaged||0)/parseFloat(r.sessions||0):0;
+      const er=parseFloat(r.engRate||0);
       const s=parseFloat(r.sessions||0);
       if(s>100&&er<0.3) signals.push({type:'warn',title:`${r.source}: high traffic, low engagement`,body:`${fmt(s)} sessions but only ${fmtPct(er)} engagement rate. Visitors may not find what they're looking for.`,action:'→ Review landing page experience for this traffic source'});
-      if(s<50&&er>0.7) signals.push({type:'good',title:`${r.source}: small but highly engaged`,body:`Only ${fmt(s)} sessions but ${fmtPct(er)} engagement. High-quality traffic worth investing in.`,action:'→ Consider scaling this channel'});
+      if(s<50&&er>0.7) signals.push({type:'good',title:`${r.source}: small but highly engaged`,body:`Only ${fmt(s)} sessions but ${fmtPct(er)} engagement. High-quality niche traffic worth investing in.`,action:'→ Consider scaling this channel'});
     });
     const sigEl=document.getElementById('tr-signals');
     sigEl.innerHTML=signals.slice(0,4).map(s=>`<div class="insight ${s.type}"><div class="insight-title">${s.title}</div><div class="insight-body">${s.body}</div><div class="insight-action">${s.action}</div></div>`).join('')||'<div class="no-data">No significant signals detected for this period</div>';
   }
 
   // ── ENGAGEMENT ──
-  document.getElementById('eng-rate').textContent=fmtPct(engRate);
+  document.getElementById('eng-rate').textContent=fmtPct(avgEngRate);
   document.getElementById('eng-dur').textContent=fmtDur(avgDur);
-  document.getElementById('eng-spu').textContent=totU>0?(totS/totU).toFixed(1):'—';
-  document.getElementById('eng-pps').textContent=avgPPS.toFixed(1);
+  document.getElementById('eng-eps').textContent=avgEps.toFixed(1);
+  document.getElementById('eng-ker').textContent=fmtPct(avgKer);
+  setDelta('eng-rate-d',delta(avgEngRate,prevEngRate));
+  setDelta('eng-dur-d',delta(avgDur,prevDur));
 
   // Engagement by channel
   const engChEl=document.getElementById('eng-by-channel');
-  const sortedByEng=[...traffic].sort((a,b)=>{
-    const ea=parseFloat(a.sessions||0)>0?parseFloat(a.engaged||0)/parseFloat(a.sessions||0):0;
-    const eb=parseFloat(b.sessions||0)>0?parseFloat(b.engaged||0)/parseFloat(b.sessions||0):0;
-    return eb-ea;
-  });
-  const maxEng=1;
+  const sortedByEng=[...traffic].sort((a,b)=>parseFloat(b.engRate||0)-parseFloat(a.engRate||0));
   engChEl.innerHTML=sortedByEng.slice(0,8).map(r=>{
-    const er=parseFloat(r.sessions||0)>0?parseFloat(r.engaged||0)/parseFloat(r.sessions||0):0;
+    const er=parseFloat(r.engRate||0);
     return `<div class="data-row">
       <span class="row-name">${r.source}</span>
       <div class="bar-wrap"><div class="bar" style="width:${(er*100).toFixed(0)}%;background:${er>=0.6?'#2d6a4f':er>=0.35?'#b5860b':'#c0392b'}"></div></div>
@@ -574,10 +593,9 @@ async function loadAll(){
   const engPgEl=document.getElementById('eng-pages');
   if(pages.length){
     engPgEl.innerHTML=pages.slice(0,10).map(p=>{
-      const er=parseFloat(p.sessions||0)>0?parseFloat(p.engaged||0)/parseFloat(p.sessions||0):0;
       return `<div class="data-row">
         <span class="row-name" style="font-family:monospace;font-size:11px">${p.page}</span>
-        <div class="bar-wrap"><div class="bar" style="width:${(er*100).toFixed(0)}%;background:#2d6a4f"></div></div>
+        <div class="bar-wrap"><div class="bar" style="width:${Math.min(100,parseFloat(p.ker||0)*1000).toFixed(0)}%;background:#2d6a4f"></div></div>
         <span class="row-val">${fmt(p.sessions)}</span>
         <span class="row-sub">${fmtDur(p.avgDur)}</span>
       </div>`;
@@ -585,39 +603,30 @@ async function loadAll(){
   }
 
   // ── PROGRAMS ──
-  const evMap={};
-  events.forEach(e=>{evMap[e.event]={count:parseFloat(e.count||0),users:parseFloat(e.users||0)};});
-  const prevEvMap={};
-  prevEvents.forEach(e=>{prevEvMap[e.event]=parseFloat(e.count||0);});
-
   const groups=[
     {
       id:'forms', label:'Form Submissions', color:'#1d3557', dot:'#1d3557',
-      events:events.filter(e=>e.event.includes('form_submission')||e.event.includes('_form_')),
       items:[
         {name:'Igniting Leadership',key:'igniting_leadership_form_submission'},
         {name:'Women\'s Leadership',key:'womens_leadership_form_submission'},
         {name:'Leader Evolution',key:'leader_evolution_form_submission'},
         {name:'General form',key:'form_submission_id'},
+        {name:'Generate lead',key:'generate_lead'},
       ]
     },
     {
       id:'downloads', label:'File Downloads', color:'#2d6a4f', dot:'#2d6a4f',
-      events:events.filter(e=>e.event==='file_download'),
       items:[{name:'All file downloads',key:'file_download'}]
     },
     {
       id:'intent', label:'Intent & Enquiry', color:'#b5860b', dot:'#b5860b',
-      events:events.filter(e=>['donate_now_clicks','calltracking','click'].includes(e.event)),
       items:[
         {name:'Donate now clicks',key:'donate_now_clicks'},
         {name:'Call tracking',key:'calltracking'},
-        {name:'Other clicks',key:'click'},
       ]
     },
     {
       id:'checkout', label:'High Intent / Checkout', color:'#c0392b', dot:'#c0392b',
-      events:events.filter(e=>['begin_checkout','add_payment_info','purchase'].includes(e.event)),
       items:[
         {name:'Begin checkout',key:'begin_checkout'},
         {name:'Add payment info',key:'add_payment_info'},
@@ -631,6 +640,19 @@ async function loadAll(){
     const total=g.items.reduce((a,i)=>a+(evMap[i.key]?.count||0),0);
     const prevTotal=g.items.reduce((a,i)=>a+(prevEvMap[i.key]||0),0);
     const d=delta(total,prevTotal);
+    const rows=g.items.map(i=>{
+      const v=evMap[i.key]?.count||0;
+      const u=evMap[i.key]?.users||0;
+      if(!v) return '';
+      const maxV=Math.max(...g.items.map(x=>evMap[x.key]?.count||0))||1;
+      return `<div class="data-row">
+        <span class="row-name">${i.name}</span>
+        <div class="bar-wrap"><div class="bar" style="width:${(v/maxV*100).toFixed(0)}%;background:${g.color}"></div></div>
+        <span class="row-val">${fmt(v)}</span>
+        <span class="row-sub">${fmt(u)} users</span>
+      </div>`;
+    }).join('');
+    if(!total&&!rows) return '';
     return `<div class="prog-group">
       <div class="prog-group-title">
         <span class="prog-dot" style="background:${g.dot}"></span>
@@ -638,48 +660,33 @@ async function loadAll(){
         <span class="prog-total">${fmt(total)}</span>
         ${d?`<span class="prog-delta ${d.cls}">${d.str}</span>`:''}
       </div>
-      ${g.items.map(i=>{
-        const v=evMap[i.key]?.count||0;
-        const u=evMap[i.key]?.users||0;
-        const max=Math.max(...g.items.map(x=>evMap[x.key]?.count||0))||1;
-        if(!v) return '';
-        return `<div class="data-row">
-          <span class="row-name">${i.name}</span>
-          <div class="bar-wrap"><div class="bar" style="width:${(v/max*100).toFixed(0)}%;background:${g.color}"></div></div>
-          <span class="row-val">${fmt(v)}</span>
-          <span class="row-sub">${fmt(u)} users</span>
-        </div>`;
-      }).join('')}
+      ${rows||'<div class="no-data">No events recorded this period</div>'}
     </div>`;
   }).join('');
 
   // ── AGENCY INSIGHTS ──
   if(isAgency){
     const insights=[];
-    const totForms=(['igniting_leadership_form_submission','womens_leadership_form_submission','leader_evolution_form_submission','form_submission_id']).reduce((a,k)=>a+(evMap[k]?.count||0),0);
+    const totForms=formKeys.reduce((a,k)=>a+(evMap[k]?.count||0),0);
     const totDownloads=evMap['file_download']?.count||0;
     const totPurchases=evMap['purchase']?.count||0;
+    const totRevenue=events.reduce((a,e)=>a+parseFloat(e.revenue||0),0);
 
     if(totS>0){
       const organicSess=grouped.organic;
-      const organicPct=organicSess/totS;
-      const organicFormPct=totForms>0?(evMap['igniting_leadership_form_submission']?.count||0)/totForms:0;
-      insights.push({type:'info',title:`Organic drives ${fmtPct(organicPct)} of sessions`,body:`${fmt(organicSess)} sessions from organic search. Engagement quality is typically higher from organic vs paid.`,action:'→ Continue SEO investment — high quality traffic source'});
+      insights.push({type:'info',title:`Organic drives ${fmtPct(totS>0?organicSess/totS:0)} of sessions`,body:`${fmt(organicSess)} sessions from organic search. Typically highest-quality traffic source.`,action:'→ Continue SEO investment — high quality traffic source'});
     }
 
-    if(totForms>0&&totS>0) insights.push({type:totForms/totS>0.01?'good':'warn',title:`Form submissions: ${fmt(totForms)} this period`,body:`${fmtPct(totForms/totS)} of sessions result in a form submission. Igniting Leadership leads program interest.`,action:'→ Feature top programs prominently on high-traffic pages'});
+    if(totForms>0&&totS>0) insights.push({type:totForms/totS>0.01?'good':'warn',title:`Form submissions: ${fmt(totForms)} this period`,body:`${fmtPct(totForms/totS)} of sessions result in a form submission.`,action:'→ Feature top programs prominently on high-traffic pages'});
 
-    if(totDownloads>0) insights.push({type:'info',title:`${fmt(totDownloads)} file downloads`,body:`Content is being consumed. Downloads indicate genuine interest in the organisation's resources.`,action:'→ Add email capture to download flow to build the database'});
+    if(totDownloads>0) insights.push({type:'info',title:`${fmt(totDownloads)} file downloads`,body:`Content is being consumed. Downloads indicate genuine interest in resources.`,action:'→ Add email capture to download flow to build the database'});
 
-    if(totPurchases>0) insights.push({type:'good',title:`${fmt(totPurchases)} purchases recorded`,body:`Direct revenue from the site. Review which channels drive the highest-value transactions.`,action:'→ Connect Meta and LinkedIn to see full paid attribution'});
+    if(totRevenue>0) insights.push({type:'good',title:`$${totRevenue.toFixed(2)} revenue recorded`,body:`Direct revenue tracked in GA4. Review which channels drive highest-value transactions.`,action:'→ Connect Meta and LinkedIn for full paid attribution'});
 
-    // High traffic / low engagement pages
-    const badPages=pages.filter(p=>parseFloat(p.sessions||0)>50&&parseFloat(p.engaged||0)/parseFloat(p.sessions||0)<0.3);
-    if(badPages.length) insights.push({type:'critical',title:`${badPages.length} high-traffic page${badPages.length>1?'s':''} with low engagement`,body:`${badPages.map(p=>p.page).join(', ')} — getting traffic but not engaging visitors.`,action:'→ Review content and CTA placement on these pages'});
+    const badPages=pages.filter(p=>parseFloat(p.sessions||0)>50&&parseFloat(p.ker||0)<0.02);
+    if(badPages.length) insights.push({type:'critical',title:`${badPages.length} high-traffic page${badPages.length>1?'s':''} with low key event rate`,body:`${badPages.slice(0,3).map(p=>p.page).join(', ')} — getting traffic but not converting.`,action:'→ Review content and CTA placement on these pages'});
 
     document.getElementById('agency-insights').innerHTML=insights.map(i=>`<div class="insight ${i.type}"><div class="insight-title">${i.title}</div><div class="insight-body">${i.body}</div><div class="insight-action">${i.action}</div></div>`).join('')||'<div class="no-data">Not enough data to generate insights for this period</div>';
-
-    // Overview insights (mini)
     document.getElementById('ov-insights').innerHTML=insights.slice(0,2).map(i=>`<div class="insight ${i.type}"><div class="insight-title">${i.title}</div><div class="insight-action">${i.action}</div></div>`).join('');
   }
 
@@ -696,30 +703,49 @@ async function sendChat(){
   const text=input.value.trim();
   if(!text) return;
   input.value='';
+
   const uDiv=document.createElement('div'); uDiv.className='msg user'; uDiv.textContent=text; msgs.appendChild(uDiv);
   const lDiv=document.createElement('div'); lDiv.className='msg ai'; lDiv.innerHTML='<span class="spinner"></span>'; msgs.appendChild(lDiv);
   msgs.scrollTop=msgs.scrollHeight;
 
+  // Add to history
+  chatHistory.push({role:'user',content:text});
+
   const d=globalData;
   const totS=d.traffic?.reduce((a,r)=>a+parseFloat(r.sessions||0),0)||0;
   const totE=d.traffic?.reduce((a,r)=>a+parseFloat(r.engaged||0),0)||0;
-  const sys=`You are a marketing analyst for Leadership Victoria, an Australian not-for-profit leadership development organisation. You have access to real GA4 data.
+  const avgEr=totS>0?d.traffic?.reduce((a,r)=>a+parseFloat(r.engRate||0)*parseFloat(r.sessions||0),0)/totS:0;
 
-Current period data:
+  const evMap2={};
+  d.events?.forEach(e=>{evMap2[e.event]=parseFloat(e.count||0);});
+
+  const sys=`You are a marketing analyst for Leadership Victoria, an Australian not-for-profit leadership development organisation. You have access to real GA4 analytics data.
+
+Current period data summary:
 - Total sessions: ${fmt(totS)}
-- Engaged sessions: ${fmt(totE)} (${fmtPct(totS>0?totE/totS:0)} rate)
-- Top channels: ${d.traffic?.slice(0,5).map(r=>r.source+': '+fmt(r.sessions)).join(', ')||'loading'}
-- Top pages: ${d.pages?.slice(0,5).map(p=>p.page+': '+fmt(p.sessions)).join(', ')||'loading'}
-- Key events: ${d.events?.slice(0,10).map(e=>e.event+': '+fmt(e.count)).join(', ')||'loading'}
+- Engaged sessions: ${fmt(totE)} (${fmtPct(avgEr)} engagement rate)
+- Top traffic channels: ${d.traffic?.slice(0,5).map(r=>`${r.source}: ${fmt(r.sessions)} sessions, ${fmtPct(parseFloat(r.engRate||0))} engagement`).join(' | ')||'loading'}
+- Top landing pages: ${d.pages?.slice(0,5).map(p=>`${p.page}: ${fmt(p.sessions)} sessions`).join(' | ')||'loading'}
+- Key events: ${d.events?.slice(0,10).map(e=>`${e.event}: ${fmt(e.count)}`).join(', ')||'loading'}
 
-IMPORTANT: Only answer based on available data. Do not make up numbers. If data is not available, say so.
-Reply in 3-5 sentences. Be specific. End with one concrete recommendation. Same language as user.`;
+Rules:
+- Only reference numbers from the data above. Never invent figures.
+- If data is unavailable, say so clearly.
+- Reply concisely (3–5 sentences). Be specific and actionable.
+- End with one concrete recommendation.
+- Match the language of the user (Spanish or English).`;
 
   try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:sys,messages:[{role:'user',content:text}]})});
+    const res=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system:sys,messages:chatHistory})});
     const data=await res.json();
-    lDiv.textContent=data.content?.find(b=>b.type==='text')?.text||'Could not get response.';
-  }catch(e){lDiv.textContent='Connection error. Try again.';}
+    const reply=data.content?.find(b=>b.type==='text')?.text||'Could not get response.';
+    lDiv.textContent=reply;
+    chatHistory.push({role:'assistant',content:reply});
+    // Keep history manageable
+    if(chatHistory.length>20) chatHistory=chatHistory.slice(-20);
+  }catch(e){
+    lDiv.textContent='Connection error. Check that ANTHROPIC_API_KEY is set in Vercel environment variables.';
+  }
   msgs.scrollTop=msgs.scrollHeight;
 }
 

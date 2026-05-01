@@ -1,7 +1,6 @@
 {
   "name": "lv-dashboard",
   "version": "1.0.0",
-  "description": "Leadership Victoria Marketing Dashboard",
   "dependencies": {
     "@google-cloud/bigquery": "^7.3.0"
   }

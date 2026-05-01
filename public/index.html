@@ -4,87 +4,128 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Leadership Victoria · Dashboard</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --bg: #faf9f7; --bg2: #f2f0ec; --border: #e8e3db;
-    --text: #1a1814; --text2: #6b6560; --text3: #a09890;
-    --accent: #2d6a4f; --accent2: #1d3557; --warn: #c0392b;
-  }
-  html, body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
-  ::-webkit-scrollbar { width: 3px; } ::-webkit-scrollbar-thumb { background: var(--border); }
-  #loading { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 999; transition: opacity .5s; }
-  #loading.hidden { opacity: 0; pointer-events: none; }
-  .load-logo { font-family: 'Cormorant Garamond', serif; font-size: 28px; color: var(--text); margin-bottom: 24px; }
-  .load-bar { width: 200px; height: 1px; background: var(--border); position: relative; overflow: hidden; }
-  .load-bar::after { content: ''; position: absolute; left: -100%; width: 100%; height: 100%; background: var(--text); animation: load 2s ease infinite; }
-  @keyframes load { to { left: 200%; } }
-  .load-msg { font-size: 11px; color: var(--text3); margin-top: 16px; letter-spacing: 1px; text-transform: uppercase; }
-  .header { padding: 16px 32px; border-bottom: 0.5px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: var(--bg); position: sticky; top: 0; z-index: 100; }
-  .logo { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 400; }
-  .logo-sub { font-size: 10px; color: var(--text3); letter-spacing: 1.5px; text-transform: uppercase; margin-top: 1px; }
-  .agency-badge { font-size: 10px; padding: 3px 10px; border-radius: 20px; background: var(--accent2); color: white; font-weight: 500; display: none; margin-left: 16px; }
-  .agency-badge.show { display: inline-flex; }
-  .date-bar { padding: 10px 32px; border-bottom: 0.5px solid var(--border); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-  .date-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; }
-  .date-btn { border: 0.5px solid var(--border); border-radius: 6px; padding: 5px 14px; font-size: 12px; color: var(--text2); background: none; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all .15s; }
-  .date-btn:hover, .date-btn.active { background: var(--text); color: var(--bg); border-color: var(--text); }
-  .date-input { border: 0.5px solid var(--border); border-radius: 6px; padding: 4px 10px; font-size: 12px; color: var(--text); background: var(--bg2); font-family: 'DM Sans', sans-serif; }
-  .date-input:focus { outline: none; }
-  .date-apply { border: none; border-radius: 6px; padding: 5px 16px; font-size: 12px; background: var(--text); color: var(--bg); cursor: pointer; font-family: 'DM Sans', sans-serif; }
-  .last-updated { margin-left: auto; font-size: 11px; color: var(--text3); }
-  .tabs { padding: 0 32px; border-bottom: 0.5px solid var(--border); display: flex; overflow-x: auto; }
-  .tab { border: none; background: none; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 12px; color: var(--text3); padding: 10px 16px 12px; border-bottom: 2px solid transparent; transition: all .15s; white-space: nowrap; }
-  .tab.active { color: var(--text); border-bottom-color: var(--text); font-weight: 500; }
-  .tab.agency-only { display: none; }
-  .tab.agency-only.show { display: block; }
-  .body { padding: 24px 32px; max-width: 1200px; }
-  .tab-content { display: none; }
-  .tab-content.active { display: block; }
-  .kpi-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 12px; margin-bottom: 20px; }
-  .kpi-grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; margin-bottom: 20px; }
-  .kpi { background: white; border: 0.5px solid var(--border); border-radius: 10px; padding: 16px 18px; }
-  .kpi-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
-  .kpi-value { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 400; color: var(--text); letter-spacing: -0.5px; line-height: 1; }
-  .kpi-sub { font-size: 11px; color: var(--text3); margin-top: 6px; }
-  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
-  .panel { background: white; border: 0.5px solid var(--border); border-radius: 10px; padding: 18px 20px; margin-bottom: 14px; }
-  .panel-title { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text3); margin-bottom: 14px; font-weight: 500; }
-  .data-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 0.5px solid var(--border); font-size: 13px; }
-  .data-row:last-child { border-bottom: none; }
-  .row-name { flex: 1; color: var(--text2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
-  .bar-wrap { width: 100px; height: 3px; background: var(--bg2); border-radius: 2px; flex-shrink: 0; }
-  .bar { height: 3px; border-radius: 2px; }
-  .row-val { min-width: 60px; text-align: right; font-size: 13px; font-weight: 500; color: var(--text); }
-  .row-sub { min-width: 50px; text-align: right; font-size: 11px; color: var(--text3); }
-  .insight { border-radius: 8px; padding: 13px 15px; margin-bottom: 10px; border-left: 3px solid var(--border); background: var(--bg2); }
-  .insight.good { border-left-color: var(--accent); }
-  .insight.warn { border-left-color: #e67e22; }
-  .insight.critical { border-left-color: var(--warn); }
-  .insight.info { border-left-color: var(--accent2); }
-  .insight-title { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
-  .insight-body { font-size: 12px; color: var(--text2); line-height: 1.6; margin-bottom: 6px; }
-  .insight-action { font-size: 11px; color: var(--text3); font-style: italic; }
-  .agency-section { display: none; }
-  .agency-section.show { display: block; }
-  .chat-wrap { background: white; border: 0.5px solid var(--border); border-radius: 10px; padding: 18px 20px; }
-  .chat-msgs { min-height: 180px; max-height: 260px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
-  .msg { max-width: 85%; padding: 10px 13px; border-radius: 10px; font-size: 13px; line-height: 1.6; }
-  .msg.ai { background: var(--bg2); color: var(--text); align-self: flex-start; border-radius: 2px 10px 10px 10px; }
-  .msg.user { background: var(--text); color: var(--bg); align-self: flex-end; border-radius: 10px 10px 2px 10px; }
-  .chat-input-row { display: flex; gap: 8px; border-top: 0.5px solid var(--border); padding-top: 14px; }
-  .chat-input { flex: 1; border: 0.5px solid var(--border); border-radius: 8px; padding: 9px 13px; font-size: 13px; background: var(--bg2); color: var(--text); font-family: 'DM Sans', sans-serif; }
-  .chat-input:focus { outline: none; }
-  .chat-btn { border: none; border-radius: 8px; padding: 9px 16px; background: var(--text); color: var(--bg); font-size: 12px; cursor: pointer; font-family: 'DM Sans', sans-serif; }
-  .sugg-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
-  .sugg { border: 0.5px solid var(--border); border-radius: 20px; padding: 5px 13px; font-size: 11px; color: var(--text2); background: none; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all .15s; }
-  .sugg:hover { background: var(--bg2); }
-  .spinner { width: 12px; height: 12px; border: 2px solid var(--border); border-top-color: var(--text3); border-radius: 50%; animation: spin .7s linear infinite; display: inline-block; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .loading-row { display: flex; align-items: center; gap: 8px; color: var(--text3); font-size: 12px; padding: 16px 0; }
-  .error-msg { font-size: 12px; color: var(--warn); padding: 10px 0; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#faf9f7;--bg2:#f2f0ec;--border:#e8e3db;--text:#1a1814;--text2:#6b6560;--text3:#a09890;--accent:#2d6a4f;--accent2:#1d3557;--warn:#c0392b;--gold:#b5860b}
+html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:var(--border)}
+@keyframes load{to{left:200%}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeUp .4s ease both}
+
+/* LOADING */
+#loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;transition:opacity .5s}
+#loading.hidden{opacity:0;pointer-events:none}
+.load-logo{font-family:'Cormorant Garamond',serif;font-size:28px;margin-bottom:24px}
+.load-bar{width:200px;height:1px;background:var(--border);position:relative;overflow:hidden}
+.load-bar::after{content:'';position:absolute;left:-100%;width:100%;height:100%;background:var(--text);animation:load 2s ease infinite}
+.load-msg{font-size:11px;color:var(--text3);margin-top:16px;letter-spacing:1px;text-transform:uppercase}
+
+/* HEADER */
+.header{padding:14px 32px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg);position:sticky;top:0;z-index:100}
+.logo{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400}
+.logo-sub{font-size:10px;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;margin-top:1px}
+.agency-badge{font-size:10px;padding:3px 10px;border-radius:20px;background:var(--accent2);color:white;font-weight:500;display:none;margin-left:14px}
+.agency-badge.show{display:inline-flex}
+
+/* DATE BAR */
+.date-bar{padding:9px 32px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--bg)}
+.date-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px}
+.date-btn{border:0.5px solid var(--border);border-radius:6px;padding:4px 12px;font-size:12px;color:var(--text2);background:none;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s}
+.date-btn:hover,.date-btn.active{background:var(--text);color:var(--bg);border-color:var(--text)}
+.date-input{border:0.5px solid var(--border);border-radius:6px;padding:3px 8px;font-size:12px;color:var(--text);background:var(--bg2);font-family:'DM Sans',sans-serif}
+.date-input:focus{outline:none}
+.date-apply{border:none;border-radius:6px;padding:4px 14px;font-size:12px;background:var(--text);color:var(--bg);cursor:pointer;font-family:'DM Sans',sans-serif}
+.last-updated{margin-left:auto;font-size:11px;color:var(--text3)}
+
+/* TABS */
+.tabs{padding:0 32px;border-bottom:0.5px solid var(--border);display:flex;overflow-x:auto;background:var(--bg)}
+.tab{border:none;background:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--text3);padding:10px 14px 12px;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap}
+.tab.active{color:var(--text);border-bottom-color:var(--text);font-weight:500}
+.tab.agency-only{display:none}
+.tab.agency-only.show{display:block}
+
+/* BODY */
+.body{padding:22px 32px;max-width:1200px}
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+/* KPI */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:18px}
+.kpi-grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:18px}
+.kpi{background:white;border:0.5px solid var(--border);border-radius:10px;padding:14px 16px}
+.kpi-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
+.kpi-value{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:400;color:var(--text);letter-spacing:-.5px;line-height:1}
+.kpi-sub{font-size:11px;color:var(--text3);margin-top:5px}
+.kpi-delta{font-size:11px;margin-top:4px;font-weight:500}
+.up{color:var(--accent)}.down{color:var(--warn)}.flat{color:var(--text3)}
+
+/* PANELS */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.panel{background:white;border:0.5px solid var(--border);border-radius:10px;padding:16px 18px;margin-bottom:12px}
+.panel-title{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:12px;font-weight:500;display:flex;align-items:center;justify-content:space-between}
+
+/* ROWS */
+.data-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:0.5px solid var(--border);font-size:12px}
+.data-row:last-child{border-bottom:none}
+.row-name{flex:1;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar-wrap{width:80px;height:3px;background:var(--bg2);border-radius:2px;flex-shrink:0}
+.bar{height:3px;border-radius:2px}
+.row-val{min-width:52px;text-align:right;font-size:12px;font-weight:500;color:var(--text)}
+.row-delta{min-width:44px;text-align:right;font-size:11px}
+.row-sub{min-width:40px;text-align:right;font-size:11px;color:var(--text3)}
+
+/* INSIGHTS */
+.insight{border-radius:8px;padding:12px 14px;margin-bottom:9px;border-left:3px solid var(--border);background:var(--bg2)}
+.insight.good{border-left-color:var(--accent)}
+.insight.warn{border-left-color:#e67e22}
+.insight.critical{border-left-color:var(--warn)}
+.insight.info{border-left-color:var(--accent2)}
+.insight-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:3px}
+.insight-body{font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:5px}
+.insight-action{font-size:11px;color:var(--text3);font-style:italic}
+
+/* PROGRAM CARDS */
+.prog-group{border:0.5px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;background:white}
+.prog-group-title{font-size:12px;font-weight:500;color:var(--text);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.prog-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.prog-total{margin-left:auto;font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--text)}
+.prog-delta{font-size:11px;font-weight:500;margin-left:6px}
+
+/* PLACEHOLDER */
+.placeholder{border:1px dashed var(--border);border-radius:10px;padding:24px;text-align:center;color:var(--text3)}
+.placeholder-icon{font-size:24px;margin-bottom:10px}
+.placeholder-title{font-size:13px;font-weight:500;color:var(--text2);margin-bottom:6px}
+.placeholder-body{font-size:12px;line-height:1.6}
+
+/* CHAT */
+.chat-wrap{background:white;border:0.5px solid var(--border);border-radius:10px;padding:16px 18px}
+.chat-msgs{min-height:160px;max-height:240px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
+.msg{max-width:85%;padding:9px 12px;border-radius:10px;font-size:13px;line-height:1.6}
+.msg.ai{background:var(--bg2);color:var(--text);align-self:flex-start;border-radius:2px 10px 10px 10px}
+.msg.user{background:var(--text);color:var(--bg);align-self:flex-end;border-radius:10px 10px 2px 10px}
+.chat-input-row{display:flex;gap:8px;border-top:0.5px solid var(--border);padding-top:12px}
+.chat-input{flex:1;border:0.5px solid var(--border);border-radius:8px;padding:8px 12px;font-size:13px;background:var(--bg2);color:var(--text);font-family:'DM Sans',sans-serif}
+.chat-input:focus{outline:none}
+.chat-btn{border:none;border-radius:8px;padding:8px 14px;background:var(--text);color:var(--bg);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif}
+.sugg-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.sugg{border:0.5px solid var(--border);border-radius:20px;padding:4px 12px;font-size:11px;color:var(--text2);background:none;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s}
+.sugg:hover{background:var(--bg2)}
+
+/* AGENCY ONLY */
+.agency-section{display:none}
+.agency-section.show{display:block}
+
+/* UTIL */
+.spinner{width:12px;height:12px;border:2px solid var(--border);border-top-color:var(--text3);border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
+.loading-row{display:flex;align-items:center;gap:8px;color:var(--text3);font-size:12px;padding:14px 0}
+.no-data{font-size:12px;color:var(--text3);padding:10px 0;font-style:italic}
+.signal-badge{display:inline-flex;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:500}
+.signal-high{background:#dcfce7;color:#2d6a4f}
+.signal-low{background:#fce4ec;color:#c0392b}
+.signal-med{background:#fff8e1;color:#b5860b}
 </style>
 </head>
 <body>
@@ -99,17 +140,17 @@
   <div style="display:flex;align-items:center">
     <div>
       <div class="logo">Leadership Victoria</div>
-      <div class="logo-sub">Marketing Performance Dashboard</div>
+      <div class="logo-sub">Marketing Intelligence Dashboard</div>
     </div>
     <span class="agency-badge" id="agencyBadge">HOP Agency View</span>
   </div>
-  <div style="font-size:11px;color:var(--text3)" id="dataStatus">● Live data</div>
+  <div style="font-size:11px;color:var(--text3)" id="dataStatus">● Live · GA4 Data</div>
 </div>
 
 <div class="date-bar">
   <span class="date-label">Period</span>
-  <button class="date-btn active" onclick="setPreset(7,this)">7d</button>
-  <button class="date-btn" onclick="setPreset(30,this)">30d</button>
+  <button class="date-btn" onclick="setPreset(7,this)">7d</button>
+  <button class="date-btn active" onclick="setPreset(30,this)">30d</button>
   <button class="date-btn" onclick="setPreset(90,this)">90d</button>
   <button class="date-btn" onclick="setPreset(120,this)">120d</button>
   <span style="color:var(--border)">|</span>
@@ -125,7 +166,8 @@
   <button class="tab" onclick="switchTab('traffic',this)">Traffic</button>
   <button class="tab" onclick="switchTab('engagement',this)">Engagement</button>
   <button class="tab" onclick="switchTab('programs',this)">Programs</button>
-  <button class="tab agency-only" id="insightsTab" onclick="switchTab('insights',this)">Internal Insights</button>
+  <button class="tab" onclick="switchTab('path',this)">Path Explorer</button>
+  <button class="tab agency-only" onclick="switchTab('insights',this)">Internal Insights</button>
   <button class="tab" onclick="switchTab('ai',this)">AI Analyst</button>
 </div>
 
@@ -133,74 +175,136 @@
 
   <!-- OVERVIEW -->
   <div class="tab-content active" id="tab-overview">
-    <div class="kpi-grid" id="kpiGrid">
-      <div class="kpi"><div class="kpi-label">Total Sessions</div><div class="kpi-value" id="kpi-sessions">—</div><div class="kpi-sub" id="kpi-users">loading...</div></div>
-      <div class="kpi"><div class="kpi-label">Engaged Sessions</div><div class="kpi-value" id="kpi-engaged">—</div><div class="kpi-sub" id="kpi-eng-rate">loading...</div></div>
-      <div class="kpi"><div class="kpi-label">Total Users</div><div class="kpi-value" id="kpi-total-users">—</div><div class="kpi-sub">unique visitors</div></div>
-      <div class="kpi"><div class="kpi-label">Key Events</div><div class="kpi-value" id="kpi-events">—</div><div class="kpi-sub">forms + downloads</div></div>
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="kpi-label">Sessions</div>
+        <div class="kpi-value" id="ov-sessions">—</div>
+        <div class="kpi-delta" id="ov-sessions-d"></div>
+        <div class="kpi-sub" id="ov-sessions-sub"></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Users</div>
+        <div class="kpi-value" id="ov-users">—</div>
+        <div class="kpi-delta" id="ov-users-d"></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Engaged Sessions</div>
+        <div class="kpi-value" id="ov-engaged">—</div>
+        <div class="kpi-delta" id="ov-engaged-d"></div>
+        <div class="kpi-sub" id="ov-eng-rate"></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Key Actions</div>
+        <div class="kpi-value" id="ov-actions">—</div>
+        <div class="kpi-delta" id="ov-actions-d"></div>
+        <div class="kpi-sub">forms + downloads + intent</div>
+      </div>
     </div>
     <div class="two-col">
       <div class="panel">
-        <div class="panel-title">Sessions by source</div>
-        <div id="trafficOverview"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+        <div class="panel-title">Top channels <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">sessions</span></div>
+        <div id="ov-channels"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
       </div>
       <div class="panel">
-        <div class="panel-title">Top landing pages</div>
-        <div id="pagesOverview"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+        <div class="panel-title">Top landing pages <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">sessions</span></div>
+        <div id="ov-pages"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
       </div>
     </div>
-    <div class="panel agency-section" id="overviewInsights">
-      <div class="panel-title">Key insights · Agency view</div>
-      <div id="insightsList"></div>
+    <div id="ov-insights-wrap" class="agency-section">
+      <div class="panel">
+        <div class="panel-title">Signals this period</div>
+        <div id="ov-insights"></div>
+      </div>
     </div>
   </div>
 
   <!-- TRAFFIC -->
   <div class="tab-content" id="tab-traffic">
+    <div class="kpi-grid-3">
+      <div class="kpi">
+        <div class="kpi-label">Organic</div>
+        <div class="kpi-value" id="tr-organic">—</div>
+        <div class="kpi-sub" id="tr-organic-sub"></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Direct</div>
+        <div class="kpi-value" id="tr-direct">—</div>
+        <div class="kpi-sub" id="tr-direct-sub"></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Paid</div>
+        <div class="kpi-value" id="tr-paid">—</div>
+        <div class="kpi-sub" id="tr-paid-sub"></div>
+      </div>
+    </div>
     <div class="panel">
-      <div class="panel-title">Sessions by source/medium</div>
-      <div id="trafficDetail"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+      <div class="panel-title">All sources · sessions + engagement quality</div>
+      <div id="tr-detail"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+    </div>
+    <div class="panel agency-section">
+      <div class="panel-title">Traffic quality signals</div>
+      <div id="tr-signals"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
     </div>
   </div>
 
   <!-- ENGAGEMENT -->
   <div class="tab-content" id="tab-engagement">
     <div class="kpi-grid">
-      <div class="kpi"><div class="kpi-label">Avg Session Duration</div><div class="kpi-value" id="eng-duration">—</div></div>
-      <div class="kpi"><div class="kpi-label">Engaged Sessions</div><div class="kpi-value" id="eng-engaged">—</div></div>
-      <div class="kpi"><div class="kpi-label">Engagement Rate</div><div class="kpi-value" id="eng-rate">—</div></div>
-      <div class="kpi"><div class="kpi-label">Sessions per User</div><div class="kpi-value" id="eng-spu">—</div></div>
+      <div class="kpi">
+        <div class="kpi-label">Engagement Rate</div>
+        <div class="kpi-value" id="eng-rate">—</div>
+        <div class="kpi-delta" id="eng-rate-d"></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Avg Session Duration</div>
+        <div class="kpi-value" id="eng-dur">—</div>
+        <div class="kpi-delta" id="eng-dur-d"></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Sessions per User</div>
+        <div class="kpi-value" id="eng-spu">—</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Pages per Session</div>
+        <div class="kpi-value" id="eng-pps">—</div>
+      </div>
     </div>
-    <div class="panel">
-      <div class="panel-title">Top landing pages · sessions + engagement</div>
-      <div id="landingPages"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+    <div class="two-col">
+      <div class="panel">
+        <div class="panel-title">Engagement rate by channel</div>
+        <div id="eng-by-channel"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">Landing pages · quality view</div>
+        <div id="eng-pages"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+      </div>
     </div>
   </div>
 
   <!-- PROGRAMS -->
   <div class="tab-content" id="tab-programs">
-    <div class="panel">
-      <div class="panel-title">All key events</div>
-      <div id="allEvents"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+    <div id="prog-content"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+  </div>
+
+  <!-- PATH EXPLORER -->
+  <div class="tab-content" id="tab-path">
+    <div class="placeholder">
+      <div class="placeholder-icon">🗺</div>
+      <div class="placeholder-title">Path Explorer — Coming Soon</div>
+      <div class="placeholder-body">
+        Path analysis requires raw GA4 event export tables (<code>events_YYYYMMDD</code>).<br>
+        Current dataset only includes aggregated GA4 report tables.<br><br>
+        <strong>To enable:</strong> In GA4 → Admin → BigQuery Linking → enable "Raw event export".<br>
+        Once active, path analysis, funnels, and user journey mapping will be available here.
+      </div>
     </div>
   </div>
 
-  <!-- INSIGHTS AGENCY -->
+  <!-- INTERNAL INSIGHTS -->
   <div class="tab-content" id="tab-insights">
     <div class="panel">
-      <div class="panel-title">Internal analysis · HOP Agency</div>
-      <div id="agencyInsights">
-        <div class="insight good">
-          <div class="insight-title">Direct traffic is dominant — strong brand recognition</div>
-          <div class="insight-body">Most sessions come directly — people know Leadership Victoria and come back. This signals a loyal audience.</div>
-          <div class="insight-action">→ Nurture with email marketing to keep this audience engaged</div>
-        </div>
-        <div class="insight info">
-          <div class="insight-title">Organic Search performing well</div>
-          <div class="insight-body">Strong organic presence — SEO is working. Continue creating content around program names and leadership topics.</div>
-          <div class="insight-action">→ Double down on SEO content strategy</div>
-        </div>
-      </div>
+      <div class="panel-title">Automatic signals · based on real data</div>
+      <div id="agency-insights"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
     </div>
     <div class="panel">
       <div class="panel-title">Notes for client meeting</div>
@@ -208,21 +312,21 @@
     </div>
   </div>
 
-  <!-- AI -->
+  <!-- AI ANALYST -->
   <div class="tab-content" id="tab-ai">
     <div class="chat-wrap">
       <div class="panel-title">AI Marketing Analyst · Leadership Victoria</div>
       <div class="sugg-row">
-        <button class="sugg" onclick="askSugg(this)">Which channel drives the most traffic?</button>
-        <button class="sugg" onclick="askSugg(this)">What are our top landing pages?</button>
+        <button class="sugg" onclick="askSugg(this)">Which channel has the best quality traffic?</button>
+        <button class="sugg" onclick="askSugg(this)">What programs are getting the most interest?</button>
         <button class="sugg" onclick="askSugg(this)">Write a monthly summary for the client</button>
-        <button class="sugg" onclick="askSugg(this)">How can we improve engagement?</button>
+        <button class="sugg" onclick="askSugg(this)">Where are we losing people?</button>
       </div>
       <div class="chat-msgs" id="chatMsgs">
-        <div class="msg ai">Hi! I have Leadership Victoria's real analytics data. What would you like to explore?</div>
+        <div class="msg ai">Hi — I'm your marketing analyst for Leadership Victoria. I have real GA4 data loaded. Ask me anything about traffic, engagement, programs, or campaign performance.</div>
       </div>
       <div class="chat-input-row">
-        <input class="chat-input" id="chatInput" placeholder="Ask anything about Leadership Victoria's marketing..." onkeydown="if(event.key==='Enter')sendChat()" />
+        <input class="chat-input" id="chatInput" placeholder="Ask about your marketing data..." onkeydown="if(event.key==='Enter')sendChat()">
         <button class="chat-btn" onclick="sendChat()">Ask →</button>
       </div>
     </div>
@@ -232,226 +336,402 @@
 
 <script>
 // ── CONFIG ────────────────────────────────────────────────────────────────────
-const TOKENS = { 'HOP2024': 'agency', 'LV2024': 'client' };
-const params = new URLSearchParams(window.location.search);
-const token = params.get('token') || 'LV2024';
-const isAgency = (TOKENS[token] || 'client') === 'agency';
+const TOKENS = {'HOP2024':'agency','LV2024':'client'};
+const token = new URLSearchParams(window.location.search).get('token') || 'LV2024';
+const isAgency = (TOKENS[token]||'client') === 'agency';
+const P = 'leadership-victoria-494806';
+const D = 'ga4_leadership_victoria_us';
 
-if (isAgency) {
+if(isAgency){
   document.getElementById('agencyBadge').classList.add('show');
-  document.querySelectorAll('.agency-only').forEach(el => el.classList.add('show'));
-  document.querySelectorAll('.agency-section').forEach(el => el.classList.add('show'));
+  document.querySelectorAll('.agency-only').forEach(e=>e.classList.add('show'));
+  document.querySelectorAll('.agency-section').forEach(e=>e.classList.add('show'));
 }
 
 // ── DATES ─────────────────────────────────────────────────────────────────────
-let currentDays = 30;
+let activeDays = 30;
 
-function setPreset(days, btn) {
-  document.querySelectorAll('.date-btn').forEach(b => b.classList.remove('active'));
+function setPreset(days,btn){
+  document.querySelectorAll('.date-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  currentDays = days;
-  const end = new Date();
-  const start = new Date(); start.setDate(start.getDate() - days);
-  document.getElementById('startDate').value = start.toISOString().split('T')[0];
-  document.getElementById('endDate').value = end.toISOString().split('T')[0];
-  loadAllData();
+  activeDays = days;
+  const e=new Date(), s=new Date(); s.setDate(s.getDate()-days);
+  document.getElementById('startDate').value=s.toISOString().split('T')[0];
+  document.getElementById('endDate').value=e.toISOString().split('T')[0];
+  loadAll();
 }
 
-function applyCustomDate() {
-  document.querySelectorAll('.date-btn').forEach(b => b.classList.remove('active'));
-  currentDays = null;
-  loadAllData();
+function applyCustomDate(){
+  document.querySelectorAll('.date-btn').forEach(b=>b.classList.remove('active'));
+  activeDays=null; loadAll();
 }
 
-function getDateFilter() {
-  const s = document.getElementById('startDate').value;
-  const e = document.getElementById('endDate').value;
-  if (s && e) return `_DATA_DATE BETWEEN '${s}' AND '${e}'`;
-  return `_DATA_DATE >= DATE_SUB(CURRENT_DATE(), INTERVAL ${currentDays || 30} DAY)`;
+function dateFilter(days){
+  const s=document.getElementById('startDate').value;
+  const e=document.getElementById('endDate').value;
+  if(s&&e) return `_DATA_DATE BETWEEN DATE('${s}') AND DATE('${e}')`;
+  return `_DATA_DATE >= DATE_SUB(CURRENT_DATE(), INTERVAL ${days||activeDays||30} DAY)`;
 }
 
-// Init
-const initEnd = new Date();
-const initStart = new Date(); initStart.setDate(initStart.getDate() - 30);
-document.getElementById('startDate').value = initStart.toISOString().split('T')[0];
-document.getElementById('endDate').value = initEnd.toISOString().split('T')[0];
-document.querySelectorAll('.date-btn')[1].classList.add('active');
-document.querySelectorAll('.date-btn')[0].classList.remove('active');
-
-// ── API ───────────────────────────────────────────────────────────────────────
-const PROJECT = 'leadership-victoria-494806';
-const DATASET = 'ga4_leadership_victoria_us';
-
-async function runQuery(sql) {
-  try {
-    const res = await fetch('/.netlify/functions/bigquery', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query: sql })
-    });
-    const json = await res.json();
-    if (!json.ok) throw new Error(json.error || 'Query failed');
-    return json.rows || [];
-  } catch(e) {
-    console.error('Query error:', e);
-    return [];
-  }
+function prevDateFilter(){
+  const d=activeDays||30;
+  return `_DATA_DATE >= DATE_SUB(CURRENT_DATE(), INTERVAL ${d*2} DAY) AND _DATA_DATE < DATE_SUB(CURRENT_DATE(), INTERVAL ${d} DAY)`;
 }
 
-// ── HELPERS ───────────────────────────────────────────────────────────────────
-const fmt = n => new Intl.NumberFormat('en-AU').format(Math.round(n || 0));
-const fmtDur = s => { const m = Math.floor((s||0)/60); return `${m}m ${Math.round((s||0)%60)}s`; };
-const fmtPct = n => ((n||0)*100).toFixed(1) + '%';
+// Init 30d
+const ie=new Date(), is=new Date(); is.setDate(is.getDate()-30);
+document.getElementById('startDate').value=is.toISOString().split('T')[0];
+document.getElementById('endDate').value=ie.toISOString().split('T')[0];
 
-function renderRows(id, rows, nameKey, valKey, formatter, color='#1a1814', subKey=null, subFmt=null) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  if (!rows || !rows.length) { el.innerHTML = '<div class="error-msg">No data for this period</div>'; return; }
-  const max = Math.max(...rows.map(r => parseFloat(r[valKey]||0))) || 1;
-  el.innerHTML = rows.map(r => {
-    const val = parseFloat(r[valKey]||0);
-    const sub = subKey ? `<span class="row-sub">${subFmt ? subFmt(r[subKey]) : fmt(r[subKey])}</span>` : '';
+// ── QUERY ─────────────────────────────────────────────────────────────────────
+async function bq(sql){
+  try{
+    const r=await fetch('/.netlify/functions/bigquery',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:sql})});
+    const j=await r.json();
+    if(!j.ok) throw new Error(j.error);
+    return j.rows||[];
+  }catch(e){console.error(e);return[];}
+}
+
+// ── FORMAT ────────────────────────────────────────────────────────────────────
+const fmt=n=>new Intl.NumberFormat('en-AU').format(Math.round(n||0));
+const fmtPct=n=>((n||0)*100).toFixed(1)+'%';
+const fmtDur=s=>{const m=Math.floor((s||0)/60);return `${m}m ${Math.round((s||0)%60)}s`};
+function delta(cur,prev){
+  if(!prev||prev===0) return null;
+  const p=((cur-prev)/prev*100);
+  return {val:p,str:(p>=0?'↑':'↓')+Math.abs(p).toFixed(1)+'%',cls:p>=0?'up':'down'};
+}
+function setDelta(id,d){
+  const el=document.getElementById(id);
+  if(!el||!d) return;
+  el.textContent=d.str; el.className='kpi-delta '+d.cls;
+}
+
+// ── RENDER ROWS ───────────────────────────────────────────────────────────────
+function renderRows(id,rows,nameKey,valKey,fmt2,color,subKey,subFmt,signalFn){
+  const el=document.getElementById(id);
+  if(!el) return;
+  if(!rows||!rows.length){el.innerHTML='<div class="no-data">No data for this period</div>';return;}
+  const max=Math.max(...rows.map(r=>parseFloat(r[valKey]||0)))||1;
+  el.innerHTML=rows.map(r=>{
+    const val=parseFloat(r[valKey]||0);
+    const sub=subKey?`<span class="row-sub">${subFmt?subFmt(r[subKey]):fmt(r[subKey])}</span>`:'';
+    const sig=signalFn?signalFn(r):'';
     return `<div class="data-row">
       <span class="row-name">${r[nameKey]||'Unknown'}</span>
+      ${sig}
       <div class="bar-wrap"><div class="bar" style="width:${(val/max*100).toFixed(0)}%;background:${color}"></div></div>
-      <span class="row-val">${formatter(val)}</span>${sub}
+      <span class="row-val">${fmt2(val)}</span>${sub}
     </div>`;
   }).join('');
 }
 
-// ── LOAD DATA ─────────────────────────────────────────────────────────────────
-async function loadAllData() {
-  document.getElementById('loadMsg').textContent = 'Loading analytics...';
+// ── GROUP CHANNEL ─────────────────────────────────────────────────────────────
+function groupChannel(src){
+  const s=(src||'').toLowerCase();
+  if(s.includes('organic')||s.includes('/ organic')) return 'organic';
+  if(s.includes('direct')||s==='(none)/(none)') return 'direct';
+  if(s.includes('paid')||s.includes('cpc')||s.includes('ppc')||s.includes('ads')) return 'paid';
+  if(s.includes('email')) return 'email';
+  if(s.includes('social')) return 'social';
+  if(s.includes('referral')) return 'referral';
+  return 'other';
+}
 
-  const df = getDateFilter();
+// ── LOAD ALL ──────────────────────────────────────────────────────────────────
+let globalData = {};
 
-  const [traffic, pages, events] = await Promise.all([
-    runQuery(`SELECT sessionSourceMedium as source, SUM(sessions) as sessions, SUM(totalUsers) as users, SUM(engagedSessions) as engaged FROM \`${PROJECT}.${DATASET}.ga4_TrafficAcquisition_317130094\` WHERE ${df} GROUP BY source ORDER BY sessions DESC LIMIT 20`),
-    runQuery(`SELECT landingPage as page, SUM(sessions) as sessions, AVG(averageSessionDuration) as avgDuration FROM \`${PROJECT}.${DATASET}.ga4_LandingPage_317130094\` WHERE ${df} GROUP BY page ORDER BY sessions DESC LIMIT 15`),
-    runQuery(`SELECT eventName as event, SUM(eventCount) as count, SUM(totalUsers) as users FROM \`${PROJECT}.${DATASET}.ga4_Events_317130094\` WHERE ${df} GROUP BY event ORDER BY count DESC LIMIT 30`),
+async function loadAll(){
+  document.getElementById('loadMsg').textContent='Loading data...';
+
+  const df=dateFilter();
+  const pf=prevDateFilter();
+
+  const [traffic, prevTraffic, pages, events, prevEvents] = await Promise.all([
+    bq(`SELECT sessionSourceMedium as source, SUM(sessions) as sessions, SUM(totalUsers) as users, SUM(engagedSessions) as engaged, AVG(averageSessionDuration) as avgDur, AVG(screenPageViewsPerSession) as pps FROM \`${P}.${D}.ga4_TrafficAcquisition_317130094\` WHERE ${df} GROUP BY source ORDER BY sessions DESC LIMIT 30`),
+    bq(`SELECT SUM(sessions) as sessions, SUM(totalUsers) as users, SUM(engagedSessions) as engaged FROM \`${P}.${D}.ga4_TrafficAcquisition_317130094\` WHERE ${pf}`),
+    bq(`SELECT landingPage as page, SUM(sessions) as sessions, AVG(averageSessionDuration) as avgDur, SUM(engagedSessions) as engaged FROM \`${P}.${D}.ga4_LandingPage_317130094\` WHERE ${df} GROUP BY page ORDER BY sessions DESC LIMIT 20`),
+    bq(`SELECT eventName as event, SUM(eventCount) as count, SUM(totalUsers) as users FROM \`${P}.${D}.ga4_Events_317130094\` WHERE ${df} GROUP BY event ORDER BY count DESC`),
+    bq(`SELECT eventName as event, SUM(eventCount) as count FROM \`${P}.${D}.ga4_Events_317130094\` WHERE ${pf} GROUP BY event`),
   ]);
 
-  // KPIs
-  const totalSessions = traffic.reduce((a,r) => a+parseFloat(r.sessions||0), 0);
-  const totalUsers = traffic.reduce((a,r) => a+parseFloat(r.users||0), 0);
-  const totalEngaged = traffic.reduce((a,r) => a+parseFloat(r.engaged||0), 0);
-  const engRate = totalSessions > 0 ? totalEngaged/totalSessions : 0;
+  globalData = { traffic, pages, events };
 
-  const keyEventNames = ['form_submission_id','igniting_leadership_form_submission','womens_leadership_form_submission','leader_evolution_form_submission','file_download','donate_now_clicks'];
-  const keyEventsCount = events.filter(e => keyEventNames.includes(e.event)).reduce((a,r) => a+parseFloat(r.count||0), 0);
+  // ── TOTALS ──
+  const totS=traffic.reduce((a,r)=>a+parseFloat(r.sessions||0),0);
+  const totU=traffic.reduce((a,r)=>a+parseFloat(r.users||0),0);
+  const totE=traffic.reduce((a,r)=>a+parseFloat(r.engaged||0),0);
+  const engRate=totS>0?totE/totS:0;
+  const avgDur=traffic.length?traffic.reduce((a,r)=>a+parseFloat(r.avgDur||0)*parseFloat(r.sessions||0),0)/Math.max(totS,1):0;
+  const avgPPS=traffic.length?traffic.reduce((a,r)=>a+parseFloat(r.pps||0)*parseFloat(r.sessions||0),0)/Math.max(totS,1):0;
 
-  document.getElementById('kpi-sessions').textContent = fmt(totalSessions);
-  document.getElementById('kpi-users').textContent = fmt(totalUsers) + ' users';
-  document.getElementById('kpi-engaged').textContent = fmt(totalEngaged);
-  document.getElementById('kpi-eng-rate').textContent = fmtPct(engRate) + ' engagement rate';
-  document.getElementById('kpi-total-users').textContent = fmt(totalUsers);
-  document.getElementById('kpi-events').textContent = fmt(keyEventsCount);
+  const prevS=prevTraffic[0]?.sessions||0;
+  const prevU=prevTraffic[0]?.users||0;
+  const prevE=prevTraffic[0]?.engaged||0;
 
-  // Engagement tab
-  document.getElementById('eng-engaged').textContent = fmt(totalEngaged);
-  document.getElementById('eng-rate').textContent = fmtPct(engRate);
-  document.getElementById('eng-spu').textContent = totalUsers > 0 ? (totalSessions/totalUsers).toFixed(1) : '—';
+  // Key events grouping
+  const formEvents=['igniting_leadership_form_submission','womens_leadership_form_submission','leader_evolution_form_submission','form_submission_id'];
+  const downloadEvents=['file_download'];
+  const intentEvents=['donate_now_clicks','calltracking','click','begin_checkout','add_payment_info','purchase'];
+  const keyEvents=[...formEvents,...downloadEvents,...intentEvents];
+  const totActions=events.filter(e=>keyEvents.includes(e.event)).reduce((a,r)=>a+parseFloat(r.count||0),0);
+  const prevActMap={};
+  prevEvents.forEach(e=>{prevActMap[e.event]=parseFloat(e.count||0);});
+  const prevActions=keyEvents.reduce((a,k)=>a+(prevActMap[k]||0),0);
 
-  // Avg duration
-  const avgDur = pages.length ? pages.reduce((a,r) => a+parseFloat(r.avgDuration||0), 0)/pages.length : 0;
-  document.getElementById('eng-duration').textContent = fmtDur(avgDur);
+  // ── OVERVIEW ──
+  document.getElementById('ov-sessions').textContent=fmt(totS);
+  document.getElementById('ov-users').textContent=fmt(totU);
+  document.getElementById('ov-engaged').textContent=fmt(totE);
+  document.getElementById('ov-eng-rate').textContent=fmtPct(engRate)+' engagement rate';
+  document.getElementById('ov-actions').textContent=fmt(totActions);
+  setDelta('ov-sessions-d',delta(totS,prevS));
+  setDelta('ov-users-d',delta(totU,prevU));
+  setDelta('ov-engaged-d',delta(totE,prevE));
+  setDelta('ov-actions-d',delta(totActions,prevActions));
 
-  // Traffic
-  renderRows('trafficOverview', traffic.slice(0,6), 'source', 'sessions', fmt, '#1a1814', 'users');
-  renderRows('trafficDetail', traffic, 'source', 'sessions', fmt, '#1a1814', 'engaged', fmt);
+  renderRows('ov-channels',traffic.slice(0,6),'source','sessions',fmt,'#1a1814','engaged',fmt);
+  renderRows('ov-pages',pages.slice(0,6),'page','sessions',fmt,'#2d6a4f','avgDur',fmtDur);
 
-  // Pages
-  renderRows('pagesOverview', pages.slice(0,6), 'page', 'sessions', fmt, '#2d6a4f');
+  // ── TRAFFIC ──
+  const grouped={organic:0,direct:0,paid:0,email:0,social:0,referral:0,other:0};
+  const groupedEng={organic:0,direct:0,paid:0,email:0,social:0,referral:0,other:0};
+  traffic.forEach(r=>{
+    const g=groupChannel(r.source);
+    grouped[g]+=parseFloat(r.sessions||0);
+    groupedEng[g]+=parseFloat(r.engaged||0);
+  });
 
-  // Landing pages with duration
-  const pEl = document.getElementById('landingPages');
-  if (pages.length) {
-    const maxS = Math.max(...pages.map(p => parseFloat(p.sessions||0)));
-    pEl.innerHTML = pages.map(p => `
-      <div class="data-row">
-        <span class="row-name" style="font-family:monospace;font-size:11px;max-width:280px">${p.page}</span>
-        <div class="bar-wrap"><div class="bar" style="width:${(parseFloat(p.sessions||0)/maxS*100).toFixed(0)}%;background:#e07b39"></div></div>
+  document.getElementById('tr-organic').textContent=fmt(grouped.organic);
+  document.getElementById('tr-organic-sub').textContent=grouped.organic>0?fmtPct(groupedEng.organic/grouped.organic)+' engagement':'—';
+  document.getElementById('tr-direct').textContent=fmt(grouped.direct);
+  document.getElementById('tr-direct-sub').textContent=grouped.direct>0?fmtPct(groupedEng.direct/grouped.direct)+' engagement':'—';
+  document.getElementById('tr-paid').textContent=fmt(grouped.paid+grouped.other);
+  document.getElementById('tr-paid-sub').textContent=(grouped.paid+grouped.other)>0?fmtPct((groupedEng.paid+groupedEng.other)/(grouped.paid+grouped.other))+' engagement':'—';
+
+  // Traffic quality signal
+  const signalFn=r=>{
+    const er=parseFloat(r.sessions||0)>0?parseFloat(r.engaged||0)/parseFloat(r.sessions||0):0;
+    if(er>=0.6) return `<span class="signal-badge signal-high">high quality</span>`;
+    if(er>=0.35) return `<span class="signal-badge signal-med">medium</span>`;
+    return `<span class="signal-badge signal-low">low quality</span>`;
+  };
+
+  const trEl=document.getElementById('tr-detail');
+  if(traffic.length){
+    trEl.innerHTML=traffic.map(r=>{
+      const er=parseFloat(r.sessions||0)>0?parseFloat(r.engaged||0)/parseFloat(r.sessions||0):0;
+      const maxS2=Math.max(...traffic.map(x=>parseFloat(x.sessions||0)))||1;
+      return `<div class="data-row">
+        <span class="row-name">${r.source||'Unknown'}</span>
+        ${signalFn(r)}
+        <div class="bar-wrap"><div class="bar" style="width:${(parseFloat(r.sessions||0)/maxS2*100).toFixed(0)}%;background:#1a1814"></div></div>
+        <span class="row-val">${fmt(r.sessions)}</span>
+        <span class="row-sub">${fmtPct(er)}</span>
+      </div>`;
+    }).join('');
+  }
+
+  // Traffic signals (agency)
+  if(isAgency){
+    const signals=[];
+    traffic.forEach(r=>{
+      const er=parseFloat(r.sessions||0)>0?parseFloat(r.engaged||0)/parseFloat(r.sessions||0):0;
+      const s=parseFloat(r.sessions||0);
+      if(s>100&&er<0.3) signals.push({type:'warn',title:`${r.source}: high traffic, low engagement`,body:`${fmt(s)} sessions but only ${fmtPct(er)} engagement rate. Visitors may not find what they're looking for.`,action:'→ Review landing page experience for this traffic source'});
+      if(s<50&&er>0.7) signals.push({type:'good',title:`${r.source}: small but highly engaged`,body:`Only ${fmt(s)} sessions but ${fmtPct(er)} engagement. High-quality traffic worth investing in.`,action:'→ Consider scaling this channel'});
+    });
+    const sigEl=document.getElementById('tr-signals');
+    sigEl.innerHTML=signals.slice(0,4).map(s=>`<div class="insight ${s.type}"><div class="insight-title">${s.title}</div><div class="insight-body">${s.body}</div><div class="insight-action">${s.action}</div></div>`).join('')||'<div class="no-data">No significant signals detected for this period</div>';
+  }
+
+  // ── ENGAGEMENT ──
+  document.getElementById('eng-rate').textContent=fmtPct(engRate);
+  document.getElementById('eng-dur').textContent=fmtDur(avgDur);
+  document.getElementById('eng-spu').textContent=totU>0?(totS/totU).toFixed(1):'—';
+  document.getElementById('eng-pps').textContent=avgPPS.toFixed(1);
+
+  // Engagement by channel
+  const engChEl=document.getElementById('eng-by-channel');
+  const sortedByEng=[...traffic].sort((a,b)=>{
+    const ea=parseFloat(a.sessions||0)>0?parseFloat(a.engaged||0)/parseFloat(a.sessions||0):0;
+    const eb=parseFloat(b.sessions||0)>0?parseFloat(b.engaged||0)/parseFloat(b.sessions||0):0;
+    return eb-ea;
+  });
+  const maxEng=1;
+  engChEl.innerHTML=sortedByEng.slice(0,8).map(r=>{
+    const er=parseFloat(r.sessions||0)>0?parseFloat(r.engaged||0)/parseFloat(r.sessions||0):0;
+    return `<div class="data-row">
+      <span class="row-name">${r.source}</span>
+      <div class="bar-wrap"><div class="bar" style="width:${(er*100).toFixed(0)}%;background:${er>=0.6?'#2d6a4f':er>=0.35?'#b5860b':'#c0392b'}"></div></div>
+      <span class="row-val">${fmtPct(er)}</span>
+      <span class="row-sub">${fmt(r.sessions)} sess</span>
+    </div>`;
+  }).join('');
+
+  // Pages engagement
+  const engPgEl=document.getElementById('eng-pages');
+  if(pages.length){
+    engPgEl.innerHTML=pages.slice(0,10).map(p=>{
+      const er=parseFloat(p.sessions||0)>0?parseFloat(p.engaged||0)/parseFloat(p.sessions||0):0;
+      return `<div class="data-row">
+        <span class="row-name" style="font-family:monospace;font-size:11px">${p.page}</span>
+        <div class="bar-wrap"><div class="bar" style="width:${(er*100).toFixed(0)}%;background:#2d6a4f"></div></div>
         <span class="row-val">${fmt(p.sessions)}</span>
-        <span class="row-sub">${fmtDur(p.avgDuration)}</span>
-      </div>`).join('');
+        <span class="row-sub">${fmtDur(p.avgDur)}</span>
+      </div>`;
+    }).join('');
   }
 
-  // Events
-  renderRows('allEvents', events, 'event', 'count', fmt, '#1d3557', 'users');
+  // ── PROGRAMS ──
+  const evMap={};
+  events.forEach(e=>{evMap[e.event]={count:parseFloat(e.count||0),users:parseFloat(e.users||0)};});
+  const prevEvMap={};
+  prevEvents.forEach(e=>{prevEvMap[e.event]=parseFloat(e.count||0);});
 
-  // Agency insights
-  if (isAgency && traffic.length) {
-    const top = traffic[0];
-    const organic = traffic.find(r => (r.source||'').includes('organic'));
-    document.getElementById('insightsList').innerHTML = `
-      <div class="insight info">
-        <div class="insight-title">Top source: ${top.source} — ${fmt(top.sessions)} sessions</div>
-        <div class="insight-body">${fmt(top.engaged)} engaged sessions (${fmtPct(top.sessions > 0 ? top.engaged/top.sessions : 0)} engagement rate).</div>
-        <div class="insight-action">→ This is your strongest channel — invest in retention strategies here</div>
+  const groups=[
+    {
+      id:'forms', label:'Form Submissions', color:'#1d3557', dot:'#1d3557',
+      events:events.filter(e=>e.event.includes('form_submission')||e.event.includes('_form_')),
+      items:[
+        {name:'Igniting Leadership',key:'igniting_leadership_form_submission'},
+        {name:'Women\'s Leadership',key:'womens_leadership_form_submission'},
+        {name:'Leader Evolution',key:'leader_evolution_form_submission'},
+        {name:'General form',key:'form_submission_id'},
+      ]
+    },
+    {
+      id:'downloads', label:'File Downloads', color:'#2d6a4f', dot:'#2d6a4f',
+      events:events.filter(e=>e.event==='file_download'),
+      items:[{name:'All file downloads',key:'file_download'}]
+    },
+    {
+      id:'intent', label:'Intent & Enquiry', color:'#b5860b', dot:'#b5860b',
+      events:events.filter(e=>['donate_now_clicks','calltracking','click'].includes(e.event)),
+      items:[
+        {name:'Donate now clicks',key:'donate_now_clicks'},
+        {name:'Call tracking',key:'calltracking'},
+        {name:'Other clicks',key:'click'},
+      ]
+    },
+    {
+      id:'checkout', label:'High Intent / Checkout', color:'#c0392b', dot:'#c0392b',
+      events:events.filter(e=>['begin_checkout','add_payment_info','purchase'].includes(e.event)),
+      items:[
+        {name:'Begin checkout',key:'begin_checkout'},
+        {name:'Add payment info',key:'add_payment_info'},
+        {name:'Purchase',key:'purchase'},
+      ]
+    },
+  ];
+
+  const progEl=document.getElementById('prog-content');
+  progEl.innerHTML=groups.map(g=>{
+    const total=g.items.reduce((a,i)=>a+(evMap[i.key]?.count||0),0);
+    const prevTotal=g.items.reduce((a,i)=>a+(prevEvMap[i.key]||0),0);
+    const d=delta(total,prevTotal);
+    return `<div class="prog-group">
+      <div class="prog-group-title">
+        <span class="prog-dot" style="background:${g.dot}"></span>
+        ${g.label}
+        <span class="prog-total">${fmt(total)}</span>
+        ${d?`<span class="prog-delta ${d.cls}">${d.str}</span>`:''}
       </div>
-      ${organic ? `<div class="insight good">
-        <div class="insight-title">Organic search: ${fmt(organic.sessions)} sessions</div>
-        <div class="insight-body">SEO is working. ${fmt(organic.engaged)} engaged sessions from organic.</div>
-        <div class="insight-action">→ Continue content strategy around program names and leadership topics</div>
-      </div>` : ''}
-    `;
+      ${g.items.map(i=>{
+        const v=evMap[i.key]?.count||0;
+        const u=evMap[i.key]?.users||0;
+        const max=Math.max(...g.items.map(x=>evMap[x.key]?.count||0))||1;
+        if(!v) return '';
+        return `<div class="data-row">
+          <span class="row-name">${i.name}</span>
+          <div class="bar-wrap"><div class="bar" style="width:${(v/max*100).toFixed(0)}%;background:${g.color}"></div></div>
+          <span class="row-val">${fmt(v)}</span>
+          <span class="row-sub">${fmt(u)} users</span>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+
+  // ── AGENCY INSIGHTS ──
+  if(isAgency){
+    const insights=[];
+    const totForms=(['igniting_leadership_form_submission','womens_leadership_form_submission','leader_evolution_form_submission','form_submission_id']).reduce((a,k)=>a+(evMap[k]?.count||0),0);
+    const totDownloads=evMap['file_download']?.count||0;
+    const totPurchases=evMap['purchase']?.count||0;
+
+    if(totS>0){
+      const organicSess=grouped.organic;
+      const organicPct=organicSess/totS;
+      const organicFormPct=totForms>0?(evMap['igniting_leadership_form_submission']?.count||0)/totForms:0;
+      insights.push({type:'info',title:`Organic drives ${fmtPct(organicPct)} of sessions`,body:`${fmt(organicSess)} sessions from organic search. Engagement quality is typically higher from organic vs paid.`,action:'→ Continue SEO investment — high quality traffic source'});
+    }
+
+    if(totForms>0&&totS>0) insights.push({type:totForms/totS>0.01?'good':'warn',title:`Form submissions: ${fmt(totForms)} this period`,body:`${fmtPct(totForms/totS)} of sessions result in a form submission. Igniting Leadership leads program interest.`,action:'→ Feature top programs prominently on high-traffic pages'});
+
+    if(totDownloads>0) insights.push({type:'info',title:`${fmt(totDownloads)} file downloads`,body:`Content is being consumed. Downloads indicate genuine interest in the organisation's resources.`,action:'→ Add email capture to download flow to build the database'});
+
+    if(totPurchases>0) insights.push({type:'good',title:`${fmt(totPurchases)} purchases recorded`,body:`Direct revenue from the site. Review which channels drive the highest-value transactions.`,action:'→ Connect Meta and LinkedIn to see full paid attribution'});
+
+    // High traffic / low engagement pages
+    const badPages=pages.filter(p=>parseFloat(p.sessions||0)>50&&parseFloat(p.engaged||0)/parseFloat(p.sessions||0)<0.3);
+    if(badPages.length) insights.push({type:'critical',title:`${badPages.length} high-traffic page${badPages.length>1?'s':''} with low engagement`,body:`${badPages.map(p=>p.page).join(', ')} — getting traffic but not engaging visitors.`,action:'→ Review content and CTA placement on these pages'});
+
+    document.getElementById('agency-insights').innerHTML=insights.map(i=>`<div class="insight ${i.type}"><div class="insight-title">${i.title}</div><div class="insight-body">${i.body}</div><div class="insight-action">${i.action}</div></div>`).join('')||'<div class="no-data">Not enough data to generate insights for this period</div>';
+
+    // Overview insights (mini)
+    document.getElementById('ov-insights').innerHTML=insights.slice(0,2).map(i=>`<div class="insight ${i.type}"><div class="insight-title">${i.title}</div><div class="insight-action">${i.action}</div></div>`).join('');
   }
 
-  // Update AI context
-  window.analyticsContext = { totalSessions, totalUsers, totalEngaged, engRate, traffic: traffic.slice(0,5), pages: pages.slice(0,5), events: events.slice(0,10) };
-
-  document.getElementById('lastUpdated').textContent = 'Updated ' + new Date().toLocaleTimeString('en-AU', {hour:'2-digit',minute:'2-digit'});
+  document.getElementById('lastUpdated').textContent='Updated '+new Date().toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'});
   document.getElementById('loading').classList.add('hidden');
 }
 
 // ── CHAT ──────────────────────────────────────────────────────────────────────
-function askSugg(btn) { document.getElementById('chatInput').value = btn.textContent; sendChat(); }
+function askSugg(btn){document.getElementById('chatInput').value=btn.textContent;sendChat();}
 
-async function sendChat() {
-  const input = document.getElementById('chatInput');
-  const msgs = document.getElementById('chatMsgs');
-  const text = input.value.trim();
-  if (!text) return;
-  input.value = '';
+async function sendChat(){
+  const input=document.getElementById('chatInput');
+  const msgs=document.getElementById('chatMsgs');
+  const text=input.value.trim();
+  if(!text) return;
+  input.value='';
+  const uDiv=document.createElement('div'); uDiv.className='msg user'; uDiv.textContent=text; msgs.appendChild(uDiv);
+  const lDiv=document.createElement('div'); lDiv.className='msg ai'; lDiv.innerHTML='<span class="spinner"></span>'; msgs.appendChild(lDiv);
+  msgs.scrollTop=msgs.scrollHeight;
 
-  const uDiv = document.createElement('div');
-  uDiv.className = 'msg user';
-  uDiv.textContent = text;
-  msgs.appendChild(uDiv);
+  const d=globalData;
+  const totS=d.traffic?.reduce((a,r)=>a+parseFloat(r.sessions||0),0)||0;
+  const totE=d.traffic?.reduce((a,r)=>a+parseFloat(r.engaged||0),0)||0;
+  const sys=`You are a marketing analyst for Leadership Victoria, an Australian not-for-profit leadership development organisation. You have access to real GA4 data.
 
-  const lDiv = document.createElement('div');
-  lDiv.className = 'msg ai';
-  lDiv.innerHTML = '<span class="spinner"></span>';
-  msgs.appendChild(lDiv);
-  msgs.scrollTop = msgs.scrollHeight;
+Current period data:
+- Total sessions: ${fmt(totS)}
+- Engaged sessions: ${fmt(totE)} (${fmtPct(totS>0?totE/totS:0)} rate)
+- Top channels: ${d.traffic?.slice(0,5).map(r=>r.source+': '+fmt(r.sessions)).join(', ')||'loading'}
+- Top pages: ${d.pages?.slice(0,5).map(p=>p.page+': '+fmt(p.sessions)).join(', ')||'loading'}
+- Key events: ${d.events?.slice(0,10).map(e=>e.event+': '+fmt(e.count)).join(', ')||'loading'}
 
-  const ctx = window.analyticsContext || {};
-  const sys = `You are a marketing analyst for Leadership Victoria, an Australian not-for-profit leadership development organisation. Real GA4 data: ${JSON.stringify(ctx)}. Reply in 3-5 sentences, be specific with numbers. One concrete recommendation at end. Same language as user.`;
+IMPORTANT: Only answer based on available data. Do not make up numbers. If data is not available, say so.
+Reply in 3-5 sentences. Be specific. End with one concrete recommendation. Same language as user.`;
 
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1000, system: sys, messages: [{ role: 'user', content: text }] })
-    });
-    const data = await res.json();
-    lDiv.textContent = data.content?.find(b => b.type === 'text')?.text || 'Could not get response.';
-  } catch(e) {
-    lDiv.textContent = 'Connection error. Try again.';
-  }
-  msgs.scrollTop = msgs.scrollHeight;
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:sys,messages:[{role:'user',content:text}]})});
+    const data=await res.json();
+    lDiv.textContent=data.content?.find(b=>b.type==='text')?.text||'Could not get response.';
+  }catch(e){lDiv.textContent='Connection error. Try again.';}
+  msgs.scrollTop=msgs.scrollHeight;
 }
 
 // ── TABS ──────────────────────────────────────────────────────────────────────
-function switchTab(name, btn) {
-  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
-  document.getElementById('tab-' + name).classList.add('active');
+function switchTab(name,btn){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
   btn.classList.add('active');
 }
 
-// ── INIT ──────────────────────────────────────────────────────────────────────
-loadAllData();
+loadAll();
 </script>
 </body>
 </html>

@@ -1,6 +1,10 @@
 {
   "name": "lv-dashboard",
   "version": "1.0.0",
+  "scripts": {
+    "build": "echo 'static site, no build needed'",
+    "dev": "npx serve public"
+  },
   "dependencies": {
     "@google-cloud/bigquery": "^7.3.0"
   }

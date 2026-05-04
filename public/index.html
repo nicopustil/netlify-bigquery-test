@@ -1186,8 +1186,6 @@ RULES:
 - Keep responses focused — max 200 words unless writing a full report.`;
 
   try{
-
-  try{
     const res=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system:sys,messages:chatHistory})});
     const data=await res.json();
     const reply=data.content?.find(b=>b.type==='text')?.text||'Could not get response.';

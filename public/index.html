@@ -126,6 +126,30 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 .signal-high{background:#dcfce7;color:#2d6a4f}
 .signal-low{background:#fce4ec;color:#c0392b}
 .signal-med{background:#fff8e1;color:#b5860b}
+
+/* ── FUNNEL ── */
+.funnel-wrap{padding:8px 0}
+.funnel-step{display:flex;align-items:center;gap:14px;margin-bottom:4px;position:relative}
+.funnel-bar-col{flex:1;display:flex;flex-direction:column;gap:3px}
+.funnel-label{font-size:12px;color:var(--text2);display:flex;justify-content:space-between;align-items:center}
+.funnel-label-name{font-weight:500;color:var(--text)}
+.funnel-label-val{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:400;color:var(--text)}
+.funnel-bar-track{height:28px;background:var(--bg2);border-radius:6px;overflow:hidden;position:relative}
+.funnel-bar-fill{height:100%;border-radius:6px;transition:width .6s cubic-bezier(.4,0,.2,1);display:flex;align-items:center;justify-content:flex-end;padding-right:10px}
+.funnel-bar-pct{font-size:11px;font-weight:600;color:white;opacity:.9}
+.funnel-drop{display:flex;align-items:center;gap:5px;padding:3px 0 6px 0;margin-left:2px}
+.funnel-drop-line{width:1px;height:18px;background:var(--border2);margin-left:13px}
+.funnel-drop-text{font-size:11px;color:var(--warn);font-weight:500}
+.funnel-insight{background:#fef0ed;border-radius:8px;padding:10px 13px;margin-top:10px;border-left:3px solid var(--warn)}
+.funnel-insight-text{font-size:12px;color:#7a2c1f;line-height:1.5}
+
+/* ── MINI FUNNEL (overview) ── */
+.mini-funnel{display:flex;align-items:flex-end;gap:4px;height:48px;padding:0 2px}
+.mf-bar{flex:1;border-radius:3px 3px 0 0;transition:height .5s ease;position:relative;min-width:0}
+.mf-label{font-size:9px;color:var(--text3);text-align:center;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mini-funnel-wrap{padding:10px 14px 6px}
+.mf-col{flex:1;display:flex;flex-direction:column;align-items:center}
+.mf-val{font-size:11px;font-weight:500;color:var(--text);text-align:center;margin-bottom:3px}
 </style>
 </head>
 <body>
@@ -166,6 +190,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
   <button class="tab" onclick="switchTab('traffic',this)">Traffic</button>
   <button class="tab" onclick="switchTab('engagement',this)">Engagement</button>
   <button class="tab" onclick="switchTab('programs',this)">Programs</button>
+  <button class="tab" onclick="switchTab('campaigns',this)">Campaigns</button>
   <button class="tab" onclick="switchTab('path',this)">Path Explorer</button>
   <button class="tab agency-only" onclick="switchTab('insights',this)">Internal Insights</button>
   <button class="tab" onclick="switchTab('ai',this)">AI Analyst</button>
@@ -209,6 +234,10 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
         <div class="panel-title">Top landing pages <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">sessions</span></div>
         <div id="ov-pages"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
       </div>
+    </div>
+    <div class="panel" id="ov-funnel-wrap">
+      <div class="panel-title">Conversion funnel <span class="ptitle-note" style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">checkout journey</span></div>
+      <div id="ov-funnel-mini"></div>
     </div>
     <div id="ov-insights-wrap" class="agency-section">
       <div class="panel">
@@ -283,7 +312,61 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 
   <!-- PROGRAMS -->
   <div class="tab-content" id="tab-programs">
+    <div class="panel">
+      <div class="panel-title">Conversion funnel <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">checkout drop-off analysis</span></div>
+      <div id="prog-funnel"></div>
+    </div>
     <div id="prog-content"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+  </div>
+
+  <!-- CAMPAIGNS -->
+  <div class="tab-content" id="tab-campaigns">
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="kpi-label">Google Ads sessions</div>
+        <div class="kpi-value" id="camp-google-sess">—</div>
+        <div class="kpi-sub" id="camp-google-rev"></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Meta Ads sessions</div>
+        <div class="kpi-value" id="camp-meta-sess">—</div>
+        <div class="kpi-sub" id="camp-meta-eng"></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Email sessions</div>
+        <div class="kpi-value" id="camp-email-sess">—</div>
+        <div class="kpi-sub" id="camp-email-eng"></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Total key events</div>
+        <div class="kpi-value" id="camp-keyevents">—</div>
+        <div class="kpi-sub" id="camp-revenue"></div>
+      </div>
+    </div>
+
+    <!-- Google Ads -->
+    <div class="panel">
+      <div class="panel-title">Google Ads campaigns <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">sessions · engagement · key events · revenue</span></div>
+      <div id="camp-google-detail"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+    </div>
+
+    <!-- Meta Ads -->
+    <div class="panel">
+      <div class="panel-title">Meta Ads campaigns <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">fb / paid — campaign IDs</span></div>
+      <div id="camp-meta-detail"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+    </div>
+
+    <!-- Email -->
+    <div class="panel">
+      <div class="panel-title">Email campaigns <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">ortto · mailchimp</span></div>
+      <div id="camp-email-detail"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+    </div>
+
+    <!-- All referrals -->
+    <div class="panel">
+      <div class="panel-title">Top referral sources <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">sessions + engagement</span></div>
+      <div id="camp-referral-detail"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+    </div>
   </div>
 
   <!-- PATH EXPLORER -->
@@ -663,6 +746,92 @@ async function loadAll(){
       ${rows||'<div class="no-data">No events recorded this period</div>'}
     </div>`;
   }).join('');
+
+  // ── FUNNEL ──
+  const funnelSteps = [
+    { name:'Begin Checkout', key:'begin_checkout', color:'#1d3557' },
+    { name:'Add Payment',    key:'add_payment_info', color:'#2d6a4f' },
+    { name:'Purchase',       key:'purchase',          color:'#b5860b' },
+  ];
+  const funnelVals = funnelSteps.map(s=>evMap[s.key]?.count||0);
+  const funnelTop  = funnelVals[0]||1;
+
+  // Full funnel in Programs
+  const progFunnel = document.getElementById('prog-funnel');
+  if(progFunnel){
+    let html='<div class="funnel-wrap">';
+    funnelSteps.forEach((s,i)=>{
+      const v=funnelVals[i];
+      const pct=(v/funnelTop*100);
+      html+=`<div class="funnel-step">
+        <div class="funnel-bar-col">
+          <div class="funnel-label">
+            <span class="funnel-label-name">${s.name}</span>
+            <span class="funnel-label-val">${fmt(v)}</span>
+          </div>
+          <div class="funnel-bar-track">
+            <div class="funnel-bar-fill" style="width:${pct.toFixed(1)}%;background:${s.color}">
+              <span class="funnel-bar-pct">${pct.toFixed(0)}%</span>
+            </div>
+          </div>
+        </div>
+      </div>`;
+      if(i<funnelSteps.length-1){
+        const next=funnelVals[i+1];
+        const drop=v>0?((v-next)/v*100):0;
+        const dropColor=drop>60?'#b02a1e':drop>30?'#b5860b':'#2d6a4f';
+        html+=`<div class="funnel-drop">
+          <div class="funnel-drop-line"></div>
+          <span class="funnel-drop-text" style="color:${dropColor}">▼ ${drop.toFixed(0)}% drop-off (${fmt(v-next)} lost)</span>
+        </div>`;
+      }
+    });
+
+    // Insight
+    const drop1=funnelVals[0]>0?((funnelVals[0]-funnelVals[1])/funnelVals[0]*100):0;
+    const drop2=funnelVals[1]>0?((funnelVals[1]-funnelVals[2])/funnelVals[1]*100):0;
+    const worstStep=drop1>=drop2?'between checkout start and payment info':'between payment info and purchase completion';
+    const worstDrop=Math.max(drop1,drop2).toFixed(0);
+    if(funnelVals[0]>0){
+      html+=`<div class="funnel-insight">
+        <div class="funnel-insight-text">
+          ⚠️ <strong>${worstDrop}% drop-off</strong> ${worstStep}. 
+          Of ${fmt(funnelVals[0])} users who started checkout, only <strong>${fmt(funnelVals[2])} completed purchase</strong> 
+          (${funnelVals[0]>0?(funnelVals[2]/funnelVals[0]*100).toFixed(1):0}% completion rate).
+          ${drop1>50?' Consider simplifying the payment step or adding trust signals.':''}
+        </div>
+      </div>`;
+    }
+    html+='</div>';
+    progFunnel.innerHTML=html;
+  }
+
+  // Mini funnel in Overview
+  const ovFunnelMini=document.getElementById('ov-funnel-mini');
+  if(ovFunnelMini&&funnelVals[0]>0){
+    const colors=['#1d3557','#2d6a4f','#b5860b'];
+    const names=['Checkout','Payment','Purchase'];
+    const convRate=(funnelVals[2]/funnelVals[0]*100).toFixed(1);
+    ovFunnelMini.innerHTML=`
+      <div style="display:flex;gap:16px;align-items:flex-end;padding:6px 0 10px">
+        ${funnelSteps.map((s,i)=>{
+          const v=funnelVals[i];
+          const pct=(v/funnelTop*100);
+          const barH=Math.max(12,Math.round(pct*0.5));
+          return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+            <div style="font-size:13px;font-weight:500;color:var(--text)">${fmt(v)}</div>
+            <div style="width:100%;height:${barH}px;background:${colors[i]};border-radius:4px 4px 0 0;opacity:${0.6+i*0.15}"></div>
+            <div style="font-size:10px;color:var(--text3);text-align:center">${names[i]}</div>
+          </div>`;
+        }).join(`<div style="font-size:16px;color:var(--text3);padding-bottom:14px;align-self:center">→</div>`)}
+        <div style="flex:0 0 auto;padding-left:8px;border-left:1px solid var(--border);margin-left:4px">
+          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px">Completion</div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:26px;color:${parseFloat(convRate)>20?'var(--accent)':'var(--warn)'};">${convRate}%</div>
+        </div>
+      </div>`;
+  } else if(ovFunnelMini){
+    ovFunnelMini.innerHTML='<div class="no-data">No checkout data this period</div>';
+  }
 
   // ── AGENCY INSIGHTS ──
   if(isAgency){

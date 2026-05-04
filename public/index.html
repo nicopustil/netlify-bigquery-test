@@ -317,7 +317,21 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
   <!-- PROGRAMS -->
   <div class="tab-content" id="tab-programs">
     <div class="panel">
-      <div class="panel-title">Conversion funnel <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">checkout drop-off analysis</span></div>
+      <div class="panel-title">Revenue trend by program <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">Humanitix · weekly · last 90 days</span>
+        <div style="display:flex;gap:12px">
+          <span style="display:flex;align-items:center;gap:4px;font-size:11px;color:#1d3557;font-weight:400;text-transform:none;letter-spacing:0"><span style="width:10px;height:3px;background:#1d3557;border-radius:2px;display:inline-block"></span>Igniting</span>
+          <span style="display:flex;align-items:center;gap:4px;font-size:11px;color:#2d6a4f;font-weight:400;text-transform:none;letter-spacing:0"><span style="width:10px;height:3px;background:#2d6a4f;border-radius:2px;display:inline-block"></span>Women's</span>
+          <span style="display:flex;align-items:center;gap:4px;font-size:11px;color:#b5860b;font-weight:400;text-transform:none;letter-spacing:0"><span style="width:10px;height:3px;background:#b5860b;border-radius:2px;display:inline-block"></span>Leader Ev.</span>
+        </div>
+      </div>
+      <canvas id="prog-trend-chart" style="width:100%;height:180px"></canvas>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Purchase count trend <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">tickets sold per week</span></div>
+      <canvas id="prog-purchases-chart" style="width:100%;height:130px"></canvas>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Program funnel <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">visit → tickets → Humanitix checkout</span></div>
       <div id="prog-funnel"></div>
     </div>
     <div id="prog-content"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
@@ -545,7 +559,9 @@ async function loadAll(){
   const progFunnelQ = `SELECT CASE WHEN landingPage LIKE '%igniting-leadership%' THEN 'Igniting Leadership' WHEN landingPage LIKE '%womens-leadership%' OR landingPage LIKE '%women-s-leadership%' THEN 'Womens Leadership' WHEN landingPage LIKE '%leader-evolution%' OR landingPage LIKE '%leaderevolution%' THEN 'Leader Evolution' ELSE 'Other' END as program, CASE WHEN landingPage LIKE '%/tickets%' THEN 'tickets' WHEN landingPage LIKE '%/details%' THEN 'purchase' ELSE 'program_page' END as stage, SUM(sessions) as sessions, SUM(totalRevenue) as revenue FROM \`${P}.${D}.ga4_LandingPage_317130094\` WHERE ${df} GROUP BY program, stage ORDER BY program, stage`;
   const progFunnelPrevQ = `SELECT CASE WHEN landingPage LIKE '%igniting-leadership%' THEN 'Igniting Leadership' WHEN landingPage LIKE '%womens-leadership%' OR landingPage LIKE '%women-s-leadership%' THEN 'Womens Leadership' WHEN landingPage LIKE '%leader-evolution%' OR landingPage LIKE '%leaderevolution%' THEN 'Leader Evolution' ELSE 'Other' END as program, CASE WHEN landingPage LIKE '%/tickets%' THEN 'tickets' WHEN landingPage LIKE '%/details%' THEN 'purchase' ELSE 'program_page' END as stage, SUM(sessions) as sessions, SUM(totalRevenue) as revenue FROM \`${P}.${D}.ga4_LandingPage_317130094\` WHERE ${pf} GROUP BY program, stage ORDER BY program, stage`;
 
-  const [traffic, prevTraffic, pages, prevPages, events, prevEvents, progFunnelData, progFunnelPrev] = await Promise.all([
+  const trendQ = `SELECT CASE WHEN landingPage LIKE '%igniting-leadership%' THEN 'Igniting Leadership' WHEN landingPage LIKE '%womens-leadership%' OR landingPage LIKE '%women-s-leadership%' THEN 'Womens Leadership' WHEN landingPage LIKE '%leader-evolution%' OR landingPage LIKE '%leaderevolution%' THEN 'Leader Evolution' END as program, DATE_TRUNC(_DATA_DATE, WEEK) as week, SUM(totalRevenue) as revenue, SUM(keyEvents) as purchases FROM \`${P}.${D}.ga4_LandingPage_317130094\` WHERE _DATA_DATE >= DATE_SUB(CURRENT_DATE(), INTERVAL 90 DAY) AND (landingPage LIKE '%igniting-leadership%' OR landingPage LIKE '%womens-leadership%' OR landingPage LIKE '%women-s-leadership%' OR landingPage LIKE '%leader-evolution%') GROUP BY program, week ORDER BY week ASC`;
+
+  const [traffic, prevTraffic, pages, prevPages, events, prevEvents, progFunnelData, progFunnelPrev, trendData] = await Promise.all([
     bq(`SELECT sessionSourceMedium as source, SUM(sessions) as sessions, SUM(engagedSessions) as engaged, AVG(engagementRate) as engRate, AVG(eventsPerSession) as eps, AVG(sessionKeyEventRate) as ker, AVG(userEngagementDurationPerSession) as avgDur FROM \`${P}.${D}.ga4_TrafficAcquisition_317130094\` WHERE ${df} GROUP BY source ORDER BY sessions DESC LIMIT 30`),
     bq(`SELECT SUM(sessions) as sessions, SUM(engagedSessions) as engaged, AVG(engagementRate) as engRate, AVG(userEngagementDurationPerSession) as avgDur FROM \`${P}.${D}.ga4_TrafficAcquisition_317130094\` WHERE ${pf}`),
     bq(`SELECT landingPage as page, SUM(sessions) as sessions, SUM(activeUsers) as users, SUM(keyEvents) as keyEvents, AVG(sessionKeyEventRate) as ker, AVG(userEngagementDurationPerSession) as avgDur FROM \`${P}.${D}.ga4_LandingPage_317130094\` WHERE ${df} GROUP BY page ORDER BY sessions DESC LIMIT 20`),
@@ -554,6 +570,7 @@ async function loadAll(){
     bq(`SELECT eventName as event, SUM(eventCount) as count FROM \`${P}.${D}.ga4_Events_317130094\` WHERE ${pf} GROUP BY event`),
     bq(progFunnelQ),
     bq(progFunnelPrevQ),
+    bq(trendQ),
   ]);
 
   globalData = { traffic, pages, events };
@@ -755,6 +772,108 @@ async function loadAll(){
       ${rows||'<div class="no-data">No events recorded this period</div>'}
     </div>`;
   }).join('');
+
+  // ── TREND CHARTS ──
+  function drawTrendChart(canvasId, weeks, series, maxVal, height, showGrid){
+    const canvas = document.getElementById(canvasId);
+    if(!canvas||!weeks.length) return;
+    const dpr = window.devicePixelRatio||1;
+    canvas.width = canvas.offsetWidth * dpr;
+    canvas.height = height * dpr;
+    canvas.style.height = height+'px';
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    const W = canvas.offsetWidth, H = height;
+    const padL=36, padR=12, padT=12, padB=22;
+    const chartW=W-padL-padR, chartH=H-padT-padB;
+
+    // Grid
+    if(showGrid){
+      ctx.strokeStyle='#f0ede8'; ctx.lineWidth=1;
+      [0,.25,.5,.75,1].forEach(f=>{
+        const y=padT+chartH*(1-f);
+        ctx.beginPath(); ctx.moveTo(padL,y); ctx.lineTo(W-padR,y); ctx.stroke();
+        ctx.fillStyle='#a09890'; ctx.font='9px DM Sans';
+        ctx.fillText('$'+(maxVal*f/1000).toFixed(0)+'K', 2, y+3);
+      });
+    }
+
+    // X labels — show every 2 weeks
+    ctx.fillStyle='#a09890'; ctx.font='9px DM Sans'; ctx.textAlign='center';
+    weeks.forEach((w,i)=>{
+      if(i%2===0){
+        const x=padL+i/(weeks.length-1||1)*chartW;
+        const d=new Date(w); 
+        ctx.fillText(`${d.getDate()}/${d.getMonth()+1}`, x, H-4);
+      }
+    });
+
+    // Lines
+    const COLORS={'Igniting Leadership':'#1d3557','Womens Leadership':'#2d6a4f','Leader Evolution':'#b5860b'};
+    series.forEach(({name, values})=>{
+      const color=COLORS[name]||'#888';
+      // Area fill
+      ctx.beginPath();
+      values.forEach((v,i)=>{
+        const x=padL+i/(weeks.length-1||1)*chartW;
+        const y=padT+chartH*(1-(maxVal>0?v/maxVal:0));
+        i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+      });
+      ctx.lineTo(padL+(values.length-1)/(weeks.length-1||1)*chartW, padT+chartH);
+      ctx.lineTo(padL, padT+chartH);
+      ctx.closePath();
+      ctx.fillStyle=color+'18';
+      ctx.fill();
+
+      // Line
+      ctx.beginPath();
+      ctx.strokeStyle=color; ctx.lineWidth=2; ctx.lineJoin='round';
+      values.forEach((v,i)=>{
+        const x=padL+i/(weeks.length-1||1)*chartW;
+        const y=padT+chartH*(1-(maxVal>0?v/maxVal:0));
+        i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+      });
+      ctx.stroke();
+
+      // Dots on non-zero values
+      values.forEach((v,i)=>{
+        if(v>0){
+          const x=padL+i/(weeks.length-1||1)*chartW;
+          const y=padT+chartH*(1-(maxVal>0?v/maxVal:0));
+          ctx.beginPath(); ctx.arc(x,y,3,0,Math.PI*2);
+          ctx.fillStyle=color; ctx.fill();
+        }
+      });
+    });
+  }
+
+  // Build weekly buckets
+  const allWeeks=[...new Set(trendData.map(r=>r.week))].sort();
+  const PROG_NAMES=['Igniting Leadership','Womens Leadership','Leader Evolution'];
+
+  const revSeries=PROG_NAMES.map(name=>({
+    name,
+    values: allWeeks.map(w=>{
+      const row=trendData.find(r=>r.program===name&&r.week===w);
+      return parseFloat(row?.revenue||0);
+    })
+  }));
+  const purchSeries=PROG_NAMES.map(name=>({
+    name,
+    values: allWeeks.map(w=>{
+      const row=trendData.find(r=>r.program===name&&r.week===w);
+      return parseFloat(row?.purchases||0);
+    })
+  }));
+
+  const maxRev=Math.max(...revSeries.flatMap(s=>s.values))||1;
+  const maxPurch=Math.max(...purchSeries.flatMap(s=>s.values))||1;
+
+  // Draw after layout
+  setTimeout(()=>{
+    drawTrendChart('prog-trend-chart', allWeeks, revSeries, maxRev, 180, true);
+    drawTrendChart('prog-purchases-chart', allWeeks, purchSeries, maxPurch, 130, false);
+  }, 100);
 
   // ── PROGRAM FUNNEL (Humanitix) ──
   const PROGRAMS = ['Igniting Leadership','Womens Leadership','Leader Evolution'];

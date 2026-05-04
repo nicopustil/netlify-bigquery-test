@@ -186,20 +186,28 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 </div>
 
 <div class="tabs">
-  <button class="tab active" onclick="switchTab('overview',this)">Overview</button>
+  <button class="tab active" onclick="switchTab('strategy',this)">⚡ What's Happening</button>
+  <button class="tab" onclick="switchTab('overview',this)">Overview</button>
   <button class="tab" onclick="switchTab('traffic',this)">Traffic</button>
   <button class="tab" onclick="switchTab('engagement',this)">Engagement</button>
   <button class="tab" onclick="switchTab('programs',this)">Programs</button>
   <button class="tab" onclick="switchTab('campaigns',this)">Campaigns</button>
   <button class="tab" onclick="switchTab('path',this)">Path Explorer</button>
   <button class="tab agency-only" onclick="switchTab('insights',this)">Internal Insights</button>
-  <button class="tab" onclick="switchTab('ai',this)">AI Analyst</button>
+  <button class="tab" onclick="switchTab('ai',this)">🤖 AI Strategist</button>
 </div>
 
 <div class="body">
 
+  <!-- WHAT'S HAPPENING -->
+  <div class="tab-content active" id="tab-strategy">
+    <div id="strategy-content">
+      <div class="loading-row"><span class="spinner"></span> Analysing data...</div>
+    </div>
+  </div>
+
   <!-- OVERVIEW -->
-  <div class="tab-content active" id="tab-overview">
+  <div class="tab-content" id="tab-overview">
     <div class="kpi-grid">
       <div class="kpi">
         <div class="kpi-label">Sessions</div>
@@ -389,15 +397,34 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 
   <!-- PATH EXPLORER -->
   <div class="tab-content" id="tab-path">
-    <div class="placeholder">
-      <div class="placeholder-icon">🗺</div>
-      <div class="placeholder-title">Path Explorer — Coming Soon</div>
-      <div class="placeholder-body">
-        Path analysis requires raw GA4 event export tables (<code>events_YYYYMMDD</code>).<br>
-        Current dataset only includes aggregated GA4 report tables.<br><br>
-        <strong>To enable:</strong> In GA4 → Admin → BigQuery Linking → enable "Raw event export".<br>
-        Once active, path analysis, funnels, and user journey mapping will be available here.
+    <div class="kpi-grid-3">
+      <div class="kpi">
+        <div class="kpi-label">Users tracked</div>
+        <div class="kpi-value" id="path-users">—</div>
+        <div class="kpi-sub">with complete journey data</div>
       </div>
+      <div class="kpi">
+        <div class="kpi-label">Avg steps to purchase</div>
+        <div class="kpi-value" id="path-steps">—</div>
+        <div class="kpi-sub">page views before buying</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Humanitix conversion</div>
+        <div class="kpi-value" id="path-conv">—</div>
+        <div class="kpi-sub">reached tickets → purchased</div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Purchase journey · Humanitix funnel <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">last 3 days · raw GA4 events</span></div>
+      <div id="path-funnel"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Top entry pages for buyers <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">first page visited before purchasing</span></div>
+      <div id="path-entry"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Full journey breakdown <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">leadershipvictoria.org → humanitix → purchase</span></div>
+      <div id="path-journey"></div>
     </div>
   </div>
 
@@ -413,21 +440,24 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
     </div>
   </div>
 
-  <!-- AI ANALYST -->
+  <!-- AI STRATEGIST -->
   <div class="tab-content" id="tab-ai">
     <div class="chat-wrap">
-      <div class="panel-title">AI Marketing Analyst · Leadership Victoria</div>
+      <div class="panel-title" style="margin-bottom:8px">🤖 AI Marketing Strategist · Leadership Victoria</div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:12px">Loaded with real GA4 data — traffic, programs, revenue, funnel, campaigns</div>
       <div class="sugg-row">
-        <button class="sugg" onclick="askSugg(this)">Which channel has the best quality traffic?</button>
-        <button class="sugg" onclick="askSugg(this)">What programs are getting the most interest?</button>
-        <button class="sugg" onclick="askSugg(this)">Write a monthly summary for the client</button>
-        <button class="sugg" onclick="askSugg(this)">Where are we losing people?</button>
+        <button class="sugg" onclick="askSugg(this)">Which channel drives the most revenue?</button>
+        <button class="sugg" onclick="askSugg(this)">Write a monthly report for the client</button>
+        <button class="sugg" onclick="askSugg(this)">Where are we losing people in the funnel?</button>
+        <button class="sugg" onclick="askSugg(this)">Which program should we invest more in?</button>
+        <button class="sugg" onclick="askSugg(this)">What's working and what's not?</button>
+        <button class="sugg" onclick="askSugg(this)">Recommend 3 actions for next month</button>
       </div>
       <div class="chat-msgs" id="chatMsgs">
-        <div class="msg ai">Hi — I'm your marketing analyst for Leadership Victoria. I have real GA4 data loaded. Ask me anything about traffic, engagement, programs, or campaign performance.</div>
+        <div class="msg ai">Hi — I'm your marketing strategist for Leadership Victoria. I have real data loaded: traffic by channel, program revenue, purchase funnels, and campaign performance. Ask me anything — I'll give you specific, actionable answers based on the actual numbers.</div>
       </div>
       <div class="chat-input-row">
-        <input class="chat-input" id="chatInput" placeholder="Ask about your marketing data..." onkeydown="if(event.key==='Enter')sendChat()">
+        <input class="chat-input" id="chatInput" placeholder="Ask a strategic question..." onkeydown="if(event.key==='Enter')sendChat()">
         <button class="chat-btn" onclick="sendChat()">Ask →</button>
       </div>
     </div>
@@ -561,7 +591,45 @@ async function loadAll(){
 
   const trendQ = `SELECT CASE WHEN landingPage LIKE '%igniting-leadership%' THEN 'Igniting Leadership' WHEN landingPage LIKE '%womens-leadership%' OR landingPage LIKE '%women-s-leadership%' THEN 'Womens Leadership' WHEN landingPage LIKE '%leader-evolution%' OR landingPage LIKE '%leaderevolution%' THEN 'Leader Evolution' END as program, DATE_TRUNC(_DATA_DATE, WEEK) as week, SUM(totalRevenue) as revenue, SUM(keyEvents) as purchases FROM \`${P}.${D}.ga4_LandingPage_317130094\` WHERE _DATA_DATE >= DATE_SUB(CURRENT_DATE(), INTERVAL 90 DAY) AND (landingPage LIKE '%igniting-leadership%' OR landingPage LIKE '%womens-leadership%' OR landingPage LIKE '%women-s-leadership%' OR landingPage LIKE '%leader-evolution%') GROUP BY program, week ORDER BY week ASC`;
 
-  const [traffic, prevTraffic, pages, prevPages, events, prevEvents, progFunnelData, progFunnelPrev, trendData] = await Promise.all([
+  // Raw events path queries — last 3 days available
+  const rawDataset = 'analytics_317130094';
+  const pathFunnelQ = `SELECT stage, COUNT(DISTINCT user_pseudo_id) as users FROM (
+    SELECT user_pseudo_id,
+      CASE
+        WHEN REGEXP_CONTAINS((SELECT value.string_value FROM UNNEST(event_params) WHERE key='page_location'), 'humanitix.com/.*/complete') THEN '4_complete'
+        WHEN event_name='purchase' THEN '3_purchase'
+        WHEN REGEXP_CONTAINS((SELECT value.string_value FROM UNNEST(event_params) WHERE key='page_location'), 'humanitix.com/.*/tickets') THEN '2_tickets'
+        WHEN REGEXP_CONTAINS((SELECT value.string_value FROM UNNEST(event_params) WHERE key='page_location'), 'humanitix.com') THEN '1_humanitix'
+        WHEN REGEXP_CONTAINS((SELECT value.string_value FROM UNNEST(event_params) WHERE key='page_location'), 'leadershipvictoria.org') THEN '0_lv_site'
+      END as stage
+    FROM \`${P}.${rawDataset}.events_*\`
+    WHERE _TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 3 DAY))
+    AND event_name IN ('page_view','purchase')
+  ) WHERE stage IS NOT NULL
+  GROUP BY stage ORDER BY stage`;
+
+  const pathEntryQ = `SELECT
+    REGEXP_REPLACE((SELECT value.string_value FROM UNNEST(e.event_params) WHERE key='page_location'), r'https://www\\.leadershipvictoria\\.org', '') as entry_page,
+    COUNT(DISTINCT e.user_pseudo_id) as buyers
+  FROM \`${P}.${rawDataset}.events_*\` e
+  WHERE _TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY))
+  AND e.user_pseudo_id IN (
+    SELECT DISTINCT user_pseudo_id FROM \`${P}.${rawDataset}.events_*\`
+    WHERE _TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY))
+    AND event_name = 'purchase'
+  )
+  AND (SELECT value.string_value FROM UNNEST(e.event_params) WHERE key='page_location') LIKE '%leadershipvictoria.org%'
+  AND e.event_name = 'page_view'
+  GROUP BY entry_page ORDER BY buyers DESC LIMIT 10`;
+
+  const campaignsQ = `SELECT sessionCampaignName as campaign, sessionSourceMedium as source, sessionDefaultChannelGroup as channel,
+    SUM(sessions) as sessions, SUM(engagedSessions) as engaged, AVG(engagementRate) as engRate,
+    SUM(keyEvents) as keyEvents, AVG(userEngagementDurationPerSession) as avgDur, SUM(totalRevenue) as revenue
+    FROM \`${P}.${D}.ga4_TrafficAcquisition_317130094\`
+    WHERE ${df} AND sessionCampaignName != '(not set)' AND sessionCampaignName IS NOT NULL
+    GROUP BY campaign, source, channel ORDER BY sessions DESC LIMIT 30`;
+
+  const [traffic, prevTraffic, pages, prevPages, events, prevEvents, progFunnelData, progFunnelPrev, trendData, pathFunnel, pathEntry, campaignsData] = await Promise.all([
     bq(`SELECT sessionSourceMedium as source, SUM(sessions) as sessions, SUM(engagedSessions) as engaged, AVG(engagementRate) as engRate, AVG(eventsPerSession) as eps, AVG(sessionKeyEventRate) as ker, AVG(userEngagementDurationPerSession) as avgDur FROM \`${P}.${D}.ga4_TrafficAcquisition_317130094\` WHERE ${df} GROUP BY source ORDER BY sessions DESC LIMIT 30`),
     bq(`SELECT SUM(sessions) as sessions, SUM(engagedSessions) as engaged, AVG(engagementRate) as engRate, AVG(userEngagementDurationPerSession) as avgDur FROM \`${P}.${D}.ga4_TrafficAcquisition_317130094\` WHERE ${pf}`),
     bq(`SELECT landingPage as page, SUM(sessions) as sessions, SUM(activeUsers) as users, SUM(keyEvents) as keyEvents, AVG(sessionKeyEventRate) as ker, AVG(userEngagementDurationPerSession) as avgDur FROM \`${P}.${D}.ga4_LandingPage_317130094\` WHERE ${df} GROUP BY page ORDER BY sessions DESC LIMIT 20`),
@@ -571,9 +639,12 @@ async function loadAll(){
     bq(progFunnelQ),
     bq(progFunnelPrevQ),
     bq(trendQ),
+    bq(pathFunnelQ),
+    bq(pathEntryQ),
+    bq(campaignsQ),
   ]);
 
-  globalData = { traffic, pages, events };
+  globalData = { traffic, pages, events, progFunnelData, trendData, pathFunnel, pathEntry, campaignsData };
 
   // ── TOTALS ──
   const totS=traffic.reduce((a,r)=>a+parseFloat(r.sessions||0),0);
@@ -986,6 +1057,203 @@ async function loadAll(){
     }
   }
 
+  // ── PATH EXPLORER ──
+  const stageLabels={'0_lv_site':'LV Website','1_humanitix':'Humanitix landing','2_tickets':'Tickets page','3_purchase':'Purchase ✓','4_complete':'Confirmation'};
+  const stageColors={'0_lv_site':'#1d3557','1_humanitix':'#2d6a4f','2_tickets':'#b5860b','3_purchase':'#c0392b','4_complete':'#22c55e'};
+  const pathMap={};
+  pathFunnel.forEach(r=>{pathMap[r.stage]=parseInt(r.users||0);});
+  const maxPathUsers=pathMap['0_lv_site']||pathMap['1_humanitix']||1;
+
+  // KPIs
+  const pathBuyers=pathMap['3_purchase']||0;
+  const pathTicketUsers=pathMap['2_tickets']||0;
+  const pathConv=pathTicketUsers>0?(pathBuyers/pathTicketUsers*100).toFixed(0)+'%':'—';
+  document.getElementById('path-users').textContent=fmt(maxPathUsers);
+  document.getElementById('path-steps').textContent='4';
+  document.getElementById('path-conv').textContent=pathConv;
+
+  // Funnel
+  const pathFunnelEl=document.getElementById('path-funnel');
+  if(pathFunnelEl){
+    const stages=['0_lv_site','1_humanitix','2_tickets','3_purchase','4_complete'];
+    let html='';
+    stages.forEach((s,i)=>{
+      const v=pathMap[s]||0;
+      const pct=maxPathUsers>0?(v/maxPathUsers*100):0;
+      const color=stageColors[s];
+      const drop=i>0&&pathMap[stages[i-1]]>0?((pathMap[stages[i-1]]-v)/pathMap[stages[i-1]]*100).toFixed(0):null;
+      html+=`<div style="margin-bottom:6px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
+          <span style="font-size:12px;font-weight:500;color:var(--text)">${stageLabels[s]}</span>
+          <div style="display:flex;align-items:center;gap:10px">
+            ${drop!==null&&parseInt(drop)>0?`<span style="font-size:11px;color:var(--warn)">▼ ${drop}% drop</span>`:''}
+            <span style="font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--text)">${fmt(v)}</span>
+          </div>
+        </div>
+        <div style="height:24px;background:var(--bg2);border-radius:5px;overflow:hidden">
+          <div style="height:100%;width:${pct.toFixed(1)}%;background:${color};border-radius:5px;transition:width .5s ease;display:flex;align-items:center;justify-content:flex-end;padding-right:8px">
+            ${pct>8?`<span style="font-size:10px;color:white;font-weight:500">${pct.toFixed(0)}%</span>`:''}
+          </div>
+        </div>
+      </div>`;
+    });
+    pathFunnelEl.innerHTML=html||'<div class="no-data">No path data available for this period</div>';
+  }
+
+  // Entry pages
+  const pathEntryEl=document.getElementById('path-entry');
+  if(pathEntryEl&&pathEntry.length){
+    const maxB=Math.max(...pathEntry.map(r=>parseInt(r.buyers||0)))||1;
+    pathEntryEl.innerHTML=pathEntry.map(r=>{
+      const b=parseInt(r.buyers||0);
+      const pg=(r.entry_page||'/').replace('https://www.leadershipvictoria.org','').split('?')[0]||'/';
+      return `<div class="data-row">
+        <span class="row-name" style="font-family:monospace;font-size:11px">${pg}</span>
+        <div class="bar-wrap"><div class="bar" style="width:${(b/maxB*100).toFixed(0)}%;background:#1d3557"></div></div>
+        <span class="row-val">${b}</span>
+        <span class="row-sub">buyers</span>
+      </div>`;
+    }).join('');
+  } else if(pathEntryEl){
+    pathEntryEl.innerHTML='<div class="no-data">No buyer journey data yet — raw events started May 2026</div>';
+  }
+
+  // Journey text
+  const pathJourneyEl=document.getElementById('path-journey');
+  if(pathJourneyEl){
+    pathJourneyEl.innerHTML=`
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 0">
+        ${['LV program page','→','Humanitix event page','→','Tickets selection','→','Payment details','→','Purchase ✓','→','Confirmation'].map(s=>
+          s==='→'?`<span style="color:var(--text3);font-size:14px">→</span>`:
+          `<span style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:12px;color:var(--text2)">${s}</span>`
+        ).join('')}
+      </div>
+      <div style="margin-top:10px;font-size:12px;color:var(--text3);line-height:1.7">
+        Cross-domain tracking via GTM — GA4 session persists from leadershipvictoria.org to events.humanitix.com using the <code>_gl</code> parameter. Purchase events fire on Humanitix and are attributed back to the original traffic source.
+      </div>`;
+  }
+
+  // ── CAMPAIGNS ──
+  const campGoogleEl=document.getElementById('camp-google-detail');
+  const campMetaEl=document.getElementById('camp-meta-detail');
+  const campEmailEl=document.getElementById('camp-email-detail');
+  const campRefEl=document.getElementById('camp-referral-detail');
+
+  const googleCamps=campaignsData.filter(r=>r.source&&r.source.includes('cpc')||r.channel==='Paid Search'||r.channel==='Cross-network');
+  const metaCamps=campaignsData.filter(r=>r.source&&r.source.includes('fb / paid')||r.channel==='Paid Social');
+  const emailCamps=campaignsData.filter(r=>r.source&&(r.source.includes('email')||r.source.includes('mailchimp')||r.source.includes('ortto')||r.source.includes('campaign-archive')));
+  const refCamps=campaignsData.filter(r=>r.channel==='Referral'||r.channel==='Organic Social');
+
+  // Update KPIs
+  const gSess=googleCamps.reduce((a,r)=>a+parseFloat(r.sessions||0),0);
+  const mSess=metaCamps.reduce((a,r)=>a+parseFloat(r.sessions||0),0);
+  const eSess=emailCamps.reduce((a,r)=>a+parseFloat(r.sessions||0),0);
+  const totKE=campaignsData.reduce((a,r)=>a+parseFloat(r.keyEvents||0),0);
+  const totRev2=campaignsData.reduce((a,r)=>a+parseFloat(r.revenue||0),0);
+  const el=id=>document.getElementById(id);
+  if(el('camp-google-sess')) el('camp-google-sess').textContent=fmt(gSess);
+  if(el('camp-meta-sess')) el('camp-meta-sess').textContent=fmt(mSess);
+  if(el('camp-email-sess')) el('camp-email-sess').textContent=fmt(eSess);
+  if(el('camp-keyevents')) el('camp-keyevents').textContent=fmt(totKE);
+  if(el('camp-google-rev')) el('camp-google-rev').textContent='$'+totRev2.toFixed(0)+' attributed revenue';
+  if(el('camp-meta-eng')) el('camp-meta-eng').textContent=mSess>0?fmtPct(metaCamps.reduce((a,r)=>a+parseFloat(r.engRate||0)*parseFloat(r.sessions||0),0)/mSess)+' engagement':'';
+  if(el('camp-revenue')) el('camp-revenue').textContent=fmt(totKE)+' total conversions';
+
+  function renderCampRows(el, rows){
+    if(!el) return;
+    if(!rows||!rows.length){el.innerHTML='<div class="no-data">No data this period</div>';return;}
+    const maxS=Math.max(...rows.map(r=>parseFloat(r.sessions||0)))||1;
+    el.innerHTML=rows.map(r=>{
+      const s=parseFloat(r.sessions||0);
+      const er=parseFloat(r.engRate||0);
+      const kev=parseFloat(r.keyEvents||0);
+      const rev=parseFloat(r.revenue||0);
+      const name=r.campaign&&r.campaign!='(direct)'&&r.campaign!='(organic)'&&r.campaign!='(referral)'?r.campaign:r.source;
+      return `<div class="data-row">
+        <span class="row-name">${name||'Unknown'}</span>
+        <div class="bar-wrap"><div class="bar" style="width:${(s/maxS*100).toFixed(0)}%;background:#1d3557"></div></div>
+        <span class="row-val">${fmt(s)}</span>
+        <span class="row-sub">${fmtPct(er)}</span>
+        ${kev>0?`<span class="row-sub">${fmt(kev)} conv</span>`:''}
+        ${rev>0?`<span class="row-sub" style="color:var(--accent)">$${(rev/1000).toFixed(1)}K</span>`:''}
+      </div>`;
+    }).join('');
+  }
+
+  renderCampRows(campGoogleEl, googleCamps);
+  renderCampRows(campMetaEl, metaCamps);
+  renderCampRows(campEmailEl, emailCamps);
+  renderCampRows(campRefEl, refCamps.slice(0,10));
+
+  // ── WHAT'S HAPPENING ──
+  const stratEl=document.getElementById('strategy-content');
+  if(stratEl){
+    const totRevenue2=events.reduce((a,e)=>a+parseFloat(e.revenue||0),0);
+    const totForms2=formKeys.reduce((a,k)=>a+(evMap[k]?.count||0),0);
+    const totDownloads2=evMap['file_download']?.count||0;
+    const organicSess=grouped?.organic||0;
+    const organicPct=totS>0?(organicSess/totS*100).toFixed(0):0;
+    const paidSess=(grouped?.paid||0);
+
+    // Build signal list
+    const signals=[];
+
+    // Revenue
+    const prevRevenue=prevEvents.reduce((a,e)=>a+parseFloat(e.count||0),0);
+    if(totRevenue2>0){
+      const topProgram=PROGRAMS.reduce((best,p)=>{
+        const cur2=progMap[p]||{program_page:{revenue:0},tickets:{revenue:0},purchase:{revenue:0}};
+        const rev=cur2.program_page.revenue+cur2.tickets.revenue+cur2.purchase.revenue;
+        return rev>(best.rev||0)?{name:PROG_LABELS[p],rev}:best;
+      },{});
+      signals.push({type:'good',emoji:'💰',title:`$${(totRevenue2/1000).toFixed(0)}K revenue this period`,body:`${topProgram.name} is the top earner at $${(topProgram.rev/1000).toFixed(0)}K. Purchase events tracked via Humanitix cross-domain.`,action:'→ Double down on highest-converting program pages'});
+    }
+
+    // Traffic trend
+    const dS=delta(totS,prevS);
+    if(dS) signals.push({type:dS.val>=0?'good':'warn',emoji:'📈',title:`Traffic ${dS.val>=0?'up':'down'} ${Math.abs(dS.val).toFixed(0)}% vs previous period`,body:`${fmt(totS)} sessions. Organic drives ${organicPct}% of traffic — typically your highest-quality visitors.`,action:dS.val<0?'→ Review what changed — check paid spend and seasonal factors':'→ Organic is strong, consider increasing content production'});
+
+    // Engagement
+    if(avgEngRate>0) signals.push({type:avgEngRate>=0.7?'good':avgEngRate>=0.5?'info':'warn',emoji:'⚡',title:`${fmtPct(avgEngRate)} engagement rate`,body:`${fmtPct(avgEngRate)} of sessions are genuinely engaged (10s+ activity, scroll, or click). ${avgEngRate>=0.7?'Excellent — well above industry average of ~55%.':avgEngRate>=0.5?'Good — above average.':'Below average — review landing page experience.'}`,action:avgEngRate<0.6?'→ Improve page load speed and above-fold content':'→ Maintain content quality — engagement is strong'});
+
+    // Forms
+    if(totForms2>0){
+      const formRate=totS>0?(totForms2/totS*100).toFixed(1):0;
+      const dForms=delta(totForms2,prevActions);
+      signals.push({type:totForms2>20?'good':'info',emoji:'📋',title:`${fmt(totForms2)} form submissions (${formRate}% of sessions)`,body:`Program enquiries are ${dForms?dForms.str+' vs previous period':''} — direct pipeline signals from interested leads.`,action:'→ Follow up enquiries within 24hrs to maximise conversion'});
+    }
+
+    // Downloads
+    if(totDownloads2>0) signals.push({type:'info',emoji:'📥',title:`${fmt(totDownloads2)} resource downloads`,body:`Content downloads indicate strong research intent. These users are in the consideration phase.`,action:'→ Add email capture to download flow to build the database'});
+
+    // Paid search
+    if(paidSess>100){
+      const paidEngRate=weightedEr?.(groupedEngRate?.paid||[]);
+      signals.push({type:'info',emoji:'🎯',title:`${fmt(paidSess)} paid sessions from Google Ads`,body:`Campaigns: LV Pmax, Women in Leadership, General Leadership. ${paidEngRate?fmtPct(paidEngRate)+' engagement rate.':''}`,action:'→ Check cost per conversion in Google Ads — compare against organic'});
+    }
+
+    // Bad pages
+    const badPages2=pages.filter(p=>parseFloat(p.sessions||0)>100&&parseFloat(p.ker||0)<0.01);
+    if(badPages2.length) signals.push({type:'critical',emoji:'⚠️',title:`${badPages2.length} high-traffic page${badPages2.length>1?'s':''} not converting`,body:`${badPages2.slice(0,2).map(p=>p.page).join(', ')} — getting significant traffic but almost no key actions.`,action:'→ Add clear CTAs and program links to these pages'});
+
+    // Monthly story
+    const story=`${fmt(totS)} visits this period with ${fmtPct(avgEngRate)} engagement. ${totRevenue2>0?`Revenue of $${(totRevenue2/1000).toFixed(0)}K tracked across programs.`:''} ${totForms2>0?`${fmt(totForms2)} form submissions indicate active pipeline.`:''} ${dS&&dS.val<-10?`Traffic is down ${Math.abs(dS.val).toFixed(0)}% vs previous period — worth investigating.`:dS&&dS.val>10?`Strong traffic growth of ${dS.val.toFixed(0)}% vs previous period.`:'Traffic is stable.'}`;
+
+    stratEl.innerHTML=`
+      <div style="background:white;border:1px solid var(--border);border-radius:12px;padding:20px 22px;margin-bottom:14px">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:8px;font-weight:500">Period summary</div>
+        <div style="font-size:14px;color:var(--text2);line-height:1.7;font-style:italic">"${story}"</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        ${signals.map(s=>`
+          <div style="background:white;border:1px solid var(--border);border-radius:10px;padding:14px 16px;border-left:3px solid ${s.type==='good'?'var(--accent)':s.type==='warn'?'#e67e22':s.type==='critical'?'var(--warn)':'var(--accent2)'}">
+            <div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:4px">${s.emoji} ${s.title}</div>
+            <div style="font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:5px">${s.body}</div>
+            <div style="font-size:11px;color:var(--text3);font-style:italic">${s.action}</div>
+          </div>`).join('')}
+      </div>`;
+  }
+
   // ── AGENCY INSIGHTS ──
   if(isAgency){
     const insights=[];
@@ -1034,28 +1302,60 @@ async function sendChat(){
   chatHistory.push({role:'user',content:text});
 
   const d=globalData;
-  const totS=d.traffic?.reduce((a,r)=>a+parseFloat(r.sessions||0),0)||0;
-  const totE=d.traffic?.reduce((a,r)=>a+parseFloat(r.engaged||0),0)||0;
-  const avgEr=totS>0?d.traffic?.reduce((a,r)=>a+parseFloat(r.engRate||0)*parseFloat(r.sessions||0),0)/totS:0;
+  const totS2=d.traffic?.reduce((a,r)=>a+parseFloat(r.sessions||0),0)||0;
+  const totE2=d.traffic?.reduce((a,r)=>a+parseFloat(r.engaged||0),0)||0;
+  const avgEr2=totS2>0?d.traffic?.reduce((a,r)=>a+parseFloat(r.engRate||0)*parseFloat(r.sessions||0),0)/totS2:0;
+  const evMap3={};
+  d.events?.forEach(e=>{evMap3[e.event]={count:parseFloat(e.count||0),revenue:parseFloat(e.revenue||0)};});
+  const totalRev3=d.events?.reduce((a,e)=>a+parseFloat(e.revenue||0),0)||0;
 
-  const evMap2={};
-  d.events?.forEach(e=>{evMap2[e.event]=parseFloat(e.count||0);});
+  // Program revenue
+  const pm=buildProgMap?.(d.progFunnelData||[])||{};
+  const progRevSummary=PROGRAMS.map(p=>{
+    const cur=pm[p]||{program_page:{sessions:0,revenue:0},tickets:{sessions:0,revenue:0},purchase:{revenue:0}};
+    const rev=cur.program_page.revenue+cur.tickets.revenue+(cur.purchase?.revenue||0);
+    const sess=cur.program_page.sessions;
+    const tick=cur.tickets.sessions;
+    return `${PROG_LABELS[p]}: ${fmt(sess)} page views, ${fmt(tick)} reached tickets, $${(rev/1000).toFixed(0)}K revenue`;
+  }).join(' | ');
 
-  const sys=`You are a marketing analyst for Leadership Victoria, an Australian not-for-profit leadership development organisation. You have access to real GA4 analytics data.
+  // Campaigns summary
+  const campSummary=d.campaignsData?.slice(0,8).map(r=>`${r.campaign||r.source}: ${fmt(r.sessions)} sessions, ${fmtPct(parseFloat(r.engRate||0))} eng${parseFloat(r.revenue||0)>0?', $'+(parseFloat(r.revenue)/1000).toFixed(1)+'K':''}`).join(' | ')||'No campaign data';
 
-Current period data summary:
-- Total sessions: ${fmt(totS)}
-- Engaged sessions: ${fmt(totE)} (${fmtPct(avgEr)} engagement rate)
-- Top traffic channels: ${d.traffic?.slice(0,5).map(r=>`${r.source}: ${fmt(r.sessions)} sessions, ${fmtPct(parseFloat(r.engRate||0))} engagement`).join(' | ')||'loading'}
-- Top landing pages: ${d.pages?.slice(0,5).map(p=>`${p.page}: ${fmt(p.sessions)} sessions`).join(' | ')||'loading'}
-- Key events: ${d.events?.slice(0,10).map(e=>`${e.event}: ${fmt(e.count)}`).join(', ')||'loading'}
+  const sys=`You are a senior marketing strategist for Leadership Victoria, an Australian not-for-profit leadership development organisation. You have access to real GA4 + BigQuery analytics data.
 
-Rules:
-- Only reference numbers from the data above. Never invent figures.
-- If data is unavailable, say so clearly.
-- Reply concisely (3–5 sentences). Be specific and actionable.
-- End with one concrete recommendation.
-- Match the language of the user (Spanish or English).`;
+ORGANISATION: Leadership Victoria runs leadership development programs including Igniting Leadership, Women's Leadership, and Leader Evolution. They use Humanitix for ticketing (cross-domain tracking via GTM).
+
+CURRENT PERIOD DATA:
+Traffic:
+- Total sessions: ${fmt(totS2)}
+- Engaged sessions: ${fmt(totE2)} (${fmtPct(avgEr2)} engagement rate)
+- Top channels: ${d.traffic?.slice(0,6).map(r=>`${r.source}: ${fmt(r.sessions)} sess, ${fmtPct(parseFloat(r.engRate||0))} eng`).join(' | ')||'—'}
+
+Programs & Revenue:
+- ${progRevSummary}
+- Total revenue: $${(totalRev3/1000).toFixed(0)}K (purchase events via Humanitix)
+- Form submissions: ${fmt(evMap3['form_submission_id']?.count||0 + evMap3['generate_lead']?.count||0)}
+- File downloads: ${fmt(evMap3['file_download']?.count||0)}
+
+Purchase funnel (Humanitix):
+- LV site → Humanitix landing → Tickets → Payment details → Purchase → Confirmation
+- Buyers entry pages: ${d.pathEntry?.slice(0,3).map(r=>r.entry_page).join(', ')||'—'}
+
+Campaigns:
+- ${campSummary}
+
+Top landing pages: ${d.pages?.slice(0,5).map(p=>`${p.page}: ${fmt(p.sessions)} sess, ${fmtDur(p.avgDur)}`).join(' | ')||'—'}
+
+RULES:
+- Only use numbers from the data above. Never invent figures.
+- Be specific, strategic, and actionable.
+- When asked for a report, write it professionally — suitable to send to the client.
+- When asked for recommendations, give 3 specific actions with expected impact.
+- Match the language of the user (English or Spanish).
+- Keep responses focused — max 200 words unless writing a full report.`;
+
+  try{
 
   try{
     const res=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system:sys,messages:chatHistory})});

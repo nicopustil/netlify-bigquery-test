@@ -473,6 +473,20 @@ const isAgency = (TOKENS[token]||'client') === 'agency';
 const P = 'leadership-victoria-494806';
 const D = 'ga4_leadership_victoria_us';
 
+// ── PROGRAM CONSTANTS (global: used by lazy renderers and AI chat) ─────────────
+const PROGRAMS = ['Igniting Leadership','Womens Leadership','Leader Evolution'];
+const PROG_COLORS = {'Igniting Leadership':'#1d3557','Womens Leadership':'#2d6a4f','Leader Evolution':'#b5860b'};
+const PROG_LABELS = {'Igniting Leadership':'Igniting Leadership','Womens Leadership':"Women's Leadership",'Leader Evolution':'Leader Evolution'};
+function buildProgMap(data){
+  const m = {};
+  (data || []).forEach(r=>{
+    if(!m[r.program]) m[r.program] = {program_page:{sessions:0,revenue:0},tickets:{sessions:0,revenue:0},purchase:{sessions:0,revenue:0}};
+    const stage = r.stage || 'program_page';
+    m[r.program][stage] = {sessions:parseFloat(r.sessions||0),revenue:parseFloat(r.revenue||0)};
+  });
+  return m;
+}
+
 if(isAgency){
   document.getElementById('agencyBadge').classList.add('show');
   document.querySelectorAll('.agency-only').forEach(e=>e.classList.add('show'));
@@ -885,19 +899,14 @@ async function loadAll(){
     const organicSess=grouped?.organic||0;
     const organicPct=totS>0?(organicSess/totS*100).toFixed(0):0;
     const paidSess=(grouped?.paid||0);
+    const paidEngRateArr=groupedEngRate?.paid||[];
+    const paidEngRate=paidEngRateArr.length>0?(paidEngRateArr.reduce((a,x)=>a+x.er*x.sessions,0)/(paidEngRateArr.reduce((a,x)=>a+x.sessions,0)||1)):0;
 
-    // Build signal list
     const signals=[];
 
-    // Revenue
-    const prevRevenue=prevEvents.reduce((a,e)=>a+parseFloat(e.count||0),0);
+    // Revenue — no program breakdown yet (lazy loaded), just total
     if(totRevenue2>0){
-      const topProgram=PROGRAMS.reduce((best,p)=>{
-        const cur2=progMap[p]||{program_page:{revenue:0},tickets:{revenue:0},purchase:{revenue:0}};
-        const rev=cur2.program_page.revenue+cur2.tickets.revenue+cur2.purchase.revenue;
-        return rev>(best.rev||0)?{name:PROG_LABELS[p],rev}:best;
-      },{});
-      signals.push({type:'good',emoji:'💰',title:`$${(totRevenue2/1000).toFixed(0)}K revenue this period`,body:`${topProgram.name} is the top earner at $${(topProgram.rev/1000).toFixed(0)}K. Purchase events tracked via Humanitix cross-domain.`,action:'→ Double down on highest-converting program pages'});
+      signals.push({type:'good',emoji:'💰',title:`$${(totRevenue2/1000).toFixed(0)}K revenue this period`,body:`Purchase events tracked via Humanitix cross-domain tracking. View Programs tab for breakdown by program.`,action:'→ Double down on highest-converting program pages'});
     }
 
     // Traffic trend
@@ -911,23 +920,19 @@ async function loadAll(){
     if(totForms2>0){
       const formRate=totS>0?(totForms2/totS*100).toFixed(1):0;
       const dForms=delta(totForms2,prevActions);
-      signals.push({type:totForms2>20?'good':'info',emoji:'📋',title:`${fmt(totForms2)} form submissions (${formRate}% of sessions)`,body:`Program enquiries are ${dForms?dForms.str+' vs previous period':''} — direct pipeline signals from interested leads.`,action:'→ Follow up enquiries within 24hrs to maximise conversion'});
+      signals.push({type:totForms2>20?'good':'info',emoji:'📋',title:`${fmt(totForms2)} form submissions (${formRate}% of sessions)`,body:`Program enquiries ${dForms?dForms.str+' vs previous period':''} — direct pipeline signals from interested leads.`,action:'→ Follow up enquiries within 24hrs to maximise conversion'});
     }
 
     // Downloads
     if(totDownloads2>0) signals.push({type:'info',emoji:'📥',title:`${fmt(totDownloads2)} resource downloads`,body:`Content downloads indicate strong research intent. These users are in the consideration phase.`,action:'→ Add email capture to download flow to build the database'});
 
     // Paid search
-    if(paidSess>100){
-      const paidEngRate=weightedEr?.(groupedEngRate?.paid||[]);
-      signals.push({type:'info',emoji:'🎯',title:`${fmt(paidSess)} paid sessions from Google Ads`,body:`Campaigns: LV Pmax, Women in Leadership, General Leadership. ${paidEngRate?fmtPct(paidEngRate)+' engagement rate.':''}`,action:'→ Check cost per conversion in Google Ads — compare against organic'});
-    }
+    if(paidSess>100) signals.push({type:'info',emoji:'🎯',title:`${fmt(paidSess)} paid sessions from Google Ads`,body:`Active campaigns driving paid traffic. ${paidEngRate>0?fmtPct(paidEngRate)+' engagement rate.':''}`,action:'→ Check cost per conversion in Google Ads — compare against organic'});
 
     // Bad pages
     const badPages2=pages.filter(p=>parseFloat(p.sessions||0)>100&&parseFloat(p.ker||0)<0.01);
     if(badPages2.length) signals.push({type:'critical',emoji:'⚠️',title:`${badPages2.length} high-traffic page${badPages2.length>1?'s':''} not converting`,body:`${badPages2.slice(0,2).map(p=>p.page).join(', ')} — getting significant traffic but almost no key actions.`,action:'→ Add clear CTAs and program links to these pages'});
 
-    // Monthly story
     const story=`${fmt(totS)} visits this period with ${fmtPct(avgEngRate)} engagement. ${totRevenue2>0?`Revenue of $${(totRevenue2/1000).toFixed(0)}K tracked across programs.`:''} ${totForms2>0?`${fmt(totForms2)} form submissions indicate active pipeline.`:''} ${dS&&dS.val<-10?`Traffic is down ${Math.abs(dS.val).toFixed(0)}% vs previous period — worth investigating.`:dS&&dS.val>10?`Strong traffic growth of ${dS.val.toFixed(0)}% vs previous period.`:'Traffic is stable.'}`;
 
     stratEl.innerHTML=`
@@ -1063,10 +1068,6 @@ RULES:
 // ── RENDER FUNCTIONS (called by lazy loaders) ─────────────────────────────────
 
 function renderPrograms(progFunnelData, progFunnelPrev, trendData){
-  const PROGRAMS=['Igniting Leadership','Womens Leadership','Leader Evolution'];
-  const PROG_COLORS={'Igniting Leadership':'#1d3557','Womens Leadership':'#2d6a4f','Leader Evolution':'#b5860b'};
-  const PROG_LABELS={'Igniting Leadership':'Igniting Leadership','Womens Leadership':"Women's Leadership",'Leader Evolution':'Leader Evolution'};
-  function buildProgMap(data){const m={};data.forEach(r=>{if(!m[r.program])m[r.program]={program_page:{sessions:0,revenue:0},tickets:{sessions:0,revenue:0},purchase:{sessions:0,revenue:0}};const stage=r.stage||'program_page';m[r.program][stage]={sessions:parseFloat(r.sessions||0),revenue:parseFloat(r.revenue||0)};});return m;}
   const progMap=buildProgMap(progFunnelData);
   const progPrevMap=buildProgMap(progFunnelPrev||[]);
 

@@ -173,17 +173,22 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 
 <div class="date-bar">
   <span class="date-label">Period</span>
-  <button class="date-btn" onclick="setPreset(7,this)">7d</button>
-  <button class="date-btn active" onclick="setPreset(30,this)">30d</button>
-  <button class="date-btn" onclick="setPreset(90,this)">90d</button>
-  <button class="date-btn" onclick="setPreset(120,this)">120d</button>
+  <button class="pBtn active" onclick="setPreset(7,this)">7d</button>
+  <button class="pBtn" onclick="setPreset(30,this)">30d</button>
+  <button class="pBtn" onclick="setPreset(90,this)">90d</button>
+  <button class="pBtn" onclick="setPreset(120,this)">120d</button>
   <span style="color:var(--border)">|</span>
   <input type="date" class="date-input" id="startDate">
   <span style="font-size:12px;color:var(--text3)">→</span>
   <input type="date" class="date-input" id="endDate">
   <button class="date-apply" onclick="applyCustomDate()">Apply</button>
+  <span style="color:var(--border)">|</span>
+  <span class="date-label">Compare</span>
+  <button class="pBtn active" id="cmp-prev" onclick="setCompare('prev',this)">Prev period</button>
+  <button class="pBtn" id="cmp-year" onclick="setCompare('year',this)">Prev year</button>
+  <button class="pBtn" id="cmp-none" onclick="setCompare('none',this)">None</button>
   <span class="last-updated" id="lastUpdated"></span>
-  <span style="font-size:10px;color:var(--border2);margin-left:8px">v2.4.1</span>
+  <span style="font-size:10px;color:var(--border2);margin-left:8px">v2.5.0</span>
 </div>
 
 <div class="tabs">
@@ -348,52 +353,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 
   <!-- CAMPAIGNS -->
   <div class="tab-content" id="tab-campaigns">
-    <div class="kpi-grid">
-      <div class="kpi">
-        <div class="kpi-label">Google Ads sessions</div>
-        <div class="kpi-value" id="camp-google-sess">—</div>
-        <div class="kpi-sub" id="camp-google-rev"></div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">Meta Ads sessions</div>
-        <div class="kpi-value" id="camp-meta-sess">—</div>
-        <div class="kpi-sub" id="camp-meta-eng"></div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">Email sessions</div>
-        <div class="kpi-value" id="camp-email-sess">—</div>
-        <div class="kpi-sub" id="camp-email-eng"></div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">Total key events</div>
-        <div class="kpi-value" id="camp-keyevents">—</div>
-        <div class="kpi-sub" id="camp-revenue"></div>
-      </div>
-    </div>
-
-    <!-- Google Ads -->
-    <div class="panel">
-      <div class="panel-title">Google Ads campaigns <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">sessions · engagement · key events · revenue</span></div>
-      <div id="camp-google-detail"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
-    </div>
-
-    <!-- Meta Ads -->
-    <div class="panel">
-      <div class="panel-title">Meta Ads campaigns <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">fb / paid · mapped from campaign IDs</span></div>
-      <div id="camp-meta-detail"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
-    </div>
-
-    <!-- Email -->
-    <div class="panel">
-      <div class="panel-title">Email campaigns <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">ortto · mailchimp</span></div>
-      <div id="camp-email-detail"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
-    </div>
-
-    <!-- All referrals -->
-    <div class="panel">
-      <div class="panel-title">Top referral sources <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">sessions + engagement</span></div>
-      <div id="camp-referral-detail"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
-    </div>
+    <div id="camp-content"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
   </div>
 
   <!-- PATH EXPLORER -->
@@ -489,20 +449,33 @@ if(isAgency){
 
 // ── DATES ─────────────────────────────────────────────────────────────────────
 let activeDays = 30;
+let compareMode = 'prev'; // 'prev' | 'year' | 'none'
+
+function setCompare(mode, btn){
+  compareMode = mode;
+  document.querySelectorAll('#cmp-prev,#cmp-year,#cmp-none').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  // Reset loaded state so tabs reload with new comparison
+  Object.keys(loaded).forEach(k=>delete loaded[k]);
+  loadAll();
+}
 
 function setPreset(days,btn){
-  document.querySelectorAll('.date-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.pBtn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   activeDays = days;
   const e=new Date(), s=new Date(); s.setDate(s.getDate()-days);
   document.getElementById('startDate').value=s.toISOString().split('T')[0];
   document.getElementById('endDate').value=e.toISOString().split('T')[0];
+  Object.keys(loaded).forEach(k=>delete loaded[k]);
   loadAll();
 }
 
 function applyCustomDate(){
-  document.querySelectorAll('.date-btn').forEach(b=>b.classList.remove('active'));
-  activeDays=null; loadAll();
+  document.querySelectorAll('.pBtn').forEach(b=>b.classList.remove('active'));
+  activeDays=null;
+  Object.keys(loaded).forEach(k=>delete loaded[k]);
+  loadAll();
 }
 
 function dateFilter(){
@@ -513,6 +486,19 @@ function dateFilter(){
 }
 
 function prevDateFilter(){
+  if(compareMode==='none') return `_DATA_DATE = DATE('1900-01-01')`; // returns no rows
+  const s=document.getElementById('startDate').value;
+  const e=document.getElementById('endDate').value;
+  if(compareMode==='year'){
+    if(s&&e) return `_DATA_DATE BETWEEN DATE_SUB(DATE('${s}'), INTERVAL 1 YEAR) AND DATE_SUB(DATE('${e}'), INTERVAL 1 YEAR)`;
+    const d=activeDays||30;
+    return `_DATA_DATE >= DATE_SUB(CURRENT_DATE(), INTERVAL ${d+365} DAY) AND _DATA_DATE < DATE_SUB(CURRENT_DATE(), INTERVAL 365 DAY)`;
+  }
+  // default: prev period
+  if(s&&e){
+    const days=Math.round((new Date(e)-new Date(s))/(1000*60*60*24));
+    return `_DATA_DATE BETWEEN DATE_SUB(DATE('${s}'), INTERVAL ${days} DAY) AND DATE_SUB(DATE('${s}'), INTERVAL 1 DAY)`;
+  }
   const d=activeDays||30;
   return `_DATA_DATE >= DATE_SUB(CURRENT_DATE(), INTERVAL ${d*2} DAY) AND _DATA_DATE < DATE_SUB(CURRENT_DATE(), INTERVAL ${d} DAY)`;
 }
@@ -597,7 +583,7 @@ async function loadAll(){
   const progFunnelQ = `SELECT CASE WHEN landingPage LIKE '%igniting-leadership%' THEN 'Igniting Leadership' WHEN landingPage LIKE '%womens-leadership%' OR landingPage LIKE '%women-s-leadership%' THEN 'Womens Leadership' WHEN landingPage LIKE '%leader-evolution%' OR landingPage LIKE '%leaderevolution%' THEN 'Leader Evolution' ELSE 'Other' END as program, CASE WHEN landingPage LIKE '%/tickets%' THEN 'tickets' WHEN landingPage LIKE '%/details%' THEN 'purchase' ELSE 'program_page' END as stage, SUM(sessions) as sessions, SUM(totalRevenue) as revenue FROM \`${P}.${D}.ga4_LandingPage_317130094\` WHERE ${df} GROUP BY program, stage ORDER BY program, stage`;
   const progFunnelPrevQ = `SELECT CASE WHEN landingPage LIKE '%igniting-leadership%' THEN 'Igniting Leadership' WHEN landingPage LIKE '%womens-leadership%' OR landingPage LIKE '%women-s-leadership%' THEN 'Womens Leadership' WHEN landingPage LIKE '%leader-evolution%' OR landingPage LIKE '%leaderevolution%' THEN 'Leader Evolution' ELSE 'Other' END as program, CASE WHEN landingPage LIKE '%/tickets%' THEN 'tickets' WHEN landingPage LIKE '%/details%' THEN 'purchase' ELSE 'program_page' END as stage, SUM(sessions) as sessions, SUM(totalRevenue) as revenue FROM \`${P}.${D}.ga4_LandingPage_317130094\` WHERE ${pf} GROUP BY program, stage ORDER BY program, stage`;
   const trendQ = `SELECT CASE WHEN landingPage LIKE '%igniting-leadership%' THEN 'Igniting Leadership' WHEN landingPage LIKE '%womens-leadership%' OR landingPage LIKE '%women-s-leadership%' THEN 'Womens Leadership' WHEN landingPage LIKE '%leader-evolution%' OR landingPage LIKE '%leaderevolution%' THEN 'Leader Evolution' END as program, DATE_TRUNC(_DATA_DATE, WEEK) as week, SUM(totalRevenue) as revenue, SUM(keyEvents) as purchases FROM \`${P}.${D}.ga4_LandingPage_317130094\` WHERE _DATA_DATE >= DATE_SUB(CURRENT_DATE(), INTERVAL 90 DAY) AND (landingPage LIKE '%igniting-leadership%' OR landingPage LIKE '%womens-leadership%' OR landingPage LIKE '%women-s-leadership%' OR landingPage LIKE '%leader-evolution%') GROUP BY program, week ORDER BY week ASC`;
-  const campaignsQ = `SELECT sessionCampaignName as campaign, sessionSourceMedium as source, sessionDefaultChannelGroup as channel, SUM(sessions) as sessions, SUM(engagedSessions) as engaged, AVG(engagementRate) as engRate, SUM(keyEvents) as keyEvents, AVG(userEngagementDurationPerSession) as avgDur, SUM(totalRevenue) as revenue FROM \`${P}.${D}.ga4_TrafficAcquisition_317130094\` WHERE ${df} AND sessionCampaignName != '(not set)' AND sessionCampaignName IS NOT NULL GROUP BY campaign, source, channel ORDER BY sessions DESC LIMIT 30`;
+  const campaignsQ = `SELECT sessionCampaignName as campaign, sessionSourceMedium as source, sessionDefaultChannelGroup as channel, SUM(sessions) as sessions, SUM(engagedSessions) as engaged, AVG(engagementRate) as engRate, SUM(keyEvents) as keyEvents, AVG(sessionKeyEventRate) as ker, AVG(userEngagementDurationPerSession) as avgDur, SUM(totalRevenue) as revenue FROM `${P}.${D}.ga4_TrafficAcquisition_317130094` WHERE ${df} AND sessionCampaignName IS NOT NULL AND sessionCampaignName NOT IN ('(not set)','(direct)','(organic)','(referral)') GROUP BY campaign, source, channel ORDER BY sessions DESC LIMIT 40`;
 
   // ── FAST QUERIES (load immediately) ──
   document.getElementById('loadMsg').textContent='Loading analytics...';
@@ -642,7 +628,8 @@ async function loadAll(){
   const prevActions=keyEvents.reduce((a,k)=>a+(prevEvMap[k]||0),0);
 
   // ── OVERVIEW ──
-  document.getElementById('ov-sessions').textContent=fmt(totS);
+  const compareLabel = compareMode==='year'?' vs last year':compareMode==='none'?'':' vs prev period';
+  document.getElementById('ov-sessions-sub').textContent = compareMode==='none'?'no comparison':compareLabel.trim();
   document.getElementById('ov-users').textContent=fmt(totU);
   document.getElementById('ov-engaged').textContent=fmt(totE);
   document.getElementById('ov-eng-rate').textContent=fmtPct(avgEngRate)+' engagement rate';
@@ -932,27 +919,33 @@ PROGRAMS (Humanitix revenue):
         method: 'POST',
         headers: {'Content-Type':'application/json'},
         body: JSON.stringify({
-          system: `You are an analytics strategist for Leadership Victoria, an Australian not-for-profit leadership development organisation.
-
-RULES:
-- Max 4 insights. No more.
-- Each insight must include: what happened (with data) / why (hypothesis) / what to do (specific action)
-- Always pair metrics: volume + quality + outcome
-- Highlight drop-offs and missed opportunities explicitly
-- Never use: "strong performance", "good results", "investigate", "consider"
-- Be direct: use scale / fix / test / cut
-- Short structured bullets, no long paragraphs
-- Every insight must help make a decision
+          system: `You are a marketing analyst writing for a non-technical client and decision maker at Leadership Victoria, an Australian not-for-profit.
 
 OUTPUT FORMAT — return ONLY this JSON, no markdown:
 {
-  "story": "2 sentences max — what happened this period with key numbers",
+  "story": "2 sentences. One data observation + one implication. Under 35 words. No jargon.",
   "signals": [
-    {"type": "good|warn|critical|info", "emoji": "emoji", "title": "short title", "body": "what happened + why (specific numbers)", "action": "scale / fix / test / cut — one action"}
+    {
+      "type": "good|warn|critical|info",
+      "emoji": "single emoji",
+      "title": "4-5 words, plain language",
+      "what": "1 sentence — what happened, with numbers",
+      "hypothesis": "1 sentence — why this is happening, no jargon",
+      "action": "1-2 sentences — what to do, specific pages or channels, no technical steps"
+    }
   ]
 }
 
-Focus on: revenue vs traffic mismatch, channel quality vs volume, measurement gaps, biggest risk or opportunity.`,
+STRICT RULES:
+- Max 3-4 signals
+- No technical language: no "GA4", "UTM", "cross-domain tracking", "debug mode", "server-side", "SPA routing"
+- No invented numbers or estimates (no "~$6-8K based on ratio")
+- No dramatic language: no "collapse", "crisis", "plummeting"
+- No generic language: no "strong performance", "good results"
+- Each signal = one clear business decision
+- "What's Happening" is about performance and decisions, NOT technical implementation
+- Tracking issues = mention as "visibility gap" not a technical problem
+- LinkedIn = mention as audience quality, never mention keywords`,
           messages: [{role:'user', content: dataContext}]
         })
       });
@@ -960,17 +953,21 @@ Focus on: revenue vs traffic mismatch, channel quality vs volume, measurement ga
       const text = data.content?.find(b=>b.type==='text')?.text||'';
       const parsed = JSON.parse(text.replace(/```json|```/g,'').trim());
 
+      const typeColor = t => t==='good'?'#1e6b47':t==='warn'?'#8a5e0a':t==='critical'?'#b02a1e':'#1a3a6b';
+      const typeBg = t => t==='good'?'#e8f5ee':t==='warn'?'#fef3dc':t==='critical'?'#fdecea':'#e8eef8';
+
       stratEl.innerHTML=`
-        <div style="background:white;border:1px solid var(--border);border-radius:12px;padding:20px 22px;margin-bottom:14px">
-          <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:8px;font-weight:500">Period summary · generated by AI</div>
-          <div style="font-size:14px;color:var(--text2);line-height:1.7;font-style:italic">"${parsed.story}"</div>
+        <div style="background:white;border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin-bottom:12px">
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:6px;font-weight:500">Period summary · AI · ${compareMode==='none'?'no comparison':compareMode==='year'?'vs last year':'vs prev period'}</div>
+          <div style="font-size:13px;color:var(--text2);line-height:1.6">${parsed.story}</div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
           ${(parsed.signals||[]).map(s=>`
-            <div style="background:white;border:1px solid var(--border);border-radius:10px;padding:14px 16px;border-left:3px solid ${s.type==='good'?'var(--accent)':s.type==='warn'?'#e67e22':s.type==='critical'?'var(--warn)':'var(--accent2)'}">
-              <div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:4px">${s.emoji} ${s.title}</div>
-              <div style="font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:5px">${s.body}</div>
-              <div style="font-size:11px;color:var(--text3);font-style:italic">${s.action}</div>
+            <div style="background:white;border:1px solid var(--border);border-radius:10px;padding:16px 18px;border-top:3px solid ${typeColor(s.type)}">
+              <div style="font-size:12px;font-weight:600;color:${typeColor(s.type)};margin-bottom:10px">${s.emoji} ${s.title}</div>
+              <div style="font-size:12.5px;color:var(--text);margin-bottom:5px;line-height:1.5">${s.what}</div>
+              <div style="font-size:12px;color:var(--text3);margin-bottom:10px;line-height:1.5;font-style:italic">${s.hypothesis||s.why||''}</div>
+              <div style="font-size:11.5px;background:${typeBg(s.type)};color:${typeColor(s.type)};padding:7px 10px;border-radius:6px;line-height:1.5">→ ${s.action}</div>
             </div>`).join('')}
         </div>`;
     } catch(e) {
@@ -1074,18 +1071,36 @@ RULES — always follow these:
 - Only reference numbers from the data above. Never invent figures.
 - If asked "what's working": only include things that drive outcomes, not just engagement
 - If asked "what should we do": give 1 quick win, 1 test, 1 strategic move
-- Match the language of the user (English or Spanish)`;
+- Match the language of the user (English or Spanish)
+- Write for a non-technical client — no GA4, UTM, cross-domain, server-side, SPA or any technical terms
+- No markdown formatting (no ##, no **, no bullet points with dashes)
+- Keep responses under 120 words total
+- Use plain conversational language`;
 
   try{
     const res=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system:sys,messages:chatHistory})});
     const data=await res.json();
-    const reply=data.content?.find(b=>b.type==='text')?.text||'Could not get response.';
-    lDiv.textContent=reply;
-    chatHistory.push({role:'assistant',content:reply});
-    // Keep history manageable
+    const raw=data.content?.find(b=>b.type==='text')?.text||'Could not get response.';
+
+    // Clean markdown and format nicely
+    const clean = raw
+      .replace(/#{1,3}\s*/g,'')
+      .replace(/\*\*([^*]+)\*\*/g,'$1')
+      .replace(/\*([^*]+)\*/g,'$1')
+      .replace(/^\s*[-•]\s*/gm,'')
+      .trim();
+
+    // Split into paragraphs and render as clean blocks
+    const paras = clean.split(/\n\n+/).filter(p=>p.trim()).slice(0,4);
+    lDiv.style.cssText='font-size:13px;line-height:1.7;color:var(--text2)';
+    lDiv.innerHTML = paras.map((p,i)=>
+      `<div style="margin-bottom:${i<paras.length-1?'10px':'0'}">${p.trim()}</div>`
+    ).join('');
+
+    chatHistory.push({role:'assistant',content:raw});
     if(chatHistory.length>20) chatHistory=chatHistory.slice(-20);
   }catch(e){
-    lDiv.textContent='Connection error. Check that ANTHROPIC_API_KEY is set in Vercel environment variables.';
+    lDiv.textContent='Connection error — check ANTHROPIC_API_KEY in Vercel settings.';
   }
   msgs.scrollTop=msgs.scrollHeight;
 }
@@ -1182,28 +1197,98 @@ function renderPath(pathFunnel, pathEntry){
 }
 
 function renderCampaigns(campaignsData){
-  const googleCamps=campaignsData.filter(r=>r.source&&r.source.includes('cpc')||r.channel==='Paid Search'||r.channel==='Cross-network');
-  const metaCamps=campaignsData.filter(r=>r.source&&r.source.includes('fb / paid')||r.channel==='Paid Social');
-  const emailCamps=campaignsData.filter(r=>r.source&&(r.source.includes('email')||r.source.includes('mailchimp')||r.source.includes('ortto')||r.source.includes('campaign-archive')));
-  const refCamps=campaignsData.filter(r=>r.channel==='Referral'||r.channel==='Organic Social');
-  const gSess=googleCamps.reduce((a,r)=>a+parseFloat(r.sessions||0),0);
-  const mSess=metaCamps.reduce((a,r)=>a+parseFloat(r.sessions||0),0);
-  const eSess=emailCamps.reduce((a,r)=>a+parseFloat(r.sessions||0),0);
-  const totKE=campaignsData.reduce((a,r)=>a+parseFloat(r.keyEvents||0),0);
-  const totRev2=campaignsData.reduce((a,r)=>a+parseFloat(r.revenue||0),0);
-  const el=id=>document.getElementById(id);
-  if(el('camp-google-sess'))el('camp-google-sess').textContent=fmt(gSess);
-  if(el('camp-meta-sess'))el('camp-meta-sess').textContent=fmt(mSess);
-  if(el('camp-email-sess'))el('camp-email-sess').textContent=fmt(eSess);
-  if(el('camp-keyevents'))el('camp-keyevents').textContent=fmt(totKE);
-  if(el('camp-google-rev'))el('camp-google-rev').textContent='$'+totRev2.toFixed(0)+' attributed revenue';
-  if(el('camp-meta-eng'))el('camp-meta-eng').textContent=mSess>0?fmtPct(metaCamps.reduce((a,r)=>a+parseFloat(r.engRate||0)*parseFloat(r.sessions||0),0)/mSess)+' engagement':'';
-  if(el('camp-revenue'))el('camp-revenue').textContent=fmt(totKE)+' total conversions';
-  function rCampRows(elId,rows){const e=el(elId);if(!e)return;if(!rows||!rows.length){e.innerHTML='<div class="no-data">No data this period</div>';return;}const maxS=Math.max(...rows.map(r=>parseFloat(r.sessions||0)))||1;e.innerHTML=rows.map(r=>{const s=parseFloat(r.sessions||0),er=parseFloat(r.engRate||0),kev=parseFloat(r.keyEvents||0),rev=parseFloat(r.revenue||0),name=r.campaign&&!['(direct)','(organic)','(referral)'].includes(r.campaign)?metaCampName(r.campaign):r.source;return `<div class="data-row"><span class="row-name">${name||'Unknown'}</span><div class="bar-wrap"><div class="bar" style="width:${(s/maxS*100).toFixed(0)}%;background:#1d3557"></div></div><span class="row-val">${fmt(s)}</span><span class="row-sub">${fmtPct(er)}</span>${kev>0?`<span class="row-sub">${fmt(kev)} conv</span>`:''}${rev>0?`<span class="row-sub" style="color:var(--accent)">$${(rev/1000).toFixed(1)}K</span>`:''}</div>`;}).join('');}
-  rCampRows('camp-google-detail',googleCamps);
-  rCampRows('camp-meta-detail',metaCamps);
-  rCampRows('camp-email-detail',emailCamps);
-  rCampRows('camp-referral-detail',refCamps.slice(0,10));
+  const campEl = document.getElementById('camp-content');
+  if(!campEl) return;
+
+  // Separate by channel
+  const google = campaignsData.filter(r=>
+    (r.source||'').includes('cpc') || r.channel==='Paid Search' || r.channel==='Cross-network'
+  );
+  const meta = campaignsData.filter(r=>
+    (r.source||'').includes('fb / paid') || r.channel==='Paid Social'
+  );
+  const email = campaignsData.filter(r=>
+    r.source&&(r.source.includes('email')||r.source.includes('mailchimp')||r.source.includes('ortto')||r.source.includes('campaign-archive'))
+  );
+  const refs = campaignsData.filter(r=>
+    (r.channel==='Referral'||r.channel==='Organic Social') &&
+    !(r.source||'').includes('vercel.app')
+  );
+
+  function campTable(rows, cols){
+    if(!rows||!rows.length) return '<div class="no-data">No data this period</div>';
+    const maxS = Math.max(...rows.map(r=>parseFloat(r.sessions||0)))||1;
+
+    // Header
+    const colDefs = {
+      sessions: {label:'Sessions', w:'80px', align:'right'},
+      bar:      {label:'', w:'100px', align:'left'},
+      eng:      {label:'Engagement', w:'90px', align:'right'},
+      conv:     {label:'Conversions', w:'90px', align:'right'},
+      convRate: {label:'Conv rate', w:'80px', align:'right'},
+      rev:      {label:'Revenue', w:'80px', align:'right'},
+    };
+
+    const header = `<div style="display:grid;grid-template-columns:1fr ${cols.map(c=>colDefs[c].w).join(' ')};gap:0;padding:0 0 8px;border-bottom:1px solid var(--border);font-size:10px;text-transform:uppercase;letter-spacing:.7px;color:var(--text3)">
+      <span>Campaign</span>${cols.map(c=>`<span style="text-align:${colDefs[c].align};padding:0 6px">${colDefs[c].label}</span>`).join('')}
+    </div>`;
+
+    const rowsHtml = rows.map(r=>{
+      const s=parseFloat(r.sessions||0);
+      const er=parseFloat(r.engRate||0);
+      const kev=parseFloat(r.keyEvents||0);
+      const ker=parseFloat(r.ker||0);
+      const rev=parseFloat(r.revenue||0);
+      const name=r.campaign&&!['(direct)','(organic)','(referral)'].includes(r.campaign)?metaCampName(r.campaign):r.source;
+
+      const cells = cols.map(c=>{
+        if(c==='sessions') return `<span style="text-align:right;padding:0 6px;font-weight:500;color:var(--text);font-size:13px">${fmt(s)}</span>`;
+        if(c==='bar') return `<div style="padding:0 6px;display:flex;align-items:center"><div style="flex:1;height:4px;background:var(--bg3);border-radius:2px"><div style="height:4px;background:var(--text);border-radius:2px;width:${(s/maxS*100).toFixed(0)}%"></div></div></div>`;
+        if(c==='eng') {
+          const erCapped = Math.min(er, 1);
+          return `<span style="text-align:right;padding:0 6px;color:${erCapped>=0.7?'var(--accent)':erCapped>=0.5?'var(--text2)':'var(--warn)'}">${fmtPct(erCapped)}</span>`;
+        }
+        if(c==='conv') return `<span style="text-align:right;padding:0 6px;color:var(--text2)">${kev>0?fmt(kev):'—'}</span>`;
+        if(c==='convRate') return `<span style="text-align:right;padding:0 6px;color:var(--text2)">${ker>0?fmtPct(ker):'—'}</span>`;
+        if(c==='rev') return `<span style="text-align:right;padding:0 6px;color:${rev>0?'var(--accent)':'var(--text3)'}">${rev>0?'$'+(rev/1000).toFixed(1)+'K':'—'}</span>`;
+        return '';
+      });
+
+      return `<div style="display:grid;grid-template-columns:1fr ${cols.map(c=>colDefs[c].w).join(' ')};gap:0;padding:8px 0;border-bottom:1px solid var(--bg2);align-items:center;font-size:12px">
+        <span style="color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:8px">${name||'Unknown'}</span>
+        ${cells.join('')}
+      </div>`;
+    }).join('');
+
+    return header + rowsHtml;
+  }
+
+  function totalRow(rows){
+    const totS=rows.reduce((a,r)=>a+parseFloat(r.sessions||0),0);
+    const totKE=rows.reduce((a,r)=>a+parseFloat(r.keyEvents||0),0);
+    const totRev=rows.reduce((a,r)=>a+parseFloat(r.revenue||0),0);
+    const parts=[`<strong>${fmt(totS)}</strong> sessions`];
+    if(totKE>0) parts.push(`<strong>${fmt(totKE)}</strong> conversions`);
+    if(totRev>0) parts.push(`<strong>$${(totRev/1000).toFixed(1)}K</strong> revenue`);
+    return `<div style="font-size:11px;color:var(--text3);padding:8px 0 0;border-top:1px solid var(--border);margin-top:4px">${parts.join(' · ')}</div>`;
+  }
+
+  const sections = [
+    {title:'Google Ads', note:'sessions · engagement · conversions · revenue', rows:google, cols:['sessions','bar','eng','conv','convRate','rev'], color:'#4285f4'},
+    {title:'Meta Ads', note:'fb / paid · campaign IDs (add UTMs to see names)', rows:meta, cols:['sessions','bar','eng','conv','convRate'], color:'#1877f2'},
+    {title:'Email', note:'mailchimp · ortto', rows:email, cols:['sessions','bar','eng','conv'], color:'#0a7c59'},
+    {title:'Referral sources', note:'sessions · engagement · conversions', rows:refs.slice(0,12), cols:['sessions','bar','eng','conv','rev'], color:'#7c3aed'},
+  ].filter(s=>s.rows.length>0);
+
+  campEl.innerHTML = sections.map(s=>`
+    <div style="background:white;border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin-bottom:12px;border-top:3px solid ${s.color}">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <span style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--text)">${s.title}</span>
+        <span style="font-size:10px;color:var(--text3)">${s.note}</span>
+      </div>
+      ${campTable(s.rows, s.cols)}
+      ${totalRow(s.rows)}
+    </div>`).join('');
 }
 
 // ── LAZY LOADERS ─────────────────────────────────────────────────────────────
@@ -1226,7 +1311,7 @@ async function loadCampaigns(){
   if(loaded.campaigns) return;
   loaded.campaigns = true;
   const df=dateFilter();
-  const campaignsQ = `SELECT sessionCampaignName as campaign, sessionSourceMedium as source, sessionDefaultChannelGroup as channel, SUM(sessions) as sessions, SUM(engagedSessions) as engaged, AVG(engagementRate) as engRate, SUM(keyEvents) as keyEvents, AVG(userEngagementDurationPerSession) as avgDur, SUM(totalRevenue) as revenue FROM \`${P}.${D}.ga4_TrafficAcquisition_317130094\` WHERE ${df} AND sessionCampaignName != '(not set)' AND sessionCampaignName IS NOT NULL GROUP BY campaign, source, channel ORDER BY sessions DESC LIMIT 30`;
+  const campaignsQ = `SELECT sessionCampaignName as campaign, sessionSourceMedium as source, sessionDefaultChannelGroup as channel, SUM(sessions) as sessions, SUM(engagedSessions) as engaged, AVG(engagementRate) as engRate, SUM(keyEvents) as keyEvents, AVG(sessionKeyEventRate) as ker, AVG(userEngagementDurationPerSession) as avgDur, SUM(totalRevenue) as revenue FROM `${P}.${D}.ga4_TrafficAcquisition_317130094` WHERE ${df} AND sessionCampaignName IS NOT NULL AND sessionCampaignName NOT IN ('(not set)','(direct)','(organic)','(referral)') GROUP BY campaign, source, channel ORDER BY sessions DESC LIMIT 40`;
   const campaignsData = await bq(campaignsQ);
   globalData.campaignsData = campaignsData;
   renderCampaigns(campaignsData);
@@ -1236,16 +1321,24 @@ async function loadPath(){
   if(loaded.path) return;
   loaded.path = true;
   const rawDataset = 'analytics_317130094';
+  const df = dateFilter();
 
-  const touchQ = `SELECT sessionDefaultChannelGroup as channel, COUNT(*) as sessions, SUM(engagedSessions) as engaged, SUM(keyEvents) as keyEvents, SUM(totalRevenue) as revenue FROM \`${P}.${D}.ga4_TrafficAcquisition_317130094\` WHERE _DATA_DATE >= DATE_SUB(CURRENT_DATE(), INTERVAL 90 DAY) GROUP BY channel ORDER BY sessions DESC`;
-  const purchaseAttrQ = `SELECT e.traffic_source.source as source, e.traffic_source.medium as medium, COUNT(DISTINCT p.user_pseudo_id) as buyers, SUM(p.revenue) as revenue FROM (SELECT user_pseudo_id, (SELECT value.double_value FROM UNNEST(event_params) WHERE key='value') as revenue FROM \`${P}.${rawDataset}.events_*\` WHERE _TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY)) AND event_name = 'purchase') p JOIN \`${P}.${rawDataset}.events_*\` e ON p.user_pseudo_id = e.user_pseudo_id WHERE e._TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY)) AND e.event_name = 'session_start' GROUP BY source, medium ORDER BY revenue DESC LIMIT 10`;
-  const downloadAttrQ = `SELECT e.traffic_source.source as source, e.traffic_source.medium as medium, COUNT(DISTINCT p.user_pseudo_id) as downloaders, COUNT(*) as total_downloads FROM (SELECT DISTINCT user_pseudo_id FROM \`${P}.${rawDataset}.events_*\` WHERE _TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY)) AND event_name = 'file_download') p JOIN \`${P}.${rawDataset}.events_*\` e ON p.user_pseudo_id = e.user_pseudo_id WHERE e._TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY)) AND e.event_name = 'session_start' GROUP BY source, medium ORDER BY total_downloads DESC LIMIT 10`;
-  const formAttrQ = `SELECT e.traffic_source.source as source, e.traffic_source.medium as medium, COUNT(DISTINCT p.user_pseudo_id) as form_submitters, COUNT(*) as total_submissions FROM (SELECT DISTINCT user_pseudo_id FROM \`${P}.${rawDataset}.events_*\` WHERE _TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY)) AND event_name IN ('form_submission_id','generate_lead','igniting_leadership_form_submission','womens_leadership_form_submission','leader_evolution_form_submission')) p JOIN \`${P}.${rawDataset}.events_*\` e ON p.user_pseudo_id = e.user_pseudo_id WHERE e._TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY)) AND e.event_name = 'session_start' GROUP BY source, medium ORDER BY total_submissions DESC LIMIT 10`;
-  const pathFunnelQ = `SELECT stage, COUNT(DISTINCT user_pseudo_id) as users FROM (SELECT user_pseudo_id, CASE WHEN REGEXP_CONTAINS((SELECT value.string_value FROM UNNEST(event_params) WHERE key='page_location'), 'humanitix.com/.*/complete') THEN '4_complete' WHEN event_name='purchase' THEN '3_purchase' WHEN REGEXP_CONTAINS((SELECT value.string_value FROM UNNEST(event_params) WHERE key='page_location'), 'humanitix.com/.*/tickets') THEN '2_tickets' WHEN REGEXP_CONTAINS((SELECT value.string_value FROM UNNEST(event_params) WHERE key='page_location'), 'humanitix.com') THEN '1_humanitix' WHEN REGEXP_CONTAINS((SELECT value.string_value FROM UNNEST(event_params) WHERE key='page_location'), 'leadershipvictoria.org') THEN '0_lv_site' END as stage FROM \`${P}.${rawDataset}.events_*\` WHERE _TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY)) AND event_name IN ('page_view','purchase')) WHERE stage IS NOT NULL GROUP BY stage ORDER BY stage`;
-  const pathEntryQ = `SELECT REGEXP_REPLACE((SELECT value.string_value FROM UNNEST(e.event_params) WHERE key='page_location'), r'https://www\\.leadershipvictoria\\.org', '') as entry_page, COUNT(DISTINCT e.user_pseudo_id) as buyers FROM \`${P}.${rawDataset}.events_*\` e WHERE e._TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY)) AND e.user_pseudo_id IN (SELECT DISTINCT user_pseudo_id FROM \`${P}.${rawDataset}.events_*\` WHERE _TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY)) AND event_name = 'purchase') AND (SELECT value.string_value FROM UNNEST(e.event_params) WHERE key='page_location') LIKE '%leadershipvictoria.org%' AND e.event_name = 'page_view' GROUP BY entry_page ORDER BY buyers DESC LIMIT 10`;
+  // Touch points use selected date period
+  const touchQ = `SELECT sessionDefaultChannelGroup as channel, COUNT(*) as sessions, SUM(engagedSessions) as engaged, SUM(keyEvents) as keyEvents, SUM(totalRevenue) as revenue FROM \`${P}.${D}.ga4_TrafficAcquisition_317130094\` WHERE ${df} GROUP BY channel ORDER BY sessions DESC`;
+
+  // Attribution from aggregated tables (all historical data) — more reliable than raw events
+  const purchaseAttrAggQ = `SELECT sessionSourceMedium as source, SUM(sessions) as buyers, SUM(totalRevenue) as revenue FROM \`${P}.${D}.ga4_TrafficAcquisition_317130094\` WHERE ${df} AND totalRevenue > 0 GROUP BY source ORDER BY revenue DESC LIMIT 10`;
+  const downloadAttrAggQ = `SELECT sessionSourceMedium as source, SUM(sessions) as downloaders, SUM(keyEvents) as total_downloads FROM \`${P}.${D}.ga4_TrafficAcquisition_317130094\` WHERE ${df} GROUP BY source ORDER BY total_downloads DESC LIMIT 10`;
+  const formAttrAggQ = `SELECT e.traffic_source.source as source, e.traffic_source.medium as medium, COUNT(DISTINCT p.user_pseudo_id) as form_submitters, COUNT(*) as total_submissions FROM (SELECT DISTINCT user_pseudo_id FROM \`${P}.${rawDataset}.events_*\` WHERE _TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY)) AND event_name IN ('form_submission_id','generate_lead','igniting_leadership_form_submission','womens_leadership_form_submission','leader_evolution_form_submission')) p JOIN \`${P}.${rawDataset}.events_*\` e ON p.user_pseudo_id = e.user_pseudo_id WHERE e._TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY)) AND e.event_name = 'session_start' GROUP BY source, medium ORDER BY total_submissions DESC LIMIT 10`;
+
+  // Humanitix funnel using selected date period
+  const days = activeDays||30;
+  const pathFunnelQ = `SELECT stage, COUNT(DISTINCT user_pseudo_id) as users FROM (SELECT user_pseudo_id, CASE WHEN REGEXP_CONTAINS((SELECT value.string_value FROM UNNEST(event_params) WHERE key='page_location'), 'humanitix.com/.*/complete') THEN '4_complete' WHEN event_name='purchase' THEN '3_purchase' WHEN REGEXP_CONTAINS((SELECT value.string_value FROM UNNEST(event_params) WHERE key='page_location'), 'humanitix.com/.*/tickets') THEN '2_tickets' WHEN REGEXP_CONTAINS((SELECT value.string_value FROM UNNEST(event_params) WHERE key='page_location'), 'humanitix.com') THEN '1_humanitix' WHEN REGEXP_CONTAINS((SELECT value.string_value FROM UNNEST(event_params) WHERE key='page_location'), 'leadershipvictoria.org') THEN '0_lv_site' END as stage FROM \`${P}.${rawDataset}.events_*\` WHERE _TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL ${days} DAY)) AND event_name IN ('page_view','purchase')) WHERE stage IS NOT NULL GROUP BY stage ORDER BY stage`;
+
+  const pathEntryQ = `SELECT REGEXP_REPLACE((SELECT value.string_value FROM UNNEST(e.event_params) WHERE key='page_location'), r'https://www\\.leadershipvictoria\\.org', '') as entry_page, COUNT(DISTINCT e.user_pseudo_id) as buyers FROM \`${P}.${rawDataset}.events_*\` e WHERE e._TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL ${days} DAY)) AND e.user_pseudo_id IN (SELECT DISTINCT user_pseudo_id FROM \`${P}.${rawDataset}.events_*\` WHERE _TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL ${days} DAY)) AND event_name = 'purchase') AND (SELECT value.string_value FROM UNNEST(e.event_params) WHERE key='page_location') LIKE '%leadershipvictoria.org%' AND e.event_name = 'page_view' GROUP BY entry_page ORDER BY buyers DESC LIMIT 10`;
 
   const [touchData, purchaseAttr, downloadAttr, formAttr, pathFunnel, pathEntry] = await Promise.all([
-    bq(touchQ), bq(purchaseAttrQ), bq(downloadAttrQ), bq(formAttrQ), bq(pathFunnelQ), bq(pathEntryQ)
+    bq(touchQ), bq(purchaseAttrAggQ), bq(downloadAttrAggQ), bq(formAttrAggQ), bq(pathFunnelQ), bq(pathEntryQ)
   ]);
 
   globalData.pathFunnel = pathFunnel;
@@ -1303,7 +1396,7 @@ async function loadPath(){
       <div style="background:var(--blue-bg);border-radius:8px;padding:12px 14px;border-left:3px solid var(--accent2)">
         <div style="font-size:12px;color:var(--blue);line-height:1.7">
           <strong>Channel story:</strong> Organic Search &amp; Paid introduce users to Leadership Victoria (early touch). 
-          Referrals from LinkedIn, Microsoft Teams and SharePoint signal B2B/government interest (mid touch). 
+          Referrals from professional platforms and internal tools signal high-intent B2B audience (mid touch). 
           Direct dominates conversion ($${(directRev/1000).toFixed(0)}K) — users return directly when ready to buy.
           ${paidRev>0?` Paid Search closes $${(paidRev/1000).toFixed(0)}K directly.`:''}
         </div>
@@ -1314,40 +1407,62 @@ async function loadPath(){
   const attrEl = document.getElementById('path-attribution');
   if(attrEl){
     const channels = {};
-    const addCh = (rows, key, valKey) => rows.forEach(r=>{
-      const ch=`${r.source||'direct'} / ${r.medium||'none'}`;
-      if(!channels[ch]) channels[ch]={source:r.source||'(direct)',medium:r.medium||'(none)',purchases:0,revenue:0,downloads:0,forms:0};
-      channels[ch][key]=parseFloat(r[valKey]||0);
+
+    // Purchase attr from aggregated table: source = sessionSourceMedium
+    purchaseAttr.forEach(r=>{
+      const ch = r.source||'(direct) / (none)';
+      const parts = ch.split(' / ');
+      const src = parts[0]||'(direct)', med = parts[1]||'(none)';
+      if(!channels[ch]) channels[ch]={source:src,medium:med,revenue:0,downloads:0,forms:0};
+      channels[ch].revenue = parseFloat(r.revenue||0);
     });
-    addCh(purchaseAttr,'purchases','buyers');
-    purchaseAttr.forEach(r=>{const ch=`${r.source||'direct'} / ${r.medium||'none'}`;if(channels[ch])channels[ch].revenue=parseFloat(r.revenue||0);});
-    addCh(downloadAttr,'downloads','total_downloads');
-    addCh(formAttr,'forms','total_submissions');
-    const sorted=Object.values(channels).sort((a,b)=>(b.revenue+(b.downloads*50)+(b.forms*100))-(a.revenue+(a.downloads*50)+(a.forms*100)));
+
+    // Download attr from aggregated table
+    downloadAttr.forEach(r=>{
+      const ch = r.source||'(direct) / (none)';
+      const parts = ch.split(' / ');
+      const src = parts[0]||'(direct)', med = parts[1]||'(none)';
+      if(!channels[ch]) channels[ch]={source:src,medium:med,revenue:0,downloads:0,forms:0};
+      channels[ch].downloads = parseFloat(r.total_downloads||0);
+    });
+
+    // Form attr from raw events
+    formAttr.forEach(r=>{
+      const ch = `${r.source||'(direct)'} / ${r.medium||'(none)'}`;
+      if(!channels[ch]) channels[ch]={source:r.source||'(direct)',medium:r.medium||'(none)',revenue:0,downloads:0,forms:0};
+      channels[ch].forms = parseFloat(r.total_submissions||0);
+    });
+
+    const sorted=Object.values(channels).filter(c=>c.revenue>0||c.downloads>0||c.forms>0).sort((a,b)=>(b.revenue+(b.downloads*50)+(b.forms*100))-(a.revenue+(a.downloads*50)+(a.forms*100)));
     const maxRev=Math.max(...sorted.map(c=>c.revenue))||1;
     const maxDl=Math.max(...sorted.map(c=>c.downloads))||1;
     const maxFm=Math.max(...sorted.map(c=>c.forms))||1;
+
     function chIcon(src,med){
-      if(src==='google'&&med==='cpc') return '<span style="background:#4285f4;color:white;font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px">G ADS</span>';
-      if(src==='google'&&med==='organic') return '<span style="background:#34a853;color:white;font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px">SEO</span>';
-      if(med==='(none)'||med==='none') return '<span style="background:#1a3a6b;color:white;font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px">DIRECT</span>';
-      if(med==='email') return '<span style="background:#0a7c59;color:white;font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px">EMAIL</span>';
-      if(med==='referral') return '<span style="background:#7c3aed;color:white;font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px">REF</span>';
-      if(src==='bing') return '<span style="background:#008373;color:white;font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px">BING</span>';
+      if((src||'').includes('google')&&(med||'').includes('cpc')) return '<span style="background:#4285f4;color:white;font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px">G ADS</span>';
+      if((src||'').includes('google')&&(med||'').includes('organic')) return '<span style="background:#34a853;color:white;font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px">SEO</span>';
+      if((med||'').includes('none')||src==='(direct)') return '<span style="background:#1a3a6b;color:white;font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px">DIRECT</span>';
+      if((med||'').includes('email')) return '<span style="background:#0a7c59;color:white;font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px">EMAIL</span>';
+      if((med||'').includes('referral')) return '<span style="background:#7c3aed;color:white;font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px">REF</span>';
+      if((src||'').includes('bing')) return '<span style="background:#008373;color:white;font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px">BING</span>';
       return '<span style="background:#888;color:white;font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px">OTHER</span>';
     }
-    attrEl.innerHTML=`
-      <div style="font-size:11px;color:var(--text3);margin-bottom:10px;font-style:italic">Last 30 days of raw GA4 events — growing weekly</div>
-      <div style="display:grid;grid-template-columns:160px 1fr 1fr 1fr;font-size:10px;text-transform:uppercase;letter-spacing:.7px;color:var(--text3);padding:0 0 8px;border-bottom:1px solid var(--border)">
-        <span>Channel</span><span style="text-align:center">💰 Revenue</span><span style="text-align:center">📥 Downloads</span><span style="text-align:center">📋 Forms</span>
-      </div>
-      ${sorted.map(c=>`
-        <div style="display:grid;grid-template-columns:160px 1fr 1fr 1fr;padding:9px 0;border-bottom:1px solid var(--bg2);align-items:center">
-          <div style="display:flex;align-items:center;gap:6px">${chIcon(c.source,c.medium)}<span style="font-size:11px;color:var(--text2)">${c.source}</span></div>
-          <div style="padding:0 8px">${c.revenue>0?`<div style="display:flex;align-items:center;gap:6px"><div style="flex:1;height:6px;background:var(--bg3);border-radius:3px"><div style="height:6px;background:#1d3557;border-radius:3px;width:${(c.revenue/maxRev*100).toFixed(0)}%"></div></div><span style="font-size:11px;font-weight:500;min-width:36px">$${(c.revenue/1000).toFixed(0)}K</span></div>`:'<span style="font-size:11px;color:var(--text3)">—</span>'}</div>
-          <div style="padding:0 8px">${c.downloads>0?`<div style="display:flex;align-items:center;gap:6px"><div style="flex:1;height:6px;background:var(--bg3);border-radius:3px"><div style="height:6px;background:#2d6a4f;border-radius:3px;width:${(c.downloads/maxDl*100).toFixed(0)}%"></div></div><span style="font-size:11px;font-weight:500;min-width:20px">${c.downloads}</span></div>`:'<span style="font-size:11px;color:var(--text3)">—</span>'}</div>
-          <div style="padding:0 8px">${c.forms>0?`<div style="display:flex;align-items:center;gap:6px"><div style="flex:1;height:6px;background:var(--bg3);border-radius:3px"><div style="height:6px;background:#b5860b;border-radius:3px;width:${(c.forms/maxFm*100).toFixed(0)}%"></div></div><span style="font-size:11px;font-weight:500;min-width:20px">${c.forms}</span></div>`:'<span style="font-size:11px;color:var(--text3)">—</span>'}</div>
-        </div>`).join('')}`;
+
+    if(!sorted.length){
+      attrEl.innerHTML='<div class="no-data">No conversion data for this period</div>';
+    } else {
+      attrEl.innerHTML=`
+        <div style="display:grid;grid-template-columns:180px 1fr 1fr 1fr;font-size:10px;text-transform:uppercase;letter-spacing:.7px;color:var(--text3);padding:0 0 8px;border-bottom:1px solid var(--border)">
+          <span>Channel</span><span style="text-align:center">💰 Revenue</span><span style="text-align:center">📥 Downloads</span><span style="text-align:center">📋 Forms</span>
+        </div>
+        ${sorted.map(c=>`
+          <div style="display:grid;grid-template-columns:180px 1fr 1fr 1fr;padding:9px 0;border-bottom:1px solid var(--bg2);align-items:center">
+            <div style="display:flex;align-items:center;gap:6px">${chIcon(c.source,c.medium)}<span style="font-size:11px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.source}</span></div>
+            <div style="padding:0 8px">${c.revenue>0?`<div style="display:flex;align-items:center;gap:6px"><div style="flex:1;height:6px;background:var(--bg3);border-radius:3px"><div style="height:6px;background:#1d3557;border-radius:3px;width:${(c.revenue/maxRev*100).toFixed(0)}%"></div></div><span style="font-size:11px;font-weight:500;min-width:36px">$${(c.revenue/1000).toFixed(0)}K</span></div>`:'<span style="font-size:11px;color:var(--text3)">—</span>'}</div>
+            <div style="padding:0 8px">${c.downloads>0?`<div style="display:flex;align-items:center;gap:6px"><div style="flex:1;height:6px;background:var(--bg3);border-radius:3px"><div style="height:6px;background:#2d6a4f;border-radius:3px;width:${(c.downloads/maxDl*100).toFixed(0)}%"></div></div><span style="font-size:11px;font-weight:500;min-width:20px">${c.downloads}</span></div>`:'<span style="font-size:11px;color:var(--text3)">—</span>'}</div>
+            <div style="padding:0 8px">${c.forms>0?`<div style="display:flex;align-items:center;gap:6px"><div style="flex:1;height:6px;background:var(--bg3);border-radius:3px"><div style="height:6px;background:#b5860b;border-radius:3px;width:${(c.forms/maxFm*100).toFixed(0)}%"></div></div><span style="font-size:11px;font-weight:500;min-width:20px">${c.forms}</span></div>`:'<span style="font-size:11px;color:var(--text3)">—</span>'}</div>
+          </div>`).join('')}`;
+    }
   }
 
   renderPath(pathFunnel, pathEntry);

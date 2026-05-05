@@ -934,14 +934,17 @@ OUTPUT FORMAT — return ONLY this JSON, no markdown:
 
 STRICT RULES:
 - Max 4 signals
-- If data is missing or zero: say 'no data available for this period' — never assume why
-- Direct traffic may include untracked sources (email, social) — never say 'brand awareness' as fact
+- If data is zero or missing: say exactly that — never invent a reason why
+- If you have the number, state it directly — no "may indicate" when the data is right there
+- Hypotheses require 2+ correlated data points. If only one signal exists, say "we need more data to confirm why"
+- Never suggest something failed or was reduced if you simply have no data — absence of data ≠ problem
+- Direct traffic includes many possible sources — never label it as one thing
 - No technical terms: no GA4, UTM, cross-domain, server-side, tracking, tagging
 - No invented numbers or estimates
 - No dramatic language: no collapse, crisis, plummeting, massive
 - No generic praise: no strong performance, great results
-- Include at least 1 signal about where performance is weak or money is being lost
-- /contact-us and /our-people are not program pages — do not expect them to convert like programs
+- Include at least 1 signal about where performance is weak or an opportunity is being missed
+- /contact-us, /our-people, /about are not program pages — do not expect them to convert
 - Each signal = one business decision`,
           messages: [{role:'user', content: dataContext}]
         })
@@ -1066,9 +1069,12 @@ RULES — always follow these:
 - Always pair metrics: volume + quality + outcome
 - Never mention keywords for LinkedIn — it is audience and creative driven
 - Only reference numbers from the data above. Never invent figures.
-- If data is missing, zero, or unavailable: say so clearly — never assume why or invent an explanation
-- Direct traffic may include untracked sources — never claim it means brand awareness as fact
-- /contact-us, /our-people, /about are not program pages — do not expect them to convert like programs
+- If data is zero or missing: say exactly that — never invent a reason why
+- If you have the number, state it directly — no "may indicate" when the data is right there
+- Hypotheses require 2+ correlated data points — if only one signal, say "we need more data to confirm why"
+- Never suggest something failed or was cut if you simply have no data for it
+- Direct traffic includes many possible sources — never label it as one thing
+- /contact-us, /our-people, /about are not program pages — do not expect them to convert
 - If asked "what's working": only include things that drive outcomes, not just engagement
 - If asked "what should we do": give 1 quick win, 1 test, 1 strategic move
 - Match the language of the user (English or Spanish)
@@ -1076,7 +1082,7 @@ RULES — always follow these:
 - No markdown formatting (no ##, no **, no bullet points with dashes)
 - Keep responses under 120 words total
 - Use plain conversational language
-- Never make strong causal claims — use "this may suggest" or "likely" when hypothesising`;
+- Never make strong causal claims without 2+ supporting data points`;
 
   try{
     const res=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system:sys,messages:chatHistory})});

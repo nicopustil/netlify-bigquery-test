@@ -249,10 +249,6 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
         <div id="ov-pages"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
       </div>
     </div>
-    <div class="panel" id="ov-funnel-wrap">
-      <div class="panel-title">Revenue by program <span class="ptitle-note" style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">Humanitix · current period</span></div>
-      <div id="ov-funnel-mini"></div>
-    </div>
     <div id="ov-insights-wrap" class="agency-section">
       <div class="panel">
         <div class="panel-title">Signals this period</div>
@@ -367,7 +363,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
       <div id="path-attribution"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
     </div>
     <div class="panel">
-      <div class="panel-title">Purchase journey · Humanitix funnel <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">last 7 days · raw GA4 events</span></div>
+      <div class="panel-title">Purchase journey · Humanitix funnel <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none" id="path-funnel-period">last ${activeDays||30} days · raw GA4 events</span></div>
       <div id="path-funnel"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
     </div>
     <div class="panel">
@@ -919,33 +915,34 @@ PROGRAMS (Humanitix revenue):
         method: 'POST',
         headers: {'Content-Type':'application/json'},
         body: JSON.stringify({
-          system: `You are a marketing analyst writing for a non-technical client and decision maker at Leadership Victoria, an Australian not-for-profit.
+          system: `You are a marketing analyst writing a performance summary for a non-technical decision maker at Leadership Victoria, an Australian not-for-profit running leadership programs.
 
 OUTPUT FORMAT — return ONLY this JSON, no markdown:
 {
-  "story": "2 sentences. One data observation + one implication. Under 35 words. No jargon.",
+  "story": "2 sentences max. One data observation + one clear implication. Under 35 words. No jargon.",
   "signals": [
     {
       "type": "good|warn|critical|info",
       "emoji": "single emoji",
-      "title": "4-5 words, plain language",
+      "title": "4-5 plain words",
       "what": "1 sentence — what happened, with numbers",
-      "hypothesis": "1 sentence — why this is happening, no jargon",
-      "action": "1-2 sentences — what to do, specific pages or channels, no technical steps"
+      "hypothesis": "1 sentence — most likely reason, no technical terms. If unsure, say 'this may indicate' not 'this means'",
+      "action": "1-2 sentences — specific next step. Name actual pages or channels. No technical steps."
     }
   ]
 }
 
 STRICT RULES:
-- Max 3-4 signals
-- No technical language: no "GA4", "UTM", "cross-domain tracking", "debug mode", "server-side", "SPA routing"
-- No invented numbers or estimates (no "~$6-8K based on ratio")
-- No dramatic language: no "collapse", "crisis", "plummeting"
-- No generic language: no "strong performance", "good results"
-- Each signal = one clear business decision
-- "What's Happening" is about performance and decisions, NOT technical implementation
-- Tracking issues = mention as "visibility gap" not a technical problem
-- LinkedIn = mention as audience quality, never mention keywords`,
+- Max 4 signals
+- If data is missing or zero: say 'no data available for this period' — never assume why
+- Direct traffic may include untracked sources (email, social) — never say 'brand awareness' as fact
+- No technical terms: no GA4, UTM, cross-domain, server-side, tracking, tagging
+- No invented numbers or estimates
+- No dramatic language: no collapse, crisis, plummeting, massive
+- No generic praise: no strong performance, great results
+- Include at least 1 signal about where performance is weak or money is being lost
+- /contact-us and /our-people are not program pages — do not expect them to convert like programs
+- Each signal = one business decision`,
           messages: [{role:'user', content: dataContext}]
         })
       });
@@ -1069,13 +1066,17 @@ RULES — always follow these:
 - Always pair metrics: volume + quality + outcome
 - Never mention keywords for LinkedIn — it is audience and creative driven
 - Only reference numbers from the data above. Never invent figures.
+- If data is missing, zero, or unavailable: say so clearly — never assume why or invent an explanation
+- Direct traffic may include untracked sources — never claim it means brand awareness as fact
+- /contact-us, /our-people, /about are not program pages — do not expect them to convert like programs
 - If asked "what's working": only include things that drive outcomes, not just engagement
 - If asked "what should we do": give 1 quick win, 1 test, 1 strategic move
 - Match the language of the user (English or Spanish)
 - Write for a non-technical client — no GA4, UTM, cross-domain, server-side, SPA or any technical terms
 - No markdown formatting (no ##, no **, no bullet points with dashes)
 - Keep responses under 120 words total
-- Use plain conversational language`;
+- Use plain conversational language
+- Never make strong causal claims — use "this may suggest" or "likely" when hypothesising`;
 
   try{
     const res=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system:sys,messages:chatHistory})});
@@ -1191,7 +1192,10 @@ function renderPath(pathFunnel, pathEntry){
   }
   const pathEntryEl=eid('path-entry');
   if(pathEntryEl&&pathEntry.length){const maxB=Math.max(...pathEntry.map(r=>parseInt(r.buyers||0)))||1;pathEntryEl.innerHTML=pathEntry.map(r=>{const b=parseInt(r.buyers||0),pg=(r.entry_page||'/').split('?')[0]||'/';return `<div class="data-row"><span class="row-name" style="font-family:monospace;font-size:11px">${pg}</span><div class="bar-wrap"><div class="bar" style="width:${(b/maxB*100).toFixed(0)}%;background:#1d3557"></div></div><span class="row-val">${b}</span><span class="row-sub">buyers</span></div>`;}).join('');}
-  else if(pathEntryEl){pathEntryEl.innerHTML='<div class="no-data">No buyer journey data yet — raw events started May 2026</div>';}
+  else if(pathEntryEl){pathEntryEl.innerHTML='<div class="no-data">No purchases recorded in this period — try a wider date range</div>';}
+  // Update funnel panel period label
+  const periodEl=document.getElementById('path-funnel-period');
+  if(periodEl) periodEl.textContent=`last ${activeDays||30} days · raw GA4 events (from May 2026)`;
   const pathJourneyEl=eid('path-journey');
   if(pathJourneyEl){pathJourneyEl.innerHTML=`<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 0">${['LV program page','→','Humanitix event page','→','Tickets selection','→','Payment details','→','Purchase ✓','→','Confirmation'].map(s=>s==='→'?`<span style="color:var(--text3);font-size:14px">→</span>`:`<span style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:12px;color:var(--text2)">${s}</span>`).join('')}</div><div style="margin-top:10px;font-size:12px;color:var(--text3);line-height:1.7">Cross-domain tracking via GTM — GA4 session persists to events.humanitix.com using the <code>_gl</code> parameter.</div>`;}
 }

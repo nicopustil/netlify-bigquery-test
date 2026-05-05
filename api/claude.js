@@ -9,7 +9,7 @@ export default async function handler(req, res) {
   if (!messages) return res.status(400).json({ error: 'Missing messages' });
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) return res.status(500).json({ error: 'ANTHROPIC_API_KEY not set' });
+  if (!apiKey) return res.status(500).json({ error: 'ANTHROPIC_API_KEY not set in this environment' });
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -20,16 +20,27 @@ export default async function handler(req, res) {
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-5',
+        model: 'claude-haiku-4-5-20251001',
         max_tokens: 1000,
-        system,
+        ...(system ? { system } : {}),
         messages,
       }),
     });
 
     const data = await response.json();
-    return res.status(response.status).json(data);
+
+    if (!response.ok) {
+      console.error('Anthropic error:', response.status, data);
+      return res.status(response.status).json({
+        error: data.error?.message || JSON.stringify(data),
+        status: response.status,
+        raw: data
+      });
+    }
+
+    return res.status(200).json(data);
   } catch (err) {
+    console.error('Proxy error:', err.message);
     return res.status(500).json({ error: err.message });
   }
 }

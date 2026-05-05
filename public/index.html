@@ -183,6 +183,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
   <input type="date" class="date-input" id="endDate">
   <button class="date-apply" onclick="applyCustomDate()">Apply</button>
   <span class="last-updated" id="lastUpdated"></span>
+  <span style="font-size:10px;color:var(--border2);margin-left:8px">v2.4.1</span>
 </div>
 
 <div class="tabs">
@@ -931,14 +932,27 @@ PROGRAMS (Humanitix revenue):
         method: 'POST',
         headers: {'Content-Type':'application/json'},
         body: JSON.stringify({
-          system: `You are a senior marketing strategist for Leadership Victoria, an Australian not-for-profit leadership development organisation. Analyse the data and generate a concise, insightful summary in this exact JSON format:
+          system: `You are an analytics strategist for Leadership Victoria, an Australian not-for-profit leadership development organisation.
+
+RULES:
+- Max 4 insights. No more.
+- Each insight must include: what happened (with data) / why (hypothesis) / what to do (specific action)
+- Always pair metrics: volume + quality + outcome
+- Highlight drop-offs and missed opportunities explicitly
+- Never use: "strong performance", "good results", "investigate", "consider"
+- Be direct: use scale / fix / test / cut
+- Short structured bullets, no long paragraphs
+- Every insight must help make a decision
+
+OUTPUT FORMAT — return ONLY this JSON, no markdown:
 {
-  "story": "2-3 sentence narrative summary of the period — what happened, what's notable, what changed",
+  "story": "2 sentences max — what happened this period with key numbers",
   "signals": [
-    {"type": "good|warn|critical|info", "emoji": "emoji", "title": "short title", "body": "1-2 sentence insight with specific numbers", "action": "→ one concrete recommendation"}
+    {"type": "good|warn|critical|info", "emoji": "emoji", "title": "short title", "body": "what happened + why (specific numbers)", "action": "scale / fix / test / cut — one action"}
   ]
 }
-Generate 4-6 signals. Focus on: revenue performance, traffic trends, channel quality, conversion opportunities, problem areas. Be specific with numbers. Use Australian English. Return ONLY valid JSON, no markdown.`,
+
+Focus on: revenue vs traffic mismatch, channel quality vs volume, measurement gaps, biggest risk or opportunity.`,
           messages: [{role:'user', content: dataContext}]
         })
       });
@@ -960,14 +974,13 @@ Generate 4-6 signals. Focus on: revenue performance, traffic trends, channel qua
             </div>`).join('')}
         </div>`;
     } catch(e) {
-      // Fallback to hardcoded if Claude fails
       const dS2=delta(totS,prevS);
       stratEl.innerHTML=`
         <div style="background:white;border:1px solid var(--border);border-radius:12px;padding:20px 22px;margin-bottom:14px">
           <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:8px;font-weight:500">Period summary</div>
           <div style="font-size:14px;color:var(--text2);line-height:1.7;font-style:italic">"${fmt(totS)} sessions with ${fmtPct(avgEngRate)} engagement. ${totRevenue2>0?`$${(totRevenue2/1000).toFixed(0)}K revenue tracked.`:''} ${totForms2>0?`${fmt(totForms2)} form submissions.`:''} ${dS2&&dS2.val<-10?`Traffic down ${Math.abs(dS2.val).toFixed(0)}% vs previous period.`:dS2&&dS2.val>10?`Traffic up ${dS2.val.toFixed(0)}% vs previous period.`:'Traffic stable.'}"</div>
         </div>
-        <div style="padding:10px;background:var(--bg2);border-radius:8px;font-size:12px;color:var(--text3)">AI insights unavailable — check ANTHROPIC_API_KEY in Vercel environment variables.</div>`;
+        <div style="padding:10px;background:var(--red-bg);border-radius:8px;font-size:12px;color:var(--red)">AI error: ${e.message}. Check ANTHROPIC_API_KEY in Vercel → Settings → Environment Variables.</div>`;
     }
   }
 
@@ -1039,38 +1052,29 @@ async function sendChat(){
   // Campaigns summary
   const campSummary=d.campaignsData?.slice(0,8).map(r=>`${r.campaign||r.source}: ${fmt(r.sessions)} sessions, ${fmtPct(parseFloat(r.engRate||0))} eng${parseFloat(r.revenue||0)>0?', $'+(parseFloat(r.revenue)/1000).toFixed(1)+'K':''}`).join(' | ')||'No campaign data';
 
-  const sys=`You are a senior marketing strategist for Leadership Victoria, an Australian not-for-profit leadership development organisation. You have access to real GA4 + BigQuery analytics data.
+  const sys=`You are an analytics strategist for Leadership Victoria, an Australian not-for-profit leadership development organisation. You have access to real GA4 + BigQuery data.
 
-ORGANISATION: Leadership Victoria runs leadership development programs including Igniting Leadership, Women's Leadership, and Leader Evolution. They use Humanitix for ticketing (cross-domain tracking via GTM).
+ORGANISATION: Leadership Victoria runs leadership programs — Igniting Leadership, Women's Leadership, Leader Evolution. Ticketing via Humanitix (cross-domain GTM tracking).
 
-CURRENT PERIOD DATA:
-Traffic:
-- Total sessions: ${fmt(totS2)}
-- Engaged sessions: ${fmt(totE2)} (${fmtPct(avgEr2)} engagement rate)
-- Top channels: ${d.traffic?.slice(0,6).map(r=>`${r.source}: ${fmt(r.sessions)} sess, ${fmtPct(parseFloat(r.engRate||0))} eng`).join(' | ')||'—'}
+CURRENT DATA:
+- Sessions: ${fmt(totS2)} | Engagement: ${fmtPct(avgEr2)} | Revenue: $${(totalRev3/1000).toFixed(0)}K
+- Top channels: ${d.traffic?.slice(0,5).map(r=>`${r.source}: ${fmt(r.sessions)} sess, ${fmtPct(parseFloat(r.engRate||0))} eng`).join(' | ')||'—'}
+- Programs: ${progRevSummary}
+- Forms: ${fmt(evMap3['form_submission_id']?.count||0)} | Downloads: ${fmt(evMap3['file_download']?.count||0)}
+- Campaigns: ${campSummary}
+- Top pages: ${d.pages?.slice(0,4).map(p=>`${p.page}: ${fmt(p.sessions)} sess`).join(' | ')||'—'}
 
-Programs & Revenue:
-- ${progRevSummary}
-- Total revenue: $${(totalRev3/1000).toFixed(0)}K (purchase events via Humanitix)
-- Form submissions: ${fmt(evMap3['form_submission_id']?.count||0 + evMap3['generate_lead']?.count||0)}
-- File downloads: ${fmt(evMap3['file_download']?.count||0)}
-
-Purchase funnel (Humanitix):
-- LV site → Humanitix landing → Tickets → Payment details → Purchase → Confirmation
-- Buyers entry pages: ${d.pathEntry?.slice(0,3).map(r=>r.entry_page).join(', ')||'—'}
-
-Campaigns:
-- ${campSummary}
-
-Top landing pages: ${d.pages?.slice(0,5).map(p=>`${p.page}: ${fmt(p.sessions)} sess, ${fmtDur(p.avgDur)}`).join(' | ')||'—'}
-
-RULES:
-- Only use numbers from the data above. Never invent figures.
-- Be specific, strategic, and actionable.
-- When asked for a report, write it professionally — suitable to send to the client.
-- When asked for recommendations, give 3 specific actions with expected impact.
-- Match the language of the user (English or Spanish).
-- Keep responses focused — max 200 words unless writing a full report.`;
+RULES — always follow these:
+- Max 5 bullets. No long paragraphs.
+- Structure each point: answer → evidence (data) → action
+- Never use: "strong performance", "good results", "investigate", "consider", "great"
+- Be direct: use scale / fix / test / cut / pause
+- Always pair metrics: volume + quality + outcome
+- Never mention keywords for LinkedIn — it is audience and creative driven
+- Only reference numbers from the data above. Never invent figures.
+- If asked "what's working": only include things that drive outcomes, not just engagement
+- If asked "what should we do": give 1 quick win, 1 test, 1 strategic move
+- Match the language of the user (English or Spanish)`;
 
   try{
     const res=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system:sys,messages:chatHistory})});

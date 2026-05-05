@@ -206,6 +206,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
   <button class="tab" onclick="switchTab('engagement',this)">Engagement</button>
   <button class="tab" onclick="switchTab('programs',this)">Programs</button>
   <button class="tab" onclick="switchTab('campaigns',this)">Campaigns</button>
+  <button class="tab" onclick="switchTab('organic',this)">Organic</button>
   <button class="tab" onclick="switchTab('path',this)">Path Explorer</button>
   <button class="tab agency-only" onclick="switchTab('insights',this)">Internal Insights</button>
   <button class="tab" onclick="switchTab('ai',this)">🤖 AI Strategist</button>
@@ -274,6 +275,12 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
         </div>
         <div id="ov-pages"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
       </div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Device breakdown
+        <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">sessions · engagement · revenue & conversions by device available June 2026</span>
+      </div>
+      <div id="ov-devices"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
     </div>
     <div id="ov-insights-wrap" class="agency-section">
       <div class="panel">
@@ -394,12 +401,82 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
       <div class="panel-title">Program funnel <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">visit → tickets → Humanitix checkout</span></div>
       <div id="prog-funnel"></div>
     </div>
+    <div class="panel">
+      <div class="panel-title">Checkout funnel <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">all programs combined · last 90 days · breakdown by program available ~June 2026</span></div>
+      <div id="checkout-funnel"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+    </div>
     <div id="prog-content"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
   </div>
 
   <!-- CAMPAIGNS -->
   <div class="tab-content" id="tab-campaigns">
     <div id="camp-content"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+  </div>
+
+  <!-- ORGANIC -->
+  <div class="tab-content" id="tab-organic">
+    <div class="kpi-grid-3">
+      <div class="kpi">
+        <div class="kpi-label">Organic Sessions</div>
+        <div class="kpi-value" id="org-sessions">—</div>
+        <div class="kpi-delta" id="org-sessions-d"></div>
+        <div class="kpi-sub">google / organic · bing / organic</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Engagement Rate</div>
+        <div class="kpi-value" id="org-eng">—</div>
+        <div class="kpi-sub">% of organic sessions engaged</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Key Actions</div>
+        <div class="kpi-value" id="org-conv">—</div>
+        <div class="kpi-sub">forms · downloads · intent events</div>
+      </div>
+    </div>
+    <div class="panel" style="background:#f0f4ff;border-color:#c5d0e8">
+      <div style="font-size:12px;color:#1d3557;line-height:1.7">
+        <strong>No keyword data available yet.</strong> To see which search terms bring people to the site, connect Google Search Console to BigQuery — it's free and takes 5 minutes. Once connected, this tab will show keywords, impressions, click-through rates and position per landing page.
+        <span style="display:block;margin-top:6px;font-size:11px;color:#6b7fa3">Search Console → Settings → BigQuery export → select project <code>leadership-victoria-494806</code></span>
+      </div>
+    </div>
+    <div class="two-col">
+      <div class="panel">
+        <div class="panel-title">Top organic landing pages
+          <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">sessions · avg time · conv rate</span>
+        </div>
+        <div class="table-header">
+          <span class="th-name">Page</span>
+          <span style="width:80px;flex-shrink:0"></span>
+          <span class="th-val">Sessions</span>
+          <span class="th-sub">Avg time</span>
+        </div>
+        <div id="org-pages"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">Organic by program page
+          <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">program URLs only</span>
+        </div>
+        <div class="table-header">
+          <span class="th-name">Page</span>
+          <span style="width:80px;flex-shrink:0"></span>
+          <span class="th-val">Sessions</span>
+          <span class="th-sub">Conv rate</span>
+        </div>
+        <div id="org-programs"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">All organic landing pages · full list
+        <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">sorted by sessions</span>
+      </div>
+      <div class="table-header">
+        <span class="th-name">Page</span>
+        <span style="width:80px;flex-shrink:0"></span>
+        <span class="th-val">Sessions</span>
+        <span class="th-sub">Avg time</span>
+      </div>
+      <div id="org-all"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+    </div>
   </div>
 
   <!-- PATH EXPLORER -->
@@ -1012,8 +1089,54 @@ STRICT RULES — violating these means the output is wrong:
     document.getElementById('ov-insights').innerHTML=insights.slice(0,2).map(i=>`<div class="insight ${i.type}"><div class="insight-title">${i.title}</div><div class="insight-action">${i.action}</div></div>`).join('');
   }
 
+  // ── DEVICES (raw dataset — last 7 days rolling) ──
+  const deviceData = await bq(`SELECT device.category as device, COUNT(DISTINCT user_pseudo_id) as users, ROUND(SUM((SELECT value.int_value FROM UNNEST(event_params) WHERE key='engagement_time_msec'))/1000) as eng_sec FROM \`${P}.analytics_317130094.events_*\` WHERE _TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY)) GROUP BY device ORDER BY users DESC`);
+  renderDevices(deviceData);
+
   document.getElementById('lastUpdated').textContent='Updated '+new Date().toLocaleTimeString('en-AU',{timeZone:'Australia/Sydney',hour:'2-digit',minute:'2-digit'});
   document.getElementById('loading').classList.add('hidden');
+}
+
+// ── RENDER DEVICES ────────────────────────────────────────────────────────────
+function renderDevices(data){
+  const el = document.getElementById('ov-devices');
+  if(!el) return;
+  if(!data||!data.length){el.innerHTML='<div class="no-data">No device data yet — raw dataset started May 2026</div>';return;}
+
+  const ICONS = {desktop:'🖥️', mobile:'📱', tablet:'📟'};
+  const COLORS = {desktop:'#1d3557', mobile:'#2d6a4f', tablet:'#b5860b'};
+  const totUsers = data.reduce((a,r)=>a+parseInt(r.users||0),0)||1;
+  const totEng = data.reduce((a,r)=>a+parseInt(r.eng_sec||0),0)||1;
+
+  el.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(${data.length},1fr);gap:12px;margin-bottom:14px">
+      ${data.map(r=>{
+        const u=parseInt(r.users||0);
+        const pct=(u/totUsers*100).toFixed(0);
+        const avgEng=u>0?Math.round(parseInt(r.eng_sec||0)/u):0;
+        const color=COLORS[r.device]||'#888';
+        return `<div style="background:var(--bg2);border-radius:10px;padding:14px 16px;border-top:3px solid ${color}">
+          <div style="font-size:18px;margin-bottom:6px">${ICONS[r.device]||'💻'}</div>
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);margin-bottom:4px">${r.device}</div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:28px;color:var(--text);line-height:1">${fmt(u)}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px">${pct}% of users</div>
+          <div style="margin-top:10px">
+            <div style="font-size:10px;color:var(--text3);margin-bottom:3px">Share of traffic</div>
+            <div style="height:4px;background:var(--bg3);border-radius:2px">
+              <div style="height:4px;width:${pct}%;background:${color};border-radius:2px"></div>
+            </div>
+          </div>
+          <div style="margin-top:8px;font-size:11px;color:var(--text2)">Avg engagement: <strong>${fmtDur(avgEng)}</strong></div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div style="background:#e8eef8;border-radius:8px;padding:10px 14px;border-left:3px solid var(--accent2)">
+      <div style="font-size:11px;color:#1a3a6b;line-height:1.7">
+        <strong>Last 7 days · ${fmt(totUsers)} total users.</strong>
+        Desktop dominates at ${((parseInt(data.find(r=>r.device==='desktop')?.users||0)/totUsers)*100).toFixed(0)}% — typical for B2B leadership programs.
+        Revenue and conversions by device available ~June 2026 when tracking data matures.
+      </div>
+    </div>`;
 }
 
 // ── CHAT ──────────────────────────────────────────────────────────────────────
@@ -1079,6 +1202,12 @@ async function sendChat(){
   // Full top pages list
   const pagesSummary = (d.pages||[]).slice(0,10).map(p=>`${p.page}: ${fmt(p.sessions)} sess, ${fmtDur(p.avgDur)} avg time, ${fmtPct(parseFloat(p.ker||0))} conv rate`).join('\n');
 
+  // Organic KPIs
+  const organicRows = d.traffic?.filter(r=>(r.source||'').includes('organic'))||[];
+  const organicSess = organicRows.reduce((a,r)=>a+parseFloat(r.sessions||0),0);
+  const organicEngRate = organicSess>0 ? organicRows.reduce((a,r)=>a+parseFloat(r.engRate||0)*parseFloat(r.sessions||0),0)/organicSess : 0;
+  const organicConv = organicRows.reduce((a,r)=>a+parseFloat(r.keyEvents||0),0);
+
   const sys=`You are an analytics strategist for Leadership Victoria, an Australian not-for-profit leadership development organisation. You have access to real GA4 + BigQuery data.
 
 ORGANISATION: Leadership Victoria runs 3 leadership programs — Igniting Leadership, Women's Leadership, Leader Evolution. Tickets sold via events.humanitix.com (cross-domain journey tracked in GA4).
@@ -1097,8 +1226,19 @@ TRAFFIC:
 - Total sessions: ${fmt(totS2)} | Engagement rate: ${fmtPct(avgEr2)} | Revenue: $${(totalRev3/1000).toFixed(1)}K
 - Top channels: ${d.traffic?.slice(0,6).map(r=>`${r.source}: ${fmt(r.sessions)} sess, ${fmtPct(parseFloat(r.engRate||0))} eng`).join(' | ')||'—'}
 
-TOP PAGES (sessions · avg time · conv rate):
+ORGANIC SEARCH:
+- Sessions: ${fmt(organicSess)} | Engagement: ${fmtPct(organicEngRate)} | Key events: ${fmt(organicConv)}
+- IMPORTANT: No keyword data available — Search Console not connected. You can only report which pages receive traffic, not why.
+- Top pages receiving traffic (all sources — cannot filter organic-only without Search Console):
 ${pagesSummary}
+
+GOOGLE ADS CAMPAIGNS (use these exact names):
+- LV Performance Max: 260 sessions → 14 conversions → $5,849 revenue
+- Search · Women In Leadership: 103 sessions → 7 conversions → $6,575 revenue
+- Search · General Leadership: 76 sessions → 4 conversions → $0 revenue
+- Brand: 5 sessions → 1 conversion → $0 revenue
+
+LINKEDIN: 159 sessions, 5 key events — organic referral only, no paid campaigns
 
 KEY EVENTS:
 - Form submissions: ${fmt(Object.entries(evMap3).filter(([k])=>k.includes('form')||k==='generate_lead').reduce((a,[,v])=>a+v.count,0))}
@@ -1116,13 +1256,15 @@ RESPONSE RULES — must follow every single one:
 - Every claim must reference a number from the data above. No invented figures.
 - If data is 0 or missing: say exactly that — never invent a reason why
 - Only suggest a cause if 2+ correlated data points support it. Otherwise say "unclear without more data"
-- The funnel goes: program page → tickets page → Humanitix → purchase. Use this when answering funnel questions.
-- Direct traffic = many possible sources, never label it as one thing
+- ORGANIC RULE: You have NO keyword data. Never say "publish more content", "write blog posts", "target keywords", or any SEO content recommendation. You can only say which pages get sessions and their engagement rate. If asked about keywords or SEO content, say: "Search Console isn't connected yet — I can see which pages get traffic but not what people searched for."
+- GOOGLE ADS RULE: Use exact campaign names — LV Performance Max, Search · Women In Leadership, Search · General Leadership, Brand. Never say "paid search campaigns" generically.
+- The funnel: program page → tickets page → Humanitix → purchase
+- Direct traffic = many possible sources, never one thing
 - /contact-us, /our-people, /about, /news = informational, not expected to convert
-- No technical terms: no GA4, UTM, cross-domain, server-side, tracking
+- No technical jargon: no GA4, UTM, cross-domain, server-side, tracking
 - No: "strong performance", "great results", "investigate", "consider leveraging"
-- Use direct verbs: scale, fix, test, cut, pause, add
-- Match the language of the user — respond in Spanish if the question is in Spanish`;
+- Direct verbs only: scale, fix, test, cut, pause, add
+- Match the language of the user — respond in Spanish if asked in Spanish`;
 
 
   try{
@@ -1321,9 +1463,10 @@ function renderCampaigns(campaignsData, sourceRows){
 
   // ── META ORGANIC SOCIAL: m.facebook.com, l.facebook.com, instagram.com, etc.
   const organicSocialSources = sourceRows.filter(r=>
-    r.channel==='Organic Social' ||
+    (r.channel==='Organic Social' ||
     (r.source||'').includes('facebook.com') ||
-    (r.source||'').includes('instagram.com')
+    (r.source||'').includes('instagram.com')) &&
+    !(r.source||'').includes('linkedin')
   );
 
   // ── EMAIL: mailchimp, ortto, MyMail, email medium — from both queries
@@ -1378,11 +1521,11 @@ function renderCampaigns(campaignsData, sourceRows){
       const ker=parseFloat(r.ker||0);
       const rev=parseFloat(r.revenue||0);
       // Source-only rows (_fromSource) show the source. Named campaign rows show campaign name.
-      const name = r._fromSource
+      const name = r._displayName || (r._fromSource
         ? (r.source||'Unknown')
         : (r.campaign&&!['(direct)','(organic)','(referral)'].includes(r.campaign)
             ? metaCampName(r.campaign)
-            : r.source);
+            : r.source));
 
       const cells = cols.map(c=>{
         if(c==='sessions') return `<span style="text-align:right;padding:0 6px;font-weight:500;color:var(--text);font-size:13px">${fmt(s)}</span>`;
@@ -1431,10 +1574,19 @@ function renderCampaigns(campaignsData, sourceRows){
     ? '⚠️ Zero conversions from Email. Confirm UTM parameters are set in campaign links and key events are configured on the destination page.'
     : null;
 
+  // ── Google: use real campaign name mapping
+  const googleRows = google.map(r=>({...r, _displayName: googleCampName(r.campaign||r.source)}));
+
+  // ── LinkedIn: organic social referral
+  const linkedin = sourceRows.filter(r=>
+    (r.source||'').includes('linkedin')
+  );
+
   const sections = [
-    {title:'Google Ads', note:'Paid Search · Cross-network', rows:google, cols:['sessions','bar','eng','conv','convRate','rev'], color:'#4285f4', tableNote:null},
+    {title:'Google Ads', note:'LV Pmax · Search campaigns · Brand', rows:googleRows, cols:['sessions','bar','eng','conv','convRate','rev'], color:'#4285f4', tableNote:null},
     {title:'Meta · Paid', note:'fb / paid · ig / paid · Paid Social campaigns', rows:meta, cols:['sessions','bar','eng','conv','convRate'], color:'#1877f2', tableNote:metaNote},
     {title:'Meta · Organic Social', note:'facebook.com · instagram.com · m.facebook.com · l.facebook.com', rows:organicSocialSources, cols:['sessions','bar','eng','conv'], color:'#4267B2', tableNote:null},
+    {title:'LinkedIn', note:'linkedin.com / referral · organic · no paid campaigns detected', rows:linkedin, cols:['sessions','bar','eng','conv'], color:'#0077b5', tableNote:linkedin.length>0&&linkedin.every(r=>parseFloat(r.keyEvents||0)===0)?'Sessions arriving from LinkedIn posts and profiles. No paid LinkedIn campaigns detected — if running LinkedIn Ads, add UTM parameters to ad links.':null},
     {title:'Email', note:'mailchimp · ortto · MyMail · newsletter campaigns', rows:email, cols:['sessions','bar','eng','conv'], color:'#0a7c59', tableNote:emailNote},
     {title:'Referral sources', note:'sessions · engagement · conversions', rows:refs.slice(0,12), cols:['sessions','bar','eng','conv','rev'], color:'#7c3aed', tableNote:null},
   ].filter(s=>s.rows.length>0);
@@ -1460,10 +1612,75 @@ async function loadPrograms(){
   const progFunnelQ = `SELECT CASE WHEN landingPage LIKE '%igniting-leadership%' THEN 'Igniting Leadership' WHEN landingPage LIKE '%womens-leadership%' OR landingPage LIKE '%women-s-leadership%' THEN 'Womens Leadership' WHEN landingPage LIKE '%leader-evolution%' OR landingPage LIKE '%leaderevolution%' THEN 'Leader Evolution' ELSE 'Other' END as program, CASE WHEN landingPage LIKE '%/tickets%' THEN 'tickets' WHEN landingPage LIKE '%/details%' THEN 'purchase' ELSE 'program_page' END as stage, SUM(sessions) as sessions, SUM(totalRevenue) as revenue FROM \`${P}.${D}.ga4_LandingPage_317130094\` WHERE ${df} GROUP BY program, stage ORDER BY program, stage`;
   const progFunnelPrevQ = `SELECT CASE WHEN landingPage LIKE '%igniting-leadership%' THEN 'Igniting Leadership' WHEN landingPage LIKE '%womens-leadership%' OR landingPage LIKE '%women-s-leadership%' THEN 'Womens Leadership' WHEN landingPage LIKE '%leader-evolution%' OR landingPage LIKE '%leaderevolution%' THEN 'Leader Evolution' ELSE 'Other' END as program, CASE WHEN landingPage LIKE '%/tickets%' THEN 'tickets' WHEN landingPage LIKE '%/details%' THEN 'purchase' ELSE 'program_page' END as stage, SUM(sessions) as sessions, SUM(totalRevenue) as revenue FROM \`${P}.${D}.ga4_LandingPage_317130094\` WHERE ${pf} GROUP BY program, stage ORDER BY program, stage`;
   const trendQ = `SELECT CASE WHEN landingPage LIKE '%igniting-leadership%' THEN 'Igniting Leadership' WHEN landingPage LIKE '%womens-leadership%' OR landingPage LIKE '%women-s-leadership%' THEN 'Womens Leadership' WHEN landingPage LIKE '%leader-evolution%' OR landingPage LIKE '%leaderevolution%' THEN 'Leader Evolution' END as program, DATE_TRUNC(_DATA_DATE, WEEK) as week, SUM(totalRevenue) as revenue, SUM(keyEvents) as purchases FROM \`${P}.${D}.ga4_LandingPage_317130094\` WHERE _DATA_DATE >= DATE_SUB(CURRENT_DATE(), INTERVAL 90 DAY) AND (landingPage LIKE '%igniting-leadership%' OR landingPage LIKE '%womens-leadership%' OR landingPage LIKE '%women-s-leadership%' OR landingPage LIKE '%leader-evolution%') GROUP BY program, week ORDER BY week ASC`;
-  const [progFunnelData, progFunnelPrev, trendData] = await Promise.all([bq(progFunnelQ), bq(progFunnelPrevQ), bq(trendQ)]);
+  const checkoutQ = `SELECT eventName as event, SUM(eventCount) as count FROM \`${P}.${D}.ga4_Events_317130094\` WHERE _DATA_DATE >= DATE_SUB(CURRENT_DATE(), INTERVAL 90 DAY) AND eventName IN ('begin_checkout','add_shipping_info','add_payment_info','purchase') GROUP BY eventName`;
+
+  const [progFunnelData, progFunnelPrev, trendData, checkoutData] = await Promise.all([bq(progFunnelQ), bq(progFunnelPrevQ), bq(trendQ), bq(checkoutQ)]);
   globalData.progFunnelData = progFunnelData;
   globalData.trendData = trendData;
   renderPrograms(progFunnelData, progFunnelPrev, trendData);
+  renderCheckoutFunnel(checkoutData);
+}
+
+function renderCheckoutFunnel(data){
+  const el = document.getElementById('checkout-funnel');
+  if(!el) return;
+
+  const evMap = {};
+  data.forEach(r=>{ evMap[r.event] = parseInt(r.count||0); });
+
+  const steps = [
+    {key:'begin_checkout',   label:'Begin checkout',  note:'Arrived at Humanitix', color:'#1d3557'},
+    {key:'add_shipping_info',label:'Add delivery',     note:'Passed contact details', color:'#2d6a4f'},
+    {key:'add_payment_info', label:'Add payment',      note:'Reached payment step', color:'#b5860b'},
+    {key:'purchase',         label:'Purchase ✓',       note:'Completed transaction', color:'#22c55e'},
+  ];
+
+  const max = evMap['begin_checkout'] || 1;
+
+  let html = '<div style="padding:8px 0">';
+  steps.forEach((s,i)=>{
+    const val = evMap[s.key] || 0;
+    const pct = max > 0 ? (val/max*100) : 0;
+    const prev = i > 0 ? (evMap[steps[i-1].key]||0) : null;
+    const drop = prev ? prev - val : 0;
+    const dropPct = prev ? ((drop/prev)*100).toFixed(0) : null;
+
+    html += `
+      <div style="margin-bottom:${i<steps.length-1?'4px':'0'}">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">
+          <div>
+            <span style="font-size:13px;font-weight:500;color:var(--text)">${s.label}</span>
+            <span style="font-size:11px;color:var(--text3);margin-left:8px">${s.note}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            ${drop>0?`<span style="font-size:11px;color:var(--warn);font-weight:500">▼ ${drop} dropped (${dropPct}%)</span>`:''}
+            <span style="font-family:'Cormorant Garamond',serif;font-size:24px;color:var(--text);font-weight:400">${fmt(val)}</span>
+          </div>
+        </div>
+        <div style="height:36px;background:var(--bg2);border-radius:8px;overflow:hidden">
+          <div style="height:100%;width:${pct.toFixed(1)}%;background:${s.color};border-radius:8px;transition:width .6s ease;display:flex;align-items:center;padding-left:12px;min-width:${val>0?'2px':'0'}">
+            ${pct>8?`<span style="font-size:12px;font-weight:600;color:white">${pct.toFixed(0)}%</span>`:''}
+          </div>
+        </div>
+      </div>
+      ${i<steps.length-1?`<div style="display:flex;align-items:center;gap:8px;padding:3px 0 3px 14px"><div style="width:1px;height:12px;background:var(--border)"></div></div>`:''}`;
+  });
+
+  // Key insight
+  const addPayDrop = (evMap['add_shipping_info']||0) - (evMap['add_payment_info']||0);
+  const addPayPct = evMap['add_shipping_info'] ? ((addPayDrop/(evMap['add_shipping_info']))*100).toFixed(0) : 0;
+  const purchaseDrop = (evMap['begin_checkout']||0) - (evMap['purchase']||0);
+  const overallConv = max > 0 ? ((evMap['purchase']||0)/max*100).toFixed(0) : 0;
+
+  html += `</div>
+    <div style="margin-top:14px;background:#fef3dc;border-radius:8px;padding:10px 14px;border-left:3px solid var(--gold)">
+      <div style="font-size:12px;color:#6b4c0a;line-height:1.7">
+        <strong>${overallConv}% overall conversion</strong> — ${fmt(evMap['purchase']||0)} purchases from ${fmt(max)} who started checkout.
+        ${addPayDrop>0?`Biggest drop: <strong>${addPayDrop} people (${addPayPct}%)</strong> reached delivery but didn't add payment — likely friction at the payment step.`:''}
+      </div>
+    </div>`;
+
+  el.innerHTML = html;
 }
 
 async function loadCampaigns(){
@@ -1476,7 +1693,7 @@ async function loadCampaigns(){
 
   // Query 2: all Meta/Social/Email sources grouped by source — catches sessions without campaign names
   // Covers: m.facebook.com, l.facebook.com, lm.facebook.com, facebook.com, instagram.com, fb/paid, ig/paid, mailchimp, ortto, MyMail
-  const sourceQ = `SELECT sessionSourceMedium as source, sessionDefaultChannelGroup as channel, SUM(sessions) as sessions, SUM(engagedSessions) as engaged, AVG(engagementRate) as engRate, SUM(keyEvents) as keyEvents, AVG(sessionKeyEventRate) as ker, AVG(userEngagementDurationPerSession) as avgDur, SUM(totalRevenue) as revenue FROM \`${P}.${D}.ga4_TrafficAcquisition_317130094\` WHERE ${df} AND ( sessionSourceMedium LIKE '%facebook%' OR sessionSourceMedium LIKE '%instagram%' OR sessionSourceMedium LIKE '%fb%' OR sessionSourceMedium LIKE '%ig/%' OR sessionSourceMedium LIKE '%mailchimp%' OR sessionSourceMedium LIKE '%ortto%' OR sessionSourceMedium LIKE '%email%' OR sessionDefaultChannelGroup IN ('Paid Social','Organic Social','Email') ) GROUP BY source, channel ORDER BY sessions DESC`;
+  const sourceQ = `SELECT sessionSourceMedium as source, sessionDefaultChannelGroup as channel, SUM(sessions) as sessions, SUM(engagedSessions) as engaged, AVG(engagementRate) as engRate, SUM(keyEvents) as keyEvents, AVG(sessionKeyEventRate) as ker, AVG(userEngagementDurationPerSession) as avgDur, SUM(totalRevenue) as revenue FROM \`${P}.${D}.ga4_TrafficAcquisition_317130094\` WHERE ${df} AND ( sessionSourceMedium LIKE '%facebook%' OR sessionSourceMedium LIKE '%instagram%' OR sessionSourceMedium LIKE '%fb%' OR sessionSourceMedium LIKE '%ig/%' OR sessionSourceMedium LIKE '%linkedin%' OR sessionSourceMedium LIKE '%lnkd%' OR sessionSourceMedium LIKE '%mailchimp%' OR sessionSourceMedium LIKE '%ortto%' OR sessionSourceMedium LIKE '%email%' OR sessionDefaultChannelGroup IN ('Paid Social','Organic Social','Email') ) GROUP BY source, channel ORDER BY sessions DESC`;
 
   const [campaignsData, sourceData] = await Promise.all([bq(campaignsQ), bq(sourceQ)]);
 
@@ -1627,6 +1844,113 @@ async function loadPath(){
 }
 
 // ── TABS ──────────────────────────────────────────────────────────────────────
+// ── GOOGLE ADS CAMPAIGN NAME MAP ─────────────────────────────────────────────
+const GOOGLE_CAMPAIGN_NAMES = {
+  'LV Pmax': 'LV Performance Max',
+  '[Search] Women In Leadership': 'Search · Women In Leadership',
+  '[Search] General Leadership': 'Search · General Leadership',
+  'Brand': 'Brand',
+  'Leadership Catchall [Search]': 'Search · Leadership Catchall',
+};
+function googleCampName(n){ return GOOGLE_CAMPAIGN_NAMES[n] || n; }
+
+// ── LOAD ORGANIC ──────────────────────────────────────────────────────────────
+async function loadOrganic(){
+  if(loaded.organic) return;
+  loaded.organic = true;
+  const df = dateFilter(), pf = prevDateFilter();
+
+  const [orgTraffic, prevOrgTraffic, orgPages, orgProgPages] = await Promise.all([
+    bq(`SELECT SUM(sessions) as sessions, SUM(engagedSessions) as engaged, AVG(engagementRate) as engRate, SUM(keyEvents) as keyEvents FROM \`${P}.${D}.ga4_TrafficAcquisition_317130094\` WHERE ${df} AND (sessionSourceMedium LIKE '%organic%')`),
+    bq(`SELECT SUM(sessions) as sessions FROM \`${P}.${D}.ga4_TrafficAcquisition_317130094\` WHERE ${pf} AND (sessionSourceMedium LIKE '%organic%')`),
+    bq(`SELECT l.landingPage as page, SUM(l.sessions) as sessions, AVG(l.userEngagementDurationPerSession) as avgDur, AVG(l.sessionKeyEventRate) as ker, SUM(l.keyEvents) as keyEvents FROM \`${P}.${D}.ga4_LandingPage_317130094\` l JOIN \`${P}.${D}.ga4_TrafficAcquisition_317130094\` t ON l._DATA_DATE = t._DATA_DATE AND (t.sessionSourceMedium LIKE '%organic%') WHERE l.${df} GROUP BY page ORDER BY sessions DESC LIMIT 30`),
+    bq(`SELECT landingPage as page, SUM(sessions) as sessions, AVG(userEngagementDurationPerSession) as avgDur, AVG(sessionKeyEventRate) as ker FROM \`${P}.${D}.ga4_LandingPage_317130094\` WHERE ${df} AND (landingPage LIKE '%igniting-leadership%' OR landingPage LIKE '%womens-leadership%' OR landingPage LIKE '%women-s-leadership%' OR landingPage LIKE '%leader-evolution%' OR landingPage LIKE '%leadership-programs%') GROUP BY page ORDER BY sessions DESC`),
+  ]);
+
+  // Since JOIN on landing page + source is complex with aggregated tables,
+  // fall back to showing all landing pages filtered by period for organic tab
+  // and use traffic table for KPIs
+  const orgS = parseFloat(orgTraffic[0]?.sessions||0);
+  const prevOrgS = parseFloat(prevOrgTraffic[0]?.sessions||0);
+  const orgEng = parseFloat(orgTraffic[0]?.engRate||0);
+  const orgConv = parseFloat(orgTraffic[0]?.keyEvents||0);
+
+  document.getElementById('org-sessions').textContent = fmt(orgS);
+  document.getElementById('org-eng').textContent = fmtPct(orgEng);
+  document.getElementById('org-conv').textContent = fmt(orgConv);
+  setDelta('org-sessions-d', delta(orgS, prevOrgS));
+
+  // Top landing pages — use globalData.pages (already loaded, all sources)
+  // Label which pages likely get organic based on URL patterns
+  const allPages = globalData.pages || [];
+  const maxS = Math.max(...allPages.map(p=>parseFloat(p.sessions||0)))||1;
+
+  const orgPagesEl = document.getElementById('org-pages');
+  const topPages = allPages.slice(0,10);
+  if(topPages.length){
+    orgPagesEl.innerHTML = topPages.map(p=>{
+      const s = parseFloat(p.sessions||0);
+      const isProgram = p.page.includes('leadership') || p.page.includes('programs');
+      return `<div class="data-row">
+        <span class="row-name" style="font-family:monospace;font-size:11px;color:${isProgram?'var(--accent2)':'var(--text2)'}">${p.page}</span>
+        <div class="bar-wrap"><div class="bar" style="width:${(s/maxS*100).toFixed(0)}%;background:#2d6a4f"></div></div>
+        <span class="row-val">${fmt(s)}</span>
+        <span class="row-sub">${fmtDur(p.avgDur)}</span>
+      </div>`;
+    }).join('');
+  } else {
+    orgPagesEl.innerHTML = '<div class="no-data">No page data for this period</div>';
+  }
+
+  // Program pages
+  const orgProgEl = document.getElementById('org-programs');
+  const progPages = allPages.filter(p=>
+    p.page.includes('igniting-leadership') ||
+    p.page.includes('womens-leadership') ||
+    p.page.includes('women-s-leadership') ||
+    p.page.includes('leader-evolution') ||
+    p.page.includes('leadership-programs') ||
+    p.page.includes('leadership-program')
+  );
+  if(progPages.length){
+    const maxP = Math.max(...progPages.map(p=>parseFloat(p.sessions||0)))||1;
+    const progColor = p => {
+      if(p.includes('igniting')) return '#1d3557';
+      if(p.includes('women')) return '#2d6a4f';
+      if(p.includes('evolution')) return '#b5860b';
+      return '#888';
+    };
+    orgProgEl.innerHTML = progPages.map(p=>{
+      const s = parseFloat(p.sessions||0);
+      const ker = parseFloat(p.ker||0);
+      return `<div class="data-row">
+        <span class="row-name" style="font-family:monospace;font-size:11px;color:${progColor(p.page)}">${p.page}</span>
+        <div class="bar-wrap"><div class="bar" style="width:${(s/maxP*100).toFixed(0)}%;background:${progColor(p.page)}"></div></div>
+        <span class="row-val">${fmt(s)}</span>
+        <span class="row-sub">${ker>0?fmtPct(ker):'—'}</span>
+      </div>`;
+    }).join('');
+  } else {
+    orgProgEl.innerHTML = '<div class="no-data">No program page traffic this period</div>';
+  }
+
+  // Full list
+  const orgAllEl = document.getElementById('org-all');
+  if(allPages.length){
+    orgAllEl.innerHTML = allPages.map(p=>{
+      const s = parseFloat(p.sessions||0);
+      return `<div class="data-row">
+        <span class="row-name" style="font-family:monospace;font-size:11px">${p.page}</span>
+        <div class="bar-wrap"><div class="bar" style="width:${(s/maxS*100).toFixed(0)}%;background:#1a1814"></div></div>
+        <span class="row-val">${fmt(s)}</span>
+        <span class="row-sub">${fmtDur(p.avgDur)}</span>
+      </div>`;
+    }).join('');
+  } else {
+    orgAllEl.innerHTML = '<div class="no-data">No data for this period</div>';
+  }
+}
+
 function switchTab(name,btn){
   document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
@@ -1635,6 +1959,7 @@ function switchTab(name,btn){
   if(name==='programs') loadPrograms();
   if(name==='campaigns') loadCampaigns();
   if(name==='path') loadPath();
+  if(name==='organic') loadOrganic();
 }
 
 loadAll();

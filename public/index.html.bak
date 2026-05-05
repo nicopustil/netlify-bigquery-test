@@ -1032,13 +1032,6 @@ async function sendChat(){
 
   chatHistory.push({role:'user',content:text});
 
-  // Ensure programs + campaigns + path are loaded before building context
-  await Promise.all([
-    loaded.programs ? Promise.resolve() : loadPrograms(),
-    loaded.campaigns ? Promise.resolve() : loadCampaigns(),
-    loaded.path ? Promise.resolve() : loadPath(),
-  ]);
-
   const d=globalData;
   const totS2=d.traffic?.reduce((a,r)=>a+parseFloat(r.sessions||0),0)||0;
   const avgEr2=totS2>0?d.traffic?.reduce((a,r)=>a+parseFloat(r.engRate||0)*parseFloat(r.sessions||0),0)/totS2:0;
@@ -1046,84 +1039,44 @@ async function sendChat(){
   d.events?.forEach(e=>{evMap3[e.event]={count:parseFloat(e.count||0),revenue:parseFloat(e.revenue||0)};});
   const totalRev3=d.events?.reduce((a,e)=>a+parseFloat(e.revenue||0),0)||0;
 
-  // Program funnel with real data
-  const pm=buildProgMap(d.progFunnelData||[]);
+  const pm=buildProgMap?.(d.progFunnelData||[])||{};
   const progRevSummary=PROGRAMS.map(p=>{
-    const cur=pm[p]||{program_page:{sessions:0,revenue:0},tickets:{sessions:0,revenue:0},purchase:{sessions:0,revenue:0}};
+    const cur=pm[p]||{program_page:{sessions:0,revenue:0},tickets:{sessions:0,revenue:0},purchase:{revenue:0}};
     const rev=cur.program_page.revenue+cur.tickets.revenue+(cur.purchase?.revenue||0);
     const sess=cur.program_page.sessions;
     const tick=cur.tickets.sessions;
-    const tickRate=sess>0?(tick/sess*100).toFixed(0):'0';
-    return `${PROG_LABELS[p]}: ${fmt(sess)} page views → ${fmt(tick)} reached tickets (${tickRate}% CTR) → $${(rev/1000).toFixed(1)}K revenue`;
-  }).join('\n');
+    return `${PROG_LABELS[p]}: ${fmt(sess)} page views, ${fmt(tick)} reached tickets, $${(rev/1000).toFixed(0)}K revenue`;
+  }).join(' | ');
 
-  // Humanitix purchase funnel stages
-  const pathMap={};
-  (d.pathFunnel||[]).forEach(r=>{pathMap[r.stage]=parseInt(r.users||0);});
-  const funnelSummary = pathMap['0_lv_site']
-    ? `LV Website: ${fmt(pathMap['0_lv_site']||0)} users → Humanitix landing: ${fmt(pathMap['1_humanitix']||0)} → Tickets page: ${fmt(pathMap['2_tickets']||0)} → Purchase: ${fmt(pathMap['3_purchase']||0)} → Confirmation: ${fmt(pathMap['4_complete']||0)}`
-    : 'Funnel data not available for this period (raw events start May 2026)';
+  const campSummary=d.campaignsData?.slice(0,8).map(r=>`${r.campaign||r.source}: ${fmt(r.sessions)} sessions, ${fmtPct(parseFloat(r.engRate||0))} eng${parseFloat(r.revenue||0)>0?', $'+(parseFloat(r.revenue)/1000).toFixed(1)+'K':''}`).join(' | ')||'No campaign data';
 
-  // Top entry pages for buyers
-  const entryPages = (d.pathEntry||[]).slice(0,5).map(r=>`${(r.entry_page||'/').split('?')[0]}: ${r.buyers} buyers`).join(' | ') || 'No purchase entry page data';
-
-  // All campaigns including source-only rows
-  const allCamp = [...(d.campaignsData||[]), ...(d.sourceData||[])];
-  const campSummary = allCamp.slice(0,10).map(r=>{
-    const name = r._fromSource ? r.source : (r.campaign||r.source);
-    const kev = parseFloat(r.keyEvents||0);
-    const rev = parseFloat(r.revenue||0);
-    return `${name}: ${fmt(r.sessions)} sess, ${fmtPct(parseFloat(r.engRate||0))} eng${kev>0?', '+fmt(kev)+' conv':''}${rev>0?', $'+(rev/1000).toFixed(1)+'K':''}`;
-  }).join('\n') || 'No campaign data loaded';
-
-  // Full top pages list
-  const pagesSummary = (d.pages||[]).slice(0,10).map(p=>`${p.page}: ${fmt(p.sessions)} sess, ${fmtDur(p.avgDur)} avg time, ${fmtPct(parseFloat(p.ker||0))} conv rate`).join('\n');
-
+  // FIX #7: AI Strategist — max 120 words, no markdown, plain language
   const sys=`You are an analytics strategist for Leadership Victoria, an Australian not-for-profit leadership development organisation. You have access to real GA4 + BigQuery data.
 
-ORGANISATION: Leadership Victoria runs 3 leadership programs — Igniting Leadership, Women's Leadership, Leader Evolution. Tickets sold via events.humanitix.com (cross-domain journey tracked in GA4).
+ORGANISATION: Leadership Victoria runs leadership programs — Igniting Leadership, Women's Leadership, Leader Evolution. Tickets via Humanitix.
 
-PURCHASE FUNNEL (step by step):
-leadershipvictoria.org program page → leadershipvictoria.org/tickets → events.humanitix.com → tickets selection → payment → purchase confirmation
-${funnelSummary}
+CURRENT DATA:
+- Sessions: ${fmt(totS2)} | Engagement: ${fmtPct(avgEr2)} | Revenue: $${(totalRev3/1000).toFixed(0)}K
+- Top channels: ${d.traffic?.slice(0,5).map(r=>`${r.source}: ${fmt(r.sessions)} sess, ${fmtPct(parseFloat(r.engRate||0))} eng`).join(' | ')||'—'}
+- Programs: ${progRevSummary}
+- Forms: ${fmt(evMap3['form_submission_id']?.count||0)} | Downloads: ${fmt(evMap3['file_download']?.count||0)}
+- Campaigns: ${campSummary}
+- Top pages: ${d.pages?.slice(0,4).map(p=>`${p.page}: ${fmt(p.sessions)} sess`).join(' | ')||'—'}
 
-PROGRAM PERFORMANCE (page views → ticket page → revenue):
-${progRevSummary}
-
-TOP ENTRY PAGES FOR BUYERS:
-${entryPages}
-
-TRAFFIC:
-- Total sessions: ${fmt(totS2)} | Engagement rate: ${fmtPct(avgEr2)} | Revenue: $${(totalRev3/1000).toFixed(1)}K
-- Top channels: ${d.traffic?.slice(0,6).map(r=>`${r.source}: ${fmt(r.sessions)} sess, ${fmtPct(parseFloat(r.engRate||0))} eng`).join(' | ')||'—'}
-
-TOP PAGES (sessions · avg time · conv rate):
-${pagesSummary}
-
-KEY EVENTS:
-- Form submissions: ${fmt(Object.entries(evMap3).filter(([k])=>k.includes('form')||k==='generate_lead').reduce((a,[,v])=>a+v.count,0))}
-- File downloads: ${fmt(evMap3['file_download']?.count||0)}
-- Begin checkout: ${fmt(evMap3['begin_checkout']?.count||0)}
-- Purchases: ${fmt(evMap3['purchase']?.count||0)}
-
-CAMPAIGNS:
-${campSummary}
-
-RESPONSE RULES — must follow every single one:
-- Maximum 120 words total. Count carefully. Stop at 120.
-- No markdown: no ##, no **, no bullet dashes, no numbered lists
-- Short plain sentences. Line break between thoughts.
-- Every claim must reference a number from the data above. No invented figures.
-- If data is 0 or missing: say exactly that — never invent a reason why
-- Only suggest a cause if 2+ correlated data points support it. Otherwise say "unclear without more data"
-- The funnel goes: program page → tickets page → Humanitix → purchase. Use this when answering funnel questions.
-- Direct traffic = many possible sources, never label it as one thing
-- /contact-us, /our-people, /about, /news = informational, not expected to convert
+RESPONSE RULES — must follow all of these:
+- Maximum 120 words. Count carefully. Stop when you reach 120.
+- No markdown: no ##, no **, no -, no numbered lists
+- Write in short plain sentences separated by line breaks if needed
+- Structure each point: observation (with number) → what to do next
+- Only use numbers from the data above. Never invent figures.
+- If data is 0 or missing: say that. Never invent a reason.
+- Only suggest a cause if 2+ data points support it. If not, say "unclear — need more data"
+- Direct traffic = multiple possible sources, never one thing
+- /contact-us, /our-people, /about = informational pages, not expected to convert
 - No technical terms: no GA4, UTM, cross-domain, server-side, tracking
 - No: "strong performance", "great results", "investigate", "consider leveraging"
-- Use direct verbs: scale, fix, test, cut, pause, add
-- Match the language of the user — respond in Spanish if the question is in Spanish`;
-
+- Yes: use direct verbs — scale, fix, test, cut, pause, add
+- Match the language of the user (respond in Spanish if asked in Spanish)`;
 
   try{
     const res=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system:sys,messages:chatHistory})});
@@ -1294,63 +1247,23 @@ function renderPath(pathFunnel, pathEntry){
 }
 
 // FIX #3: Campaigns — keyEvents query fix and Meta UTM note
-function renderCampaigns(campaignsData, sourceRows){
+function renderCampaigns(campaignsData){
   const campEl = document.getElementById('camp-content');
   if(!campEl) return;
 
-  sourceRows = sourceRows || [];
-
-  // ── GOOGLE: named campaigns from Paid Search / Cross-network
   const google = campaignsData.filter(r=>
     (r.source||'').includes('cpc') || r.channel==='Paid Search' || r.channel==='Cross-network'
   );
-
-  // ── META PAID: fb/paid + ig/paid (named campaigns) + source rows for paid social
-  const metaPaidSources = ['fb / paid','ig / paid'];
-  const metaCampaigns = campaignsData.filter(r=>
-    metaPaidSources.includes(r.source) || r.channel==='Paid Social'
+  const meta = campaignsData.filter(r=>
+    (r.source||'').includes('fb / paid') || r.channel==='Paid Social'
   );
-  const metaSources = sourceRows.filter(r=>
-    metaPaidSources.includes(r.source) || r.channel==='Paid Social'
-  );
-  // Merge: use campaign rows if they exist, otherwise fall back to source rows
-  // Avoid double-counting: if a source already appears in campaign rows, skip source row
-  const metaCampSources = new Set(metaCampaigns.map(r=>r.source));
-  const metaSourceOnly = metaSources.filter(r=>!metaCampSources.has(r.source));
-  const meta = [...metaCampaigns, ...metaSourceOnly];
-
-  // ── META ORGANIC SOCIAL: m.facebook.com, l.facebook.com, instagram.com, etc.
-  const organicSocialSources = sourceRows.filter(r=>
-    r.channel==='Organic Social' ||
-    (r.source||'').includes('facebook.com') ||
-    (r.source||'').includes('instagram.com')
-  );
-
-  // ── EMAIL: mailchimp, ortto, MyMail, email medium — from both queries
-  const emailCampaigns = campaignsData.filter(r=>
+  const email = campaignsData.filter(r=>
     r.source&&(r.source.includes('email')||r.source.includes('mailchimp')||r.source.includes('ortto')||r.source.includes('campaign-archive'))
   );
-  const emailSources = sourceRows.filter(r=>
-    r.channel==='Email' ||
-    (r.source||'').includes('mailchimp') ||
-    (r.source||'').includes('ortto') ||
-    (r.source||'').toLowerCase().includes('email')
+  const refs = campaignsData.filter(r=>
+    (r.channel==='Referral'||r.channel==='Organic Social') &&
+    !(r.source||'').includes('vercel.app')
   );
-  const emailCampSources = new Set(emailCampaigns.map(r=>r.source));
-  const emailSourceOnly = emailSources.filter(r=>!emailCampSources.has(r.source));
-  const email = [...emailCampaigns, ...emailSourceOnly];
-
-  // ── REFERRALS: everything else not already categorised
-  const usedSources = new Set([
-    ...google.map(r=>r.source),
-    ...meta.map(r=>r.source),
-    ...organicSocialSources.map(r=>r.source),
-    ...email.map(r=>r.source),
-  ]);
-  const refs = [
-    ...campaignsData.filter(r=>r.channel==='Referral' && !usedSources.has(r.source) && !(r.source||'').includes('vercel.app')),
-    ...sourceRows.filter(r=>r.channel==='Referral' && !usedSources.has(r.source) && !(r.source||'').includes('vercel.app')),
-  ];
 
   // FIX #1: campTable now includes column headers
   function campTable(rows, cols, notes){
@@ -1377,12 +1290,7 @@ function renderCampaigns(campaignsData, sourceRows){
       const kev=parseFloat(r.keyEvents||0);
       const ker=parseFloat(r.ker||0);
       const rev=parseFloat(r.revenue||0);
-      // Source-only rows (_fromSource) show the source. Named campaign rows show campaign name.
-      const name = r._fromSource
-        ? (r.source||'Unknown')
-        : (r.campaign&&!['(direct)','(organic)','(referral)'].includes(r.campaign)
-            ? metaCampName(r.campaign)
-            : r.source);
+      const name=r.campaign&&!['(direct)','(organic)','(referral)'].includes(r.campaign)?metaCampName(r.campaign):r.source;
 
       const cells = cols.map(c=>{
         if(c==='sessions') return `<span style="text-align:right;padding:0 6px;font-weight:500;color:var(--text);font-size:13px">${fmt(s)}</span>`;
@@ -1420,22 +1328,21 @@ function renderCampaigns(campaignsData, sourceRows){
     return `<div style="font-size:11px;color:var(--text3);padding:8px 0 0;border-top:1px solid var(--border);margin-top:4px">${parts.join(' · ')}</div>`;
   }
 
-  // ── Notes ──
+  // FIX #5: Meta note about UTMs and campaign IDs
   const metaNote = meta.length > 0 && meta.some(r=>r.campaign&&/^\d{10,}$/.test(r.campaign))
-    ? '⚠️ Some campaigns showing as numeric IDs. Add UTM parameters in Meta Ads Manager: UTM Campaign = {{campaign.name}}.'
-    : meta.length > 0 && meta.every(r=>parseFloat(r.keyEvents||0)===0)
-    ? '⚠️ Zero conversions from paid Meta. Check that UTM parameters are set in ad links and that key events fire on the landing page.'
+    ? '⚠️ Campaign names showing as numeric IDs. Add UTM parameters in Meta Ads Manager: UTM Campaign = campaign name. Until then, conversions may not match.'
+    : meta.length > 0 && meta.every(r=>!r.keyEvents||parseFloat(r.keyEvents)===0)
+    ? '⚠️ Zero conversions from Meta. If running active campaigns, check that Meta UTMs match GA4 key event triggers — or that key events fire on the post-click landing page.'
     : null;
 
-  const emailNote = email.length > 0 && email.every(r=>parseFloat(r.keyEvents||0)===0)
-    ? '⚠️ Zero conversions from Email. Confirm UTM parameters are set in campaign links and key events are configured on the destination page.'
+  const emailNote = email.length > 0 && email.every(r=>!r.keyEvents||parseFloat(r.keyEvents)===0)
+    ? '⚠️ Zero conversions from Email. Confirm that UTM parameters are set in campaign links and that the destination page has key events configured.'
     : null;
 
   const sections = [
-    {title:'Google Ads', note:'Paid Search · Cross-network', rows:google, cols:['sessions','bar','eng','conv','convRate','rev'], color:'#4285f4', tableNote:null},
-    {title:'Meta · Paid', note:'fb / paid · ig / paid · Paid Social campaigns', rows:meta, cols:['sessions','bar','eng','conv','convRate'], color:'#1877f2', tableNote:metaNote},
-    {title:'Meta · Organic Social', note:'facebook.com · instagram.com · m.facebook.com · l.facebook.com', rows:organicSocialSources, cols:['sessions','bar','eng','conv'], color:'#4267B2', tableNote:null},
-    {title:'Email', note:'mailchimp · ortto · MyMail · newsletter campaigns', rows:email, cols:['sessions','bar','eng','conv'], color:'#0a7c59', tableNote:emailNote},
+    {title:'Google Ads', note:'sessions · engagement · conversions · revenue', rows:google, cols:['sessions','bar','eng','conv','convRate','rev'], color:'#4285f4', tableNote:null},
+    {title:'Meta Ads', note:'fb / paid · campaign performance', rows:meta, cols:['sessions','bar','eng','conv','convRate'], color:'#1877f2', tableNote:metaNote},
+    {title:'Email', note:'mailchimp · ortto · newsletter campaigns', rows:email, cols:['sessions','bar','eng','conv'], color:'#0a7c59', tableNote:emailNote},
     {title:'Referral sources', note:'sessions · engagement · conversions', rows:refs.slice(0,12), cols:['sessions','bar','eng','conv','rev'], color:'#7c3aed', tableNote:null},
   ].filter(s=>s.rows.length>0);
 
@@ -1470,22 +1377,11 @@ async function loadCampaigns(){
   if(loaded.campaigns) return;
   loaded.campaigns = true;
   const df=dateFilter();
-
-  // Query 1: named campaigns (Google Ads, Email with UTMs, etc.)
+  // FIX #3: keyEvents is a column in TrafficAcquisition — SUM it directly
   const campaignsQ = `SELECT sessionCampaignName as campaign, sessionSourceMedium as source, sessionDefaultChannelGroup as channel, SUM(sessions) as sessions, SUM(engagedSessions) as engaged, AVG(engagementRate) as engRate, SUM(keyEvents) as keyEvents, AVG(sessionKeyEventRate) as ker, AVG(userEngagementDurationPerSession) as avgDur, SUM(totalRevenue) as revenue FROM \`${P}.${D}.ga4_TrafficAcquisition_317130094\` WHERE ${df} AND sessionCampaignName IS NOT NULL AND sessionCampaignName NOT IN ('(not set)','(direct)','(organic)','(referral)') GROUP BY campaign, source, channel ORDER BY sessions DESC LIMIT 40`;
-
-  // Query 2: all Meta/Social/Email sources grouped by source — catches sessions without campaign names
-  // Covers: m.facebook.com, l.facebook.com, lm.facebook.com, facebook.com, instagram.com, fb/paid, ig/paid, mailchimp, ortto, MyMail
-  const sourceQ = `SELECT sessionSourceMedium as source, sessionDefaultChannelGroup as channel, SUM(sessions) as sessions, SUM(engagedSessions) as engaged, AVG(engagementRate) as engRate, SUM(keyEvents) as keyEvents, AVG(sessionKeyEventRate) as ker, AVG(userEngagementDurationPerSession) as avgDur, SUM(totalRevenue) as revenue FROM \`${P}.${D}.ga4_TrafficAcquisition_317130094\` WHERE ${df} AND ( sessionSourceMedium LIKE '%facebook%' OR sessionSourceMedium LIKE '%instagram%' OR sessionSourceMedium LIKE '%fb%' OR sessionSourceMedium LIKE '%ig/%' OR sessionSourceMedium LIKE '%mailchimp%' OR sessionSourceMedium LIKE '%ortto%' OR sessionSourceMedium LIKE '%email%' OR sessionDefaultChannelGroup IN ('Paid Social','Organic Social','Email') ) GROUP BY source, channel ORDER BY sessions DESC`;
-
-  const [campaignsData, sourceData] = await Promise.all([bq(campaignsQ), bq(sourceQ)]);
-
-  // Attach source rows (no campaign name) — mark them so renderCampaigns knows
-  const sourceRows = sourceData.map(r=>({...r, campaign: null, _fromSource: true}));
-
+  const campaignsData = await bq(campaignsQ);
   globalData.campaignsData = campaignsData;
-  globalData.sourceData = sourceRows;
-  renderCampaigns(campaignsData, sourceRows);
+  renderCampaigns(campaignsData);
 }
 
 async function loadPath(){

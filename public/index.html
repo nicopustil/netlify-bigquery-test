@@ -7,7 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#faf9f7;--bg2:#f2f0ec;--border:#e8e3db;--text:#1a1814;--text2:#6b6560;--text3:#a09890;--accent:#2d6a4f;--accent2:#1d3557;--warn:#c0392b;--gold:#b5860b}
+:root{--bg:#faf9f7;--bg2:#f2f0ec;--bg3:#e8e3db;--border:#e8e3db;--text:#1a1814;--text2:#6b6560;--text3:#a09890;--accent:#2d6a4f;--accent2:#1d3557;--warn:#c0392b;--gold:#b5860b}
 html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
 ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:var(--border)}
 @keyframes load{to{left:200%}}
@@ -66,6 +66,14 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 .two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
 .panel{background:white;border:0.5px solid var(--border);border-radius:10px;padding:16px 18px;margin-bottom:12px}
 .panel-title{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:12px;font-weight:500;display:flex;align-items:center;justify-content:space-between}
+
+/* TABLE HEADERS */
+.table-header{display:flex;align-items:center;gap:8px;padding:0 0 6px;border-bottom:1px solid var(--border);font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);margin-bottom:4px}
+.th-name{flex:1}
+.th-bar{width:80px;flex-shrink:0}
+.th-val{min-width:52px;text-align:right}
+.th-sub{min-width:40px;text-align:right}
+.th-delta{min-width:44px;text-align:right}
 
 /* ROWS */
 .data-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:0.5px solid var(--border);font-size:12px}
@@ -188,7 +196,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
   <button class="pBtn" id="cmp-year" onclick="setCompare('year',this)">Prev year</button>
   <button class="pBtn" id="cmp-none" onclick="setCompare('none',this)">None</button>
   <span class="last-updated" id="lastUpdated"></span>
-  <span style="font-size:10px;color:var(--border2);margin-left:8px">v2.5.0</span>
+  <span style="font-size:10px;color:var(--text3);margin-left:8px">v2.6.0</span>
 </div>
 
 <div class="tabs">
@@ -241,11 +249,29 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
     </div>
     <div class="two-col">
       <div class="panel">
-        <div class="panel-title">Top channels <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">sessions</span></div>
+        <div class="panel-title">Top channels
+          <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">sessions</span>
+        </div>
+        <!-- FIX #1: header row for top channels table -->
+        <div class="table-header">
+          <span class="th-name">Source / Medium</span>
+          <span class="th-bar"></span>
+          <span class="th-val">Sessions</span>
+          <span class="th-sub">Engaged</span>
+        </div>
         <div id="ov-channels"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
       </div>
       <div class="panel">
-        <div class="panel-title">Top landing pages <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">sessions</span></div>
+        <div class="panel-title">Top landing pages
+          <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">sessions</span>
+        </div>
+        <!-- FIX #1: header row for landing pages table -->
+        <div class="table-header">
+          <span class="th-name">Page</span>
+          <span class="th-bar"></span>
+          <span class="th-val">Sessions</span>
+          <span class="th-sub">Avg time</span>
+        </div>
         <div id="ov-pages"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
       </div>
     </div>
@@ -278,6 +304,13 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
     </div>
     <div class="panel">
       <div class="panel-title">All sources · sessions + engagement quality</div>
+      <!-- FIX #1: header for traffic detail -->
+      <div class="table-header">
+        <span class="th-name">Source / Medium</span>
+        <span style="width:80px;flex-shrink:0"></span>
+        <span class="th-val">Sessions</span>
+        <span class="th-sub">Eng rate</span>
+      </div>
       <div id="tr-detail"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
     </div>
     <div class="panel agency-section">
@@ -314,11 +347,28 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
     </div>
     <div class="two-col">
       <div class="panel">
-        <div class="panel-title">Engagement rate by channel</div>
+        <div class="panel-title">Engagement rate by channel
+          <!-- FIX #2: filter note -->
+          <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">30+ sessions only</span>
+        </div>
+        <!-- FIX #1: header for engagement by channel -->
+        <div class="table-header">
+          <span class="th-name">Source / Medium</span>
+          <span style="width:80px;flex-shrink:0"></span>
+          <span class="th-val">Eng rate</span>
+          <span class="th-sub">Sessions</span>
+        </div>
         <div id="eng-by-channel"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
       </div>
       <div class="panel">
         <div class="panel-title">Landing pages · quality view</div>
+        <!-- FIX #1: header for pages quality -->
+        <div class="table-header">
+          <span class="th-name">Page</span>
+          <span style="width:80px;flex-shrink:0"></span>
+          <span class="th-val">Sessions</span>
+          <span class="th-sub">Avg time</span>
+        </div>
         <div id="eng-pages"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
       </div>
     </div>
@@ -363,7 +413,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
       <div id="path-attribution"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
     </div>
     <div class="panel">
-      <div class="panel-title">Purchase journey · Humanitix funnel <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none" id="path-funnel-period">last ${activeDays||30} days · raw GA4 events</span></div>
+      <div class="panel-title">Purchase journey · Humanitix funnel <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none" id="path-funnel-period">last 30 days · raw GA4 events</span></div>
       <div id="path-funnel"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
     </div>
     <div class="panel">
@@ -411,8 +461,6 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 
 <script>
 // ── META CAMPAIGN ID → NAME MAPPING ──────────────────────────────────────────
-// Add mappings here when you confirm IDs from Meta Ads Manager
-// Format: 'CAMPAIGN_ID': 'Campaign Name'
 const META_CAMPAIGN_NAMES = {};
 function metaCampName(id){
   return META_CAMPAIGN_NAMES[id] || id;
@@ -423,7 +471,7 @@ const isAgency = (TOKENS[token]||'client') === 'agency';
 const P = 'leadership-victoria-494806';
 const D = 'ga4_leadership_victoria_us';
 
-// ── PROGRAM CONSTANTS (global: used by lazy renderers and AI chat) ─────────────
+// ── PROGRAM CONSTANTS ────────────────────────────────────────────────────────
 const PROGRAMS = ['Igniting Leadership','Womens Leadership','Leader Evolution'];
 const PROG_COLORS = {'Igniting Leadership':'#1d3557','Womens Leadership':'#2d6a4f','Leader Evolution':'#b5860b'};
 const PROG_LABELS = {'Igniting Leadership':'Igniting Leadership','Womens Leadership':"Women's Leadership",'Leader Evolution':'Leader Evolution'};
@@ -445,13 +493,12 @@ if(isAgency){
 
 // ── DATES ─────────────────────────────────────────────────────────────────────
 let activeDays = 30;
-let compareMode = 'prev'; // 'prev' | 'year' | 'none'
+let compareMode = 'prev';
 
 function setCompare(mode, btn){
   compareMode = mode;
   document.querySelectorAll('#cmp-prev,#cmp-year,#cmp-none').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  // Reset loaded state so tabs reload with new comparison
   Object.keys(loaded).forEach(k=>delete loaded[k]);
   loadAll();
 }
@@ -482,7 +529,7 @@ function dateFilter(){
 }
 
 function prevDateFilter(){
-  if(compareMode==='none') return `_DATA_DATE = DATE('1900-01-01')`; // returns no rows
+  if(compareMode==='none') return `_DATA_DATE = DATE('1900-01-01')`;
   const s=document.getElementById('startDate').value;
   const e=document.getElementById('endDate').value;
   if(compareMode==='year'){
@@ -490,7 +537,6 @@ function prevDateFilter(){
     const d=activeDays||30;
     return `_DATA_DATE >= DATE_SUB(CURRENT_DATE(), INTERVAL ${d+365} DAY) AND _DATA_DATE < DATE_SUB(CURRENT_DATE(), INTERVAL 365 DAY)`;
   }
-  // default: prev period
   if(s&&e){
     const days=Math.round((new Date(e)-new Date(s))/(1000*60*60*24));
     return `_DATA_DATE BETWEEN DATE_SUB(DATE('${s}'), INTERVAL ${days} DAY) AND DATE_SUB(DATE('${s}'), INTERVAL 1 DAY)`;
@@ -569,19 +615,6 @@ async function loadAll(){
   const df=dateFilter();
   const pf=prevDateFilter();
 
-  // ── CORRECTED QUERIES using confirmed column names ──
-  // TrafficAcquisition columns: sessionSourceMedium, sessions, engagedSessions,
-  //   engagementRate, eventsPerSession, sessionKeyEventRate, userEngagementDurationPerSession, _DATA_DATE
-  // LandingPage columns: landingPage, sessions, activeUsers, keyEvents,
-  //   sessionKeyEventRate, userEngagementDurationPerSession, _DATA_DATE
-  // Events columns: eventName, eventCount, totalUsers, totalRevenue, _DATA_DATE
-
-  const progFunnelQ = `SELECT CASE WHEN landingPage LIKE '%igniting-leadership%' THEN 'Igniting Leadership' WHEN landingPage LIKE '%womens-leadership%' OR landingPage LIKE '%women-s-leadership%' THEN 'Womens Leadership' WHEN landingPage LIKE '%leader-evolution%' OR landingPage LIKE '%leaderevolution%' THEN 'Leader Evolution' ELSE 'Other' END as program, CASE WHEN landingPage LIKE '%/tickets%' THEN 'tickets' WHEN landingPage LIKE '%/details%' THEN 'purchase' ELSE 'program_page' END as stage, SUM(sessions) as sessions, SUM(totalRevenue) as revenue FROM \`${P}.${D}.ga4_LandingPage_317130094\` WHERE ${df} GROUP BY program, stage ORDER BY program, stage`;
-  const progFunnelPrevQ = `SELECT CASE WHEN landingPage LIKE '%igniting-leadership%' THEN 'Igniting Leadership' WHEN landingPage LIKE '%womens-leadership%' OR landingPage LIKE '%women-s-leadership%' THEN 'Womens Leadership' WHEN landingPage LIKE '%leader-evolution%' OR landingPage LIKE '%leaderevolution%' THEN 'Leader Evolution' ELSE 'Other' END as program, CASE WHEN landingPage LIKE '%/tickets%' THEN 'tickets' WHEN landingPage LIKE '%/details%' THEN 'purchase' ELSE 'program_page' END as stage, SUM(sessions) as sessions, SUM(totalRevenue) as revenue FROM \`${P}.${D}.ga4_LandingPage_317130094\` WHERE ${pf} GROUP BY program, stage ORDER BY program, stage`;
-  const trendQ = `SELECT CASE WHEN landingPage LIKE '%igniting-leadership%' THEN 'Igniting Leadership' WHEN landingPage LIKE '%womens-leadership%' OR landingPage LIKE '%women-s-leadership%' THEN 'Womens Leadership' WHEN landingPage LIKE '%leader-evolution%' OR landingPage LIKE '%leaderevolution%' THEN 'Leader Evolution' END as program, DATE_TRUNC(_DATA_DATE, WEEK) as week, SUM(totalRevenue) as revenue, SUM(keyEvents) as purchases FROM \`${P}.${D}.ga4_LandingPage_317130094\` WHERE _DATA_DATE >= DATE_SUB(CURRENT_DATE(), INTERVAL 90 DAY) AND (landingPage LIKE '%igniting-leadership%' OR landingPage LIKE '%womens-leadership%' OR landingPage LIKE '%women-s-leadership%' OR landingPage LIKE '%leader-evolution%') GROUP BY program, week ORDER BY week ASC`;
-  const campaignsQ = `SELECT sessionCampaignName as campaign, sessionSourceMedium as source, sessionDefaultChannelGroup as channel, SUM(sessions) as sessions, SUM(engagedSessions) as engaged, AVG(engagementRate) as engRate, SUM(keyEvents) as keyEvents, AVG(sessionKeyEventRate) as ker, AVG(userEngagementDurationPerSession) as avgDur, SUM(totalRevenue) as revenue FROM \`${P}.${D}.ga4_TrafficAcquisition_317130094\` WHERE ${df} AND sessionCampaignName IS NOT NULL AND sessionCampaignName NOT IN ('(not set)','(direct)','(organic)','(referral)') GROUP BY campaign, source, channel ORDER BY sessions DESC LIMIT 40`;
-
-  // ── FAST QUERIES (load immediately) ──
   document.getElementById('loadMsg').textContent='Loading analytics...';
   const [traffic, prevTraffic, pages, prevPages, events, prevEvents] = await Promise.all([
     bq(`SELECT sessionSourceMedium as source, SUM(sessions) as sessions, SUM(engagedSessions) as engaged, AVG(engagementRate) as engRate, AVG(eventsPerSession) as eps, AVG(sessionKeyEventRate) as ker, AVG(userEngagementDurationPerSession) as avgDur FROM \`${P}.${D}.ga4_TrafficAcquisition_317130094\` WHERE ${df} GROUP BY source ORDER BY sessions DESC LIMIT 30`),
@@ -597,12 +630,10 @@ async function loadAll(){
   // ── TOTALS ──
   const totS=traffic.reduce((a,r)=>a+parseFloat(r.sessions||0),0);
   const totE=traffic.reduce((a,r)=>a+parseFloat(r.engaged||0),0);
-  // Weighted average engagement rate
   const avgEngRate=totS>0?traffic.reduce((a,r)=>a+parseFloat(r.engRate||0)*parseFloat(r.sessions||0),0)/totS:0;
   const avgDur=totS>0?traffic.reduce((a,r)=>a+parseFloat(r.avgDur||0)*parseFloat(r.sessions||0),0)/totS:0;
   const avgEps=totS>0?traffic.reduce((a,r)=>a+parseFloat(r.eps||0)*parseFloat(r.sessions||0),0)/totS:0;
   const avgKer=totS>0?traffic.reduce((a,r)=>a+parseFloat(r.ker||0)*parseFloat(r.sessions||0),0)/totS:0;
-  // Active users from landing pages (best proxy)
   const totU=pages.reduce((a,r)=>a+parseFloat(r.users||0),0);
 
   const prevS=parseFloat(prevTraffic[0]?.sessions||0);
@@ -611,7 +642,6 @@ async function loadAll(){
   const prevDur=parseFloat(prevTraffic[0]?.avgDur||0);
   const prevPS=parseFloat(prevPages[0]?.sessions||0);
 
-  // Key events
   const formKeys=['igniting_leadership_form_submission','womens_leadership_form_submission','leader_evolution_form_submission','form_submission_id','form_submit','generate_lead'];
   const downloadKeys=['file_download'];
   const intentKeys=['donate_now_clicks','calltracking','begin_checkout','add_payment_info','purchase'];
@@ -624,6 +654,8 @@ async function loadAll(){
   const prevActions=keyEvents.reduce((a,k)=>a+(prevEvMap[k]||0),0);
 
   // ── OVERVIEW ──
+  // FIX #4: Set ov-sessions (was missing!)
+  document.getElementById('ov-sessions').textContent=fmt(totS);
   const compareLabel = compareMode==='year'?' vs last year':compareMode==='none'?'':' vs prev period';
   document.getElementById('ov-sessions-sub').textContent = compareMode==='none'?'no comparison':compareLabel.trim();
   document.getElementById('ov-users').textContent=fmt(totU);
@@ -631,7 +663,7 @@ async function loadAll(){
   document.getElementById('ov-eng-rate').textContent=fmtPct(avgEngRate)+' engagement rate';
   document.getElementById('ov-actions').textContent=fmt(totActions);
   setDelta('ov-sessions-d',delta(totS,prevS));
-  setDelta('ov-users-d',delta(totU,prevPS)); // using prev page sessions as proxy
+  setDelta('ov-users-d',delta(totU,prevPS));
   setDelta('ov-engaged-d',delta(totE,prevE));
   setDelta('ov-actions-d',delta(totActions,prevActions));
 
@@ -664,7 +696,6 @@ async function loadAll(){
   document.getElementById('tr-paid').textContent=fmt(paidOther);
   document.getElementById('tr-paid-sub').textContent=paidOther>0?fmtPct(weightedEr([...groupedEngRate.paid,...groupedEngRate.other]))+' engagement':'—';
 
-  // Traffic detail table
   const trEl=document.getElementById('tr-detail');
   if(traffic.length){
     const maxS=Math.max(...traffic.map(x=>parseFloat(x.sessions||0)))||1;
@@ -684,14 +715,13 @@ async function loadAll(){
     }).join('');
   }
 
-  // Traffic quality signals (agency)
   if(isAgency){
     const signals=[];
     traffic.forEach(r=>{
       const er=parseFloat(r.engRate||0);
       const s=parseFloat(r.sessions||0);
-      if(s>100&&er<0.3) signals.push({type:'warn',title:`${r.source}: high traffic, low engagement`,body:`${fmt(s)} sessions but only ${fmtPct(er)} engagement rate. Visitors may not find what they're looking for.`,action:'→ Review landing page experience for this traffic source'});
-      if(s<50&&er>0.7) signals.push({type:'good',title:`${r.source}: small but highly engaged`,body:`Only ${fmt(s)} sessions but ${fmtPct(er)} engagement. High-quality niche traffic worth investing in.`,action:'→ Consider scaling this channel'});
+      if(s>100&&er<0.3) signals.push({type:'warn',title:`${r.source}: high traffic, low engagement`,body:`${fmt(s)} sessions but only ${fmtPct(er)} engagement rate.`,action:'→ Review landing page experience for this traffic source'});
+      if(s<50&&er>0.7) signals.push({type:'good',title:`${r.source}: small but highly engaged`,body:`Only ${fmt(s)} sessions but ${fmtPct(er)} engagement.`,action:'→ Consider scaling this channel'});
     });
     const sigEl=document.getElementById('tr-signals');
     sigEl.innerHTML=signals.slice(0,4).map(s=>`<div class="insight ${s.type}"><div class="insight-title">${s.title}</div><div class="insight-body">${s.body}</div><div class="insight-action">${s.action}</div></div>`).join('')||'<div class="no-data">No significant signals detected for this period</div>';
@@ -705,20 +735,24 @@ async function loadAll(){
   setDelta('eng-rate-d',delta(avgEngRate,prevEngRate));
   setDelta('eng-dur-d',delta(avgDur,prevDur));
 
-  // Engagement by channel
+  // FIX #2: Filter out channels with < 30 sessions before rendering engagement rate
   const engChEl=document.getElementById('eng-by-channel');
-  const sortedByEng=[...traffic].sort((a,b)=>parseFloat(b.engRate||0)-parseFloat(a.engRate||0));
-  engChEl.innerHTML=sortedByEng.slice(0,8).map(r=>{
-    const er=parseFloat(r.engRate||0);
-    return `<div class="data-row">
-      <span class="row-name">${r.source}</span>
-      <div class="bar-wrap"><div class="bar" style="width:${(er*100).toFixed(0)}%;background:${er>=0.6?'#2d6a4f':er>=0.35?'#b5860b':'#c0392b'}"></div></div>
-      <span class="row-val">${fmtPct(er)}</span>
-      <span class="row-sub">${fmt(r.sessions)} sess</span>
-    </div>`;
-  }).join('');
+  const filteredForEng=traffic.filter(r=>parseFloat(r.sessions||0)>=30);
+  const sortedByEng=[...filteredForEng].sort((a,b)=>parseFloat(b.engRate||0)-parseFloat(a.engRate||0));
+  if(sortedByEng.length===0){
+    engChEl.innerHTML='<div class="no-data">No channels with 30+ sessions this period</div>';
+  } else {
+    engChEl.innerHTML=sortedByEng.slice(0,8).map(r=>{
+      const er=parseFloat(r.engRate||0);
+      return `<div class="data-row">
+        <span class="row-name">${r.source}</span>
+        <div class="bar-wrap"><div class="bar" style="width:${(er*100).toFixed(0)}%;background:${er>=0.6?'#2d6a4f':er>=0.35?'#b5860b':'#c0392b'}"></div></div>
+        <span class="row-val">${fmtPct(er)}</span>
+        <span class="row-sub">${fmt(r.sessions)} sess</span>
+      </div>`;
+    }).join('');
+  }
 
-  // Pages engagement
   const engPgEl=document.getElementById('eng-pages');
   if(pages.length){
     engPgEl.innerHTML=pages.slice(0,10).map(p=>{
@@ -731,37 +765,25 @@ async function loadAll(){
     }).join('');
   }
 
-  // ── PROGRAMS ──
+  // ── PROGRAMS (events section) ──
   const groups=[
-    {
-      id:'forms', label:'Form Submissions', color:'#1d3557', dot:'#1d3557',
-      items:[
-        {name:'Igniting Leadership',key:'igniting_leadership_form_submission'},
-        {name:'Women\'s Leadership',key:'womens_leadership_form_submission'},
-        {name:'Leader Evolution',key:'leader_evolution_form_submission'},
-        {name:'General form',key:'form_submission_id'},
-        {name:'Generate lead',key:'generate_lead'},
-      ]
-    },
-    {
-      id:'downloads', label:'File Downloads', color:'#2d6a4f', dot:'#2d6a4f',
-      items:[{name:'All file downloads',key:'file_download'}]
-    },
-    {
-      id:'intent', label:'Intent & Enquiry', color:'#b5860b', dot:'#b5860b',
-      items:[
-        {name:'Donate now clicks',key:'donate_now_clicks'},
-        {name:'Call tracking',key:'calltracking'},
-      ]
-    },
-    {
-      id:'checkout', label:'High Intent / Checkout', color:'#c0392b', dot:'#c0392b',
-      items:[
-        {name:'Begin checkout',key:'begin_checkout'},
-        {name:'Add payment info',key:'add_payment_info'},
-        {name:'Purchase',key:'purchase'},
-      ]
-    },
+    {id:'forms',label:'Form Submissions',color:'#1d3557',dot:'#1d3557',items:[
+      {name:'Igniting Leadership',key:'igniting_leadership_form_submission'},
+      {name:"Women's Leadership",key:'womens_leadership_form_submission'},
+      {name:'Leader Evolution',key:'leader_evolution_form_submission'},
+      {name:'General form',key:'form_submission_id'},
+      {name:'Generate lead',key:'generate_lead'},
+    ]},
+    {id:'downloads',label:'File Downloads',color:'#2d6a4f',dot:'#2d6a4f',items:[{name:'All file downloads',key:'file_download'}]},
+    {id:'intent',label:'Intent & Enquiry',color:'#b5860b',dot:'#b5860b',items:[
+      {name:'Donate now clicks',key:'donate_now_clicks'},
+      {name:'Call tracking',key:'calltracking'},
+    ]},
+    {id:'checkout',label:'High Intent / Checkout',color:'#c0392b',dot:'#c0392b',items:[
+      {name:'Begin checkout',key:'begin_checkout'},
+      {name:'Add payment info',key:'add_payment_info'},
+      {name:'Purchase',key:'purchase'},
+    ]},
   ];
 
   const progEl=document.getElementById('prog-content');
@@ -806,8 +828,6 @@ async function loadAll(){
     const W = canvas.offsetWidth, H = height;
     const padL=36, padR=12, padT=12, padB=22;
     const chartW=W-padL-padR, chartH=H-padT-padB;
-
-    // Grid
     if(showGrid){
       ctx.strokeStyle='#f0ede8'; ctx.lineWidth=1;
       [0,.25,.5,.75,1].forEach(f=>{
@@ -817,22 +837,17 @@ async function loadAll(){
         ctx.fillText('$'+(maxVal*f/1000).toFixed(0)+'K', 2, y+3);
       });
     }
-
-    // X labels — show every 2 weeks
     ctx.fillStyle='#a09890'; ctx.font='9px DM Sans'; ctx.textAlign='center';
     weeks.forEach((w,i)=>{
       if(i%2===0){
         const x=padL+i/(weeks.length-1||1)*chartW;
-        const d=new Date(w); 
+        const d=new Date(w);
         ctx.fillText(`${d.getDate()}/${d.getMonth()+1}`, x, H-4);
       }
     });
-
-    // Lines
     const COLORS={'Igniting Leadership':'#1d3557','Womens Leadership':'#2d6a4f','Leader Evolution':'#b5860b'};
     series.forEach(({name, values})=>{
       const color=COLORS[name]||'#888';
-      // Area fill
       ctx.beginPath();
       values.forEach((v,i)=>{
         const x=padL+i/(weeks.length-1||1)*chartW;
@@ -844,8 +859,6 @@ async function loadAll(){
       ctx.closePath();
       ctx.fillStyle=color+'18';
       ctx.fill();
-
-      // Line
       ctx.beginPath();
       ctx.strokeStyle=color; ctx.lineWidth=2; ctx.lineJoin='round';
       values.forEach((v,i)=>{
@@ -854,8 +867,6 @@ async function loadAll(){
         i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
       });
       ctx.stroke();
-
-      // Dots on non-zero values
       values.forEach((v,i)=>{
         if(v>0){
           const x=padL+i/(weeks.length-1||1)*chartW;
@@ -867,7 +878,7 @@ async function loadAll(){
     });
   }
 
-  // ── WHAT'S HAPPENING (Claude-generated) ──
+  // ── WHAT'S HAPPENING (Claude) ──────────────────────────────────────────────
   const stratEl=document.getElementById('strategy-content');
   if(stratEl){
     const totRevenue2=events.reduce((a,e)=>a+parseFloat(e.revenue||0),0);
@@ -879,7 +890,6 @@ async function loadAll(){
     const dE=delta(totE,prevE);
     const badPages2=pages.filter(p=>parseFloat(p.sessions||0)>100&&parseFloat(p.ker||0)<0.01);
 
-    // Show loading state
     stratEl.innerHTML=`<div style="background:white;border:1px solid var(--border);border-radius:12px;padding:24px;text-align:center;color:var(--text3)"><span class="spinner"></span> <span style="font-size:13px;margin-left:8px">Generating insights...</span></div>`;
 
     const dataContext = `
@@ -898,18 +908,19 @@ CONVERSIONS:
 - Revenue: $${(totRevenue2/1000).toFixed(1)}K (via Humanitix cross-domain tracking)
 - Form submissions: ${fmt(totForms2)} (${totS>0?(totForms2/totS*100).toFixed(1):0}% conversion rate)
 - File downloads: ${fmt(totDownloads2)}
-- Key actions total: ${fmt(totActions)} (${dS?delta(totActions,prevActions)?.str+' vs prev':''}  )
+- Key actions total: ${fmt(totActions)}${dS?' ('+delta(totActions,prevActions)?.str+' vs prev)':''}
 
 TOP PAGES:
 ${pages.slice(0,6).map(p=>`- ${p.page}: ${fmt(p.sessions)} sessions, ${fmtDur(p.avgDur)} avg time`).join('\n')}
 
 PROBLEM AREAS:
-${badPages2.length>0?badPages2.slice(0,3).map(p=>`- ${p.page}: ${fmt(p.sessions)} sessions but almost no conversions`).join('\n'):'- No major problem pages detected'}
+${badPages2.length>0?badPages2.slice(0,3).map(p=>`- ${p.page}: ${fmt(p.sessions)} sessions, very few conversions`).join('\n'):'- No major problem pages detected'}
 
-PROGRAMS (Humanitix revenue):
+PROGRAMS:
 - Igniting Leadership, Women's Leadership, Leader Evolution are the 3 main programs
 - Tickets purchased via events.humanitix.com with GA4 cross-domain tracking`;
 
+    // FIX #6: Stricter What's Happening prompt
     try {
       const res = await fetch('/api/claude', {
         method: 'POST',
@@ -917,35 +928,34 @@ PROGRAMS (Humanitix revenue):
         body: JSON.stringify({
           system: `You are a marketing analyst writing a performance summary for a non-technical decision maker at Leadership Victoria, an Australian not-for-profit running leadership programs.
 
-OUTPUT FORMAT — return ONLY this JSON, no markdown:
+OUTPUT FORMAT — return ONLY this JSON, no markdown, no backticks, no explanation:
 {
-  "story": "2 sentences max. One data observation + one clear implication. Under 35 words. No jargon.",
+  "story": "1-2 sentences. State what happened with real numbers. No jargon. Under 35 words.",
   "signals": [
     {
       "type": "good|warn|critical|info",
       "emoji": "single emoji",
       "title": "4-5 plain words",
-      "what": "1 sentence — what happened, with numbers",
-      "hypothesis": "1 sentence — most likely reason, no technical terms. If unsure, say 'this may indicate' not 'this means'",
-      "action": "1-2 sentences — specific next step. Name actual pages or channels. No technical steps."
+      "what": "1 sentence — what happened, with numbers directly from the data",
+      "hypothesis": "1 sentence — most likely reason. If you have a direct number that explains it, state that number. If you do not have corroborating data, write: We need more data to confirm why.",
+      "action": "1-2 sentences — specific next step. Name actual pages, channels, or programs. No technical steps."
     }
   ]
 }
 
-STRICT RULES:
-- Max 4 signals
-- If data is zero or missing: say exactly that — never invent a reason why
-- If you have the number, state it directly — no "may indicate" when the data is right there
-- Hypotheses require 2+ correlated data points. If only one signal exists, say "we need more data to confirm why"
-- Never suggest something failed or was reduced if you simply have no data — absence of data ≠ problem
-- Direct traffic includes many possible sources — never label it as one thing
-- No technical terms: no GA4, UTM, cross-domain, server-side, tracking, tagging
-- No invented numbers or estimates
-- No dramatic language: no collapse, crisis, plummeting, massive
-- No generic praise: no strong performance, great results
-- Include at least 1 signal about where performance is weak or an opportunity is being missed
-- /contact-us, /our-people, /about are not program pages — do not expect them to convert
-- Each signal = one business decision`,
+STRICT RULES — violating these means the output is wrong:
+- Max 4 signals, min 2
+- DIRECT DATA RULE: If the data contains the number, state it directly. Never say "may indicate" when you have the actual figure.
+- HYPOTHESIS RULE: You may only offer a causal explanation if 2+ correlated data points support it. If only one signal, write "We need more data to confirm why."
+- ZERO DATA RULE: If a metric is 0 or missing, say exactly that. Never invent a reason why something is absent.
+- ABSENCE RULE: Absence of data ≠ failure. Do not say something "declined" or "dropped" if you simply have no data for it.
+- DIRECT TRAFFIC: Never label direct traffic as one thing. It includes bookmarks, apps, dark social, and more.
+- NON-CONVERTING PAGES: /contact-us, /our-people, /about, /team, /news are informational. Never flag them for low conversions.
+- NO JARGON: No GA4, UTM, cross-domain, server-side, tracking, tagging, attribution model
+- NO INVENTED NUMBERS: Only use numbers that appear in the data above
+- NO DRAMA: No "collapse", "crisis", "plummeting", "massive drop"
+- NO GENERIC PRAISE: No "strong performance", "great results", "excellent engagement"
+- BALANCE: At least 1 signal must identify a weakness or missed opportunity`,
           messages: [{role:'user', content: dataContext}]
         })
       });
@@ -977,7 +987,7 @@ STRICT RULES:
           <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:8px;font-weight:500">Period summary</div>
           <div style="font-size:14px;color:var(--text2);line-height:1.7;font-style:italic">"${fmt(totS)} sessions with ${fmtPct(avgEngRate)} engagement. ${totRevenue2>0?`$${(totRevenue2/1000).toFixed(0)}K revenue tracked.`:''} ${totForms2>0?`${fmt(totForms2)} form submissions.`:''} ${dS2&&dS2.val<-10?`Traffic down ${Math.abs(dS2.val).toFixed(0)}% vs previous period.`:dS2&&dS2.val>10?`Traffic up ${dS2.val.toFixed(0)}% vs previous period.`:'Traffic stable.'}"</div>
         </div>
-        <div style="padding:10px;background:var(--red-bg);border-radius:8px;font-size:12px;color:var(--red)">AI error: ${e.message}. Check ANTHROPIC_API_KEY in Vercel → Settings → Environment Variables.</div>`;
+        <div style="padding:10px;background:#fdecea;border-radius:8px;font-size:12px;color:#b02a1e">AI error: ${e.message}. Check ANTHROPIC_API_KEY in Vercel → Settings → Environment Variables.</div>`;
     }
   }
 
@@ -986,20 +996,15 @@ STRICT RULES:
     const insights=[];
     const totForms=formKeys.reduce((a,k)=>a+(evMap[k]?.count||0),0);
     const totDownloads=evMap['file_download']?.count||0;
-    const totPurchases=evMap['purchase']?.count||0;
     const totRevenue=events.reduce((a,e)=>a+parseFloat(e.revenue||0),0);
 
     if(totS>0){
       const organicSess=grouped.organic;
-      insights.push({type:'info',title:`Organic drives ${fmtPct(totS>0?organicSess/totS:0)} of sessions`,body:`${fmt(organicSess)} sessions from organic search. Typically highest-quality traffic source.`,action:'→ Continue SEO investment — high quality traffic source'});
+      insights.push({type:'info',title:`Organic drives ${fmtPct(totS>0?organicSess/totS:0)} of sessions`,body:`${fmt(organicSess)} sessions from organic search. Typically highest-quality traffic source.`,action:'→ Continue SEO investment'});
     }
-
     if(totForms>0&&totS>0) insights.push({type:totForms/totS>0.01?'good':'warn',title:`Form submissions: ${fmt(totForms)} this period`,body:`${fmtPct(totForms/totS)} of sessions result in a form submission.`,action:'→ Feature top programs prominently on high-traffic pages'});
-
     if(totDownloads>0) insights.push({type:'info',title:`${fmt(totDownloads)} file downloads`,body:`Content is being consumed. Downloads indicate genuine interest in resources.`,action:'→ Add email capture to download flow to build the database'});
-
     if(totRevenue>0) insights.push({type:'good',title:`$${totRevenue.toFixed(2)} revenue recorded`,body:`Direct revenue tracked in GA4. Review which channels drive highest-value transactions.`,action:'→ Connect Meta and LinkedIn for full paid attribution'});
-
     const badPages=pages.filter(p=>parseFloat(p.sessions||0)>50&&parseFloat(p.ker||0)<0.02);
     if(badPages.length) insights.push({type:'critical',title:`${badPages.length} high-traffic page${badPages.length>1?'s':''} with low key event rate`,body:`${badPages.slice(0,3).map(p=>p.page).join(', ')} — getting traffic but not converting.`,action:'→ Review content and CTA placement on these pages'});
 
@@ -1025,18 +1030,15 @@ async function sendChat(){
   const lDiv=document.createElement('div'); lDiv.className='msg ai'; lDiv.innerHTML='<span class="spinner"></span>'; msgs.appendChild(lDiv);
   msgs.scrollTop=msgs.scrollHeight;
 
-  // Add to history
   chatHistory.push({role:'user',content:text});
 
   const d=globalData;
   const totS2=d.traffic?.reduce((a,r)=>a+parseFloat(r.sessions||0),0)||0;
-  const totE2=d.traffic?.reduce((a,r)=>a+parseFloat(r.engaged||0),0)||0;
   const avgEr2=totS2>0?d.traffic?.reduce((a,r)=>a+parseFloat(r.engRate||0)*parseFloat(r.sessions||0),0)/totS2:0;
   const evMap3={};
   d.events?.forEach(e=>{evMap3[e.event]={count:parseFloat(e.count||0),revenue:parseFloat(e.revenue||0)};});
   const totalRev3=d.events?.reduce((a,e)=>a+parseFloat(e.revenue||0),0)||0;
 
-  // Program revenue
   const pm=buildProgMap?.(d.progFunnelData||[])||{};
   const progRevSummary=PROGRAMS.map(p=>{
     const cur=pm[p]||{program_page:{sessions:0,revenue:0},tickets:{sessions:0,revenue:0},purchase:{revenue:0}};
@@ -1046,12 +1048,12 @@ async function sendChat(){
     return `${PROG_LABELS[p]}: ${fmt(sess)} page views, ${fmt(tick)} reached tickets, $${(rev/1000).toFixed(0)}K revenue`;
   }).join(' | ');
 
-  // Campaigns summary
   const campSummary=d.campaignsData?.slice(0,8).map(r=>`${r.campaign||r.source}: ${fmt(r.sessions)} sessions, ${fmtPct(parseFloat(r.engRate||0))} eng${parseFloat(r.revenue||0)>0?', $'+(parseFloat(r.revenue)/1000).toFixed(1)+'K':''}`).join(' | ')||'No campaign data';
 
+  // FIX #7: AI Strategist — max 120 words, no markdown, plain language
   const sys=`You are an analytics strategist for Leadership Victoria, an Australian not-for-profit leadership development organisation. You have access to real GA4 + BigQuery data.
 
-ORGANISATION: Leadership Victoria runs leadership programs — Igniting Leadership, Women's Leadership, Leader Evolution. Ticketing via Humanitix (cross-domain GTM tracking).
+ORGANISATION: Leadership Victoria runs leadership programs — Igniting Leadership, Women's Leadership, Leader Evolution. Tickets via Humanitix.
 
 CURRENT DATA:
 - Sessions: ${fmt(totS2)} | Engagement: ${fmtPct(avgEr2)} | Revenue: $${(totalRev3/1000).toFixed(0)}K
@@ -1061,35 +1063,27 @@ CURRENT DATA:
 - Campaigns: ${campSummary}
 - Top pages: ${d.pages?.slice(0,4).map(p=>`${p.page}: ${fmt(p.sessions)} sess`).join(' | ')||'—'}
 
-RULES — always follow these:
-- Max 5 bullets. No long paragraphs.
-- Structure each point: answer → evidence (data) → action
-- Never use: "strong performance", "good results", "investigate", "consider", "great"
-- Be direct: use scale / fix / test / cut / pause
-- Always pair metrics: volume + quality + outcome
-- Never mention keywords for LinkedIn — it is audience and creative driven
-- Only reference numbers from the data above. Never invent figures.
-- If data is zero or missing: say exactly that — never invent a reason why
-- If you have the number, state it directly — no "may indicate" when the data is right there
-- Hypotheses require 2+ correlated data points — if only one signal, say "we need more data to confirm why"
-- Never suggest something failed or was cut if you simply have no data for it
-- Direct traffic includes many possible sources — never label it as one thing
-- /contact-us, /our-people, /about are not program pages — do not expect them to convert
-- If asked "what's working": only include things that drive outcomes, not just engagement
-- If asked "what should we do": give 1 quick win, 1 test, 1 strategic move
-- Match the language of the user (English or Spanish)
-- Write for a non-technical client — no GA4, UTM, cross-domain, server-side, SPA or any technical terms
-- No markdown formatting (no ##, no **, no bullet points with dashes)
-- Keep responses under 120 words total
-- Use plain conversational language
-- Never make strong causal claims without 2+ supporting data points`;
+RESPONSE RULES — must follow all of these:
+- Maximum 120 words. Count carefully. Stop when you reach 120.
+- No markdown: no ##, no **, no -, no numbered lists
+- Write in short plain sentences separated by line breaks if needed
+- Structure each point: observation (with number) → what to do next
+- Only use numbers from the data above. Never invent figures.
+- If data is 0 or missing: say that. Never invent a reason.
+- Only suggest a cause if 2+ data points support it. If not, say "unclear — need more data"
+- Direct traffic = multiple possible sources, never one thing
+- /contact-us, /our-people, /about = informational pages, not expected to convert
+- No technical terms: no GA4, UTM, cross-domain, server-side, tracking
+- No: "strong performance", "great results", "investigate", "consider leveraging"
+- Yes: use direct verbs — scale, fix, test, cut, pause, add
+- Match the language of the user (respond in Spanish if asked in Spanish)`;
 
   try{
     const res=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system:sys,messages:chatHistory})});
     const data=await res.json();
     const raw=data.content?.find(b=>b.type==='text')?.text||'Could not get response.';
 
-    // Clean markdown and format nicely
+    // Clean any markdown that slipped through
     const clean = raw
       .replace(/#{1,3}\s*/g,'')
       .replace(/\*\*([^*]+)\*\*/g,'$1')
@@ -1097,7 +1091,6 @@ RULES — always follow these:
       .replace(/^\s*[-•]\s*/gm,'')
       .trim();
 
-    // Split into paragraphs and render as clean blocks
     const paras = clean.split(/\n\n+/).filter(p=>p.trim()).slice(0,4);
     lDiv.style.cssText='font-size:13px;line-height:1.7;color:var(--text2)';
     lDiv.innerHTML = paras.map((p,i)=>
@@ -1112,22 +1105,85 @@ RULES — always follow these:
   msgs.scrollTop=msgs.scrollHeight;
 }
 
-// ── RENDER FUNCTIONS (called by lazy loaders) ─────────────────────────────────
-
+// ── RENDER PROGRAMS ────────────────────────────────────────────────────────────
 function renderPrograms(progFunnelData, progFunnelPrev, trendData){
   const progMap=buildProgMap(progFunnelData);
   const progPrevMap=buildProgMap(progFunnelPrev||[]);
 
-  // Trend charts
   const allWeeks=[...new Set(trendData.map(r=>r.week))].sort();
   const PROG_NAMES=['Igniting Leadership','Womens Leadership','Leader Evolution'];
   const revSeries=PROG_NAMES.map(name=>({name,values:allWeeks.map(w=>{const row=trendData.find(r=>r.program===name&&r.week===w);return parseFloat(row?.revenue||0);})}));
   const purchSeries=PROG_NAMES.map(name=>({name,values:allWeeks.map(w=>{const row=trendData.find(r=>r.program===name&&r.week===w);return parseFloat(row?.purchases||0);})}));
   const maxRev=Math.max(...revSeries.flatMap(s=>s.values))||1;
   const maxPurch=Math.max(...purchSeries.flatMap(s=>s.values))||1;
-  setTimeout(()=>{drawTrendChart('prog-trend-chart',allWeeks,revSeries,maxRev,180,true);drawTrendChart('prog-purchases-chart',allWeeks,purchSeries,maxPurch,130,false);},100);
 
-  // Program funnel cards
+  function drawTrendChart(canvasId, weeks, series, maxVal, height, showGrid){
+    const canvas = document.getElementById(canvasId);
+    if(!canvas||!weeks.length) return;
+    const dpr = window.devicePixelRatio||1;
+    canvas.width = canvas.offsetWidth * dpr;
+    canvas.height = height * dpr;
+    canvas.style.height = height+'px';
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    const W = canvas.offsetWidth, H = height;
+    const padL=36, padR=12, padT=12, padB=22;
+    const chartW=W-padL-padR, chartH=H-padT-padB;
+    if(showGrid){
+      ctx.strokeStyle='#f0ede8'; ctx.lineWidth=1;
+      [0,.25,.5,.75,1].forEach(f=>{
+        const y=padT+chartH*(1-f);
+        ctx.beginPath(); ctx.moveTo(padL,y); ctx.lineTo(W-padR,y); ctx.stroke();
+        ctx.fillStyle='#a09890'; ctx.font='9px DM Sans';
+        ctx.fillText('$'+(maxVal*f/1000).toFixed(0)+'K', 2, y+3);
+      });
+    }
+    ctx.fillStyle='#a09890'; ctx.font='9px DM Sans'; ctx.textAlign='center';
+    weeks.forEach((w,i)=>{
+      if(i%2===0){
+        const x=padL+i/(weeks.length-1||1)*chartW;
+        const d=new Date(w);
+        ctx.fillText(`${d.getDate()}/${d.getMonth()+1}`, x, H-4);
+      }
+    });
+    const COLORS={'Igniting Leadership':'#1d3557','Womens Leadership':'#2d6a4f','Leader Evolution':'#b5860b'};
+    series.forEach(({name, values})=>{
+      const color=COLORS[name]||'#888';
+      ctx.beginPath();
+      values.forEach((v,i)=>{
+        const x=padL+i/(weeks.length-1||1)*chartW;
+        const y=padT+chartH*(1-(maxVal>0?v/maxVal:0));
+        i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+      });
+      ctx.lineTo(padL+(values.length-1)/(weeks.length-1||1)*chartW, padT+chartH);
+      ctx.lineTo(padL, padT+chartH);
+      ctx.closePath();
+      ctx.fillStyle=color+'18';
+      ctx.fill();
+      ctx.beginPath();
+      ctx.strokeStyle=color; ctx.lineWidth=2; ctx.lineJoin='round';
+      values.forEach((v,i)=>{
+        const x=padL+i/(weeks.length-1||1)*chartW;
+        const y=padT+chartH*(1-(maxVal>0?v/maxVal:0));
+        i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+      });
+      ctx.stroke();
+      values.forEach((v,i)=>{
+        if(v>0){
+          const x=padL+i/(weeks.length-1||1)*chartW;
+          const y=padT+chartH*(1-(maxVal>0?v/maxVal:0));
+          ctx.beginPath(); ctx.arc(x,y,3,0,Math.PI*2);
+          ctx.fillStyle=color; ctx.fill();
+        }
+      });
+    });
+  }
+
+  setTimeout(()=>{
+    drawTrendChart('prog-trend-chart',allWeeks,revSeries,maxRev,180,true);
+    drawTrendChart('prog-purchases-chart',allWeeks,purchSeries,maxPurch,130,false);
+  },100);
+
   const progFunnelEl=document.getElementById('prog-funnel');
   if(progFunnelEl){
     let html='';
@@ -1142,33 +1198,23 @@ function renderPrograms(progFunnelData, progFunnelPrev, trendData){
       const color=PROG_COLORS[prog];
       const revDelta=prevRev>0?((totRev-prevRev)/prevRev*100):null;
       const sessDelta=prevPageS>0?((pageS-prevPageS)/prevPageS*100):null;
-      const revDeltaStr=revDelta!==null?`<span style="font-size:11px;font-weight:500;color:${revDelta>=0?'var(--accent)':'var(--warn)'}">${revDelta>=0?'↑':'↓'}${Math.abs(revDelta).toFixed(0)}% vs prev</span>`:'';
-      const sessDeltaStr=sessDelta!==null?`<span style="font-size:11px;color:${sessDelta>=0?'var(--accent)':'var(--warn)'}">${sessDelta>=0?'↑':'↓'}${Math.abs(sessDelta).toFixed(0)}%</span>`:'';
+      const revDeltaStr=revDelta!==null?`<span style="font-size:11px;font-weight:500;color:${revDelta>=0?'var(--accent)':'var(--warn)'}"> ${revDelta>=0?'↑':'↓'}${Math.abs(revDelta).toFixed(0)}%</span>`:'';
+      const sessDeltaStr=sessDelta!==null?`<span style="font-size:11px;color:${sessDelta>=0?'var(--accent)':'var(--warn)'}"> ${sessDelta>=0?'↑':'↓'}${Math.abs(sessDelta).toFixed(0)}%</span>`:'';
       html+=`<div style="background:white;border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin-bottom:10px;border-top:3px solid ${color}">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
           <div style="font-size:13px;font-weight:500;color:var(--text)">${PROG_LABELS[prog]}</div>
-          <div style="text-align:right"><div style="font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--text)">$${(totRev/1000).toFixed(0)}K</div><div style="font-size:10px;color:var(--text3)">revenue ${revDeltaStr}</div></div>
+          <div style="text-align:right"><div style="font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--text)">$${(totRev/1000).toFixed(0)}K</div><div style="font-size:10px;color:var(--text3)">revenue${revDeltaStr}</div></div>
         </div>
         <div style="display:flex;align-items:center;gap:6px">
-          <div style="flex:3"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">Program page</div><div style="height:32px;background:${color};border-radius:6px;display:flex;align-items:center;padding:0 10px;opacity:.85"><span style="font-size:13px;font-weight:500;color:white">${fmt(pageS)}</span><span style="font-size:10px;color:rgba(255,255,255,.7);margin-left:5px">visits ${sessDeltaStr}</span></div></div>
-          <div style="flex:0 0 auto;text-align:center;padding:0 4px"><div style="font-size:10px;color:var(--text3)">${ticketRate.toFixed(1)}%</div><div style="font-size:14px;color:var(--border2)">→</div></div>
+          <div style="flex:3"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">Program page</div><div style="height:32px;background:${color};border-radius:6px;display:flex;align-items:center;padding:0 10px;opacity:.85"><span style="font-size:13px;font-weight:500;color:white">${fmt(pageS)}</span><span style="font-size:10px;color:rgba(255,255,255,.7);margin-left:5px">visits${sessDeltaStr}</span></div></div>
+          <div style="flex:0 0 auto;text-align:center;padding:0 4px"><div style="font-size:10px;color:var(--text3)">${ticketRate.toFixed(1)}%</div><div style="font-size:14px;color:var(--text3)">→</div></div>
           <div style="flex:${Math.max(0.3,ticketRate/100*2.5)}"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">Tickets page</div><div style="height:32px;background:${color};border-radius:6px;display:flex;align-items:center;padding:0 10px;opacity:.6"><span style="font-size:13px;font-weight:500;color:white">${fmt(tickS)}</span></div></div>
-          <div style="flex:0 0 auto;padding:0 4px;margin-top:14px"><div style="font-size:14px;color:var(--border2)">→</div></div>
+          <div style="flex:0 0 auto;padding:0 4px;margin-top:14px"><div style="font-size:14px;color:var(--text3)">→</div></div>
           <div style="flex:1;text-align:center"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">Humanitix checkout</div><div style="height:32px;background:${color};border-radius:6px;display:flex;align-items:center;justify-content:center;opacity:.35"><span style="font-size:11px;font-weight:500;color:white">$${(totRev/1000).toFixed(0)}K</span></div></div>
         </div>
-        ${tickS>0&&pageS>0?`<div style="margin-top:10px;font-size:11px;color:var(--text3);font-style:italic">${fmt(pageS-tickS)} visitors (${(100-ticketRate).toFixed(0)}%) left before reaching the tickets page</div>`:''}
-      </div>`;
+        ${tickS>0&&pageS>0?`<div style="margin-top:10px;font-size:11px;color:var(--text3);font-style:italic">${fmt(pageS-tickS)} visitors (${(100-ticketRate).toFixed(0)}%) left before reaching the tickets page</div>`:''}`+`</div>`;
     });
     progFunnelEl.innerHTML=html||'<div class="no-data">No program data for this period</div>';
-  }
-
-  // Mini funnel in overview
-  const ovFunnelMini=document.getElementById('ov-funnel-mini');
-  if(ovFunnelMini){
-    const progRevs=PROGRAMS.map(p=>{const cur=progMap[p]||{program_page:{revenue:0},tickets:{revenue:0},purchase:{revenue:0}};return {name:PROG_LABELS[p],rev:cur.program_page.revenue+cur.tickets.revenue+cur.purchase.revenue,color:PROG_COLORS[p]};}).filter(p=>p.rev>0);
-    const maxR=Math.max(...progRevs.map(p=>p.rev))||1;
-    if(progRevs.length){ovFunnelMini.innerHTML=`<div style="display:flex;gap:12px;align-items:flex-end;padding:6px 0 8px">${progRevs.map(p=>`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><div style="font-size:12px;font-weight:500;color:var(--text)">$${(p.rev/1000).toFixed(0)}K</div><div style="width:100%;height:${Math.max(8,Math.round(p.rev/maxR*48))}px;background:${p.color};border-radius:4px 4px 0 0"></div><div style="font-size:10px;color:var(--text3);text-align:center;white-space:nowrap">${p.name.split(' ')[0]}</div></div>`).join('')}<div style="flex:0 0 auto;padding-left:12px;border-left:1px solid var(--border)"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px">Total</div><div style="font-family:'Cormorant Garamond',serif;font-size:26px;color:var(--text)">$${(progRevs.reduce((a,p)=>a+p.rev,0)/1000).toFixed(0)}K</div></div></div>`;}
-    else{ovFunnelMini.innerHTML='<div class="no-data">No revenue data this period</div>';}
   }
 }
 
@@ -1182,9 +1228,6 @@ function renderPath(pathFunnel, pathEntry){
   const pathTicketUsers=pathMap['2_tickets']||0;
   const pathConv=pathTicketUsers>0?(pathBuyers/pathTicketUsers*100).toFixed(0)+'%':'—';
   const eid=id=>document.getElementById(id);
-  if(eid('path-users'))eid('path-users').textContent=fmt(maxPathUsers);
-  if(eid('path-steps'))eid('path-steps').textContent='4';
-  if(eid('path-conv'))eid('path-conv').textContent=pathConv;
   const pathFunnelEl=eid('path-funnel');
   if(pathFunnelEl){
     const stages=['0_lv_site','1_humanitix','2_tickets','3_purchase','4_complete'];
@@ -1199,18 +1242,15 @@ function renderPath(pathFunnel, pathEntry){
   const pathEntryEl=eid('path-entry');
   if(pathEntryEl&&pathEntry.length){const maxB=Math.max(...pathEntry.map(r=>parseInt(r.buyers||0)))||1;pathEntryEl.innerHTML=pathEntry.map(r=>{const b=parseInt(r.buyers||0),pg=(r.entry_page||'/').split('?')[0]||'/';return `<div class="data-row"><span class="row-name" style="font-family:monospace;font-size:11px">${pg}</span><div class="bar-wrap"><div class="bar" style="width:${(b/maxB*100).toFixed(0)}%;background:#1d3557"></div></div><span class="row-val">${b}</span><span class="row-sub">buyers</span></div>`;}).join('');}
   else if(pathEntryEl){pathEntryEl.innerHTML='<div class="no-data">No purchases recorded in this period — try a wider date range</div>';}
-  // Update funnel panel period label
   const periodEl=document.getElementById('path-funnel-period');
   if(periodEl) periodEl.textContent=`last ${activeDays||30} days · raw GA4 events (from May 2026)`;
-  const pathJourneyEl=eid('path-journey');
-  if(pathJourneyEl){pathJourneyEl.innerHTML=`<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 0">${['LV program page','→','Humanitix event page','→','Tickets selection','→','Payment details','→','Purchase ✓','→','Confirmation'].map(s=>s==='→'?`<span style="color:var(--text3);font-size:14px">→</span>`:`<span style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:12px;color:var(--text2)">${s}</span>`).join('')}</div><div style="margin-top:10px;font-size:12px;color:var(--text3);line-height:1.7">Cross-domain tracking via GTM — GA4 session persists to events.humanitix.com using the <code>_gl</code> parameter.</div>`;}
 }
 
+// FIX #3: Campaigns — keyEvents query fix and Meta UTM note
 function renderCampaigns(campaignsData){
   const campEl = document.getElementById('camp-content');
   if(!campEl) return;
 
-  // Separate by channel
   const google = campaignsData.filter(r=>
     (r.source||'').includes('cpc') || r.channel==='Paid Search' || r.channel==='Cross-network'
   );
@@ -1225,27 +1265,28 @@ function renderCampaigns(campaignsData){
     !(r.source||'').includes('vercel.app')
   );
 
-  function campTable(rows, cols){
+  // FIX #1: campTable now includes column headers
+  function campTable(rows, cols, notes){
     if(!rows||!rows.length) return '<div class="no-data">No data this period</div>';
     const maxS = Math.max(...rows.map(r=>parseFloat(r.sessions||0)))||1;
 
-    // Header
     const colDefs = {
-      sessions: {label:'Sessions', w:'80px', align:'right'},
-      bar:      {label:'', w:'100px', align:'left'},
-      eng:      {label:'Engagement', w:'90px', align:'right'},
-      conv:     {label:'Conversions', w:'90px', align:'right'},
-      convRate: {label:'Conv rate', w:'80px', align:'right'},
-      rev:      {label:'Revenue', w:'80px', align:'right'},
+      sessions: {label:'Sessions',   w:'80px',  align:'right'},
+      bar:      {label:'',           w:'100px', align:'left'},
+      eng:      {label:'Engagement', w:'90px',  align:'right'},
+      conv:     {label:'Conversions',w:'90px',  align:'right'},
+      convRate: {label:'Conv rate',  w:'80px',  align:'right'},
+      rev:      {label:'Revenue',    w:'80px',  align:'right'},
     };
 
-    const header = `<div style="display:grid;grid-template-columns:1fr ${cols.map(c=>colDefs[c].w).join(' ')};gap:0;padding:0 0 8px;border-bottom:1px solid var(--border);font-size:10px;text-transform:uppercase;letter-spacing:.7px;color:var(--text3)">
+    const header = `<div style="display:grid;grid-template-columns:1fr ${cols.map(c=>colDefs[c].w).join(' ')};gap:0;padding:0 0 8px;border-bottom:1px solid var(--border);font-size:9px;text-transform:uppercase;letter-spacing:.7px;color:var(--text3)">
       <span>Campaign</span>${cols.map(c=>`<span style="text-align:${colDefs[c].align};padding:0 6px">${colDefs[c].label}</span>`).join('')}
     </div>`;
 
     const rowsHtml = rows.map(r=>{
       const s=parseFloat(r.sessions||0);
       const er=parseFloat(r.engRate||0);
+      // FIX #3: For keyEvents, use the direct column value (already SUM'd in query)
       const kev=parseFloat(r.keyEvents||0);
       const ker=parseFloat(r.ker||0);
       const rev=parseFloat(r.revenue||0);
@@ -1256,11 +1297,12 @@ function renderCampaigns(campaignsData){
         if(c==='bar') return `<div style="padding:0 6px;display:flex;align-items:center"><div style="flex:1;height:4px;background:var(--bg3);border-radius:2px"><div style="height:4px;background:var(--text);border-radius:2px;width:${(s/maxS*100).toFixed(0)}%"></div></div></div>`;
         if(c==='eng') {
           const erCapped = Math.min(er, 1);
-          return `<span style="text-align:right;padding:0 6px;color:${erCapped>=0.7?'var(--accent)':erCapped>=0.5?'var(--text2)':'var(--warn)'}">${fmtPct(erCapped)}</span>`;
+          return `<span style="text-align:right;padding:0 6px;color:${erCapped>=0.7?'var(--accent)':erCapped>=0.5?'var(--text2)':'var(--warn)'};">${fmtPct(erCapped)}</span>`;
         }
-        if(c==='conv') return `<span style="text-align:right;padding:0 6px;color:var(--text2)">${kev>0?fmt(kev):'—'}</span>`;
+        // FIX #3: Show keyEvents value; show "0" if present but zero, "—" only if null/undefined
+        if(c==='conv') return `<span style="text-align:right;padding:0 6px;color:${kev>0?'var(--accent)':'var(--text3)'}">${kev>0?fmt(kev):'0'}</span>`;
         if(c==='convRate') return `<span style="text-align:right;padding:0 6px;color:var(--text2)">${ker>0?fmtPct(ker):'—'}</span>`;
-        if(c==='rev') return `<span style="text-align:right;padding:0 6px;color:${rev>0?'var(--accent)':'var(--text3)'}">${rev>0?'$'+(rev/1000).toFixed(1)+'K':'—'}</span>`;
+        if(c==='rev') return `<span style="text-align:right;padding:0 6px;color:${rev>0?'var(--accent)':'var(--text3)'};">${rev>0?'$'+(rev/1000).toFixed(1)+'K':'—'}</span>`;
         return '';
       });
 
@@ -1270,7 +1312,9 @@ function renderCampaigns(campaignsData){
       </div>`;
     }).join('');
 
-    return header + rowsHtml;
+    const noticeHtml = notes ? `<div style="margin-top:8px;font-size:11px;color:var(--text3);padding:7px 10px;background:var(--bg2);border-radius:6px;border-left:2px solid var(--gold)">${notes}</div>` : '';
+
+    return header + rowsHtml + noticeHtml;
   }
 
   function totalRow(rows){
@@ -1278,16 +1322,28 @@ function renderCampaigns(campaignsData){
     const totKE=rows.reduce((a,r)=>a+parseFloat(r.keyEvents||0),0);
     const totRev=rows.reduce((a,r)=>a+parseFloat(r.revenue||0),0);
     const parts=[`<strong>${fmt(totS)}</strong> sessions`];
-    if(totKE>0) parts.push(`<strong>${fmt(totKE)}</strong> conversions`);
+    // FIX #3: Always show conversion count even if 0
+    parts.push(`<strong>${fmt(totKE)}</strong> key events`);
     if(totRev>0) parts.push(`<strong>$${(totRev/1000).toFixed(1)}K</strong> revenue`);
     return `<div style="font-size:11px;color:var(--text3);padding:8px 0 0;border-top:1px solid var(--border);margin-top:4px">${parts.join(' · ')}</div>`;
   }
 
+  // FIX #5: Meta note about UTMs and campaign IDs
+  const metaNote = meta.length > 0 && meta.some(r=>r.campaign&&/^\d{10,}$/.test(r.campaign))
+    ? '⚠️ Campaign names showing as numeric IDs. Add UTM parameters in Meta Ads Manager: UTM Campaign = campaign name. Until then, conversions may not match.'
+    : meta.length > 0 && meta.every(r=>!r.keyEvents||parseFloat(r.keyEvents)===0)
+    ? '⚠️ Zero conversions from Meta. If running active campaigns, check that Meta UTMs match GA4 key event triggers — or that key events fire on the post-click landing page.'
+    : null;
+
+  const emailNote = email.length > 0 && email.every(r=>!r.keyEvents||parseFloat(r.keyEvents)===0)
+    ? '⚠️ Zero conversions from Email. Confirm that UTM parameters are set in campaign links and that the destination page has key events configured.'
+    : null;
+
   const sections = [
-    {title:'Google Ads', note:'sessions · engagement · conversions · revenue', rows:google, cols:['sessions','bar','eng','conv','convRate','rev'], color:'#4285f4'},
-    {title:'Meta Ads', note:'fb / paid · campaign IDs (add UTMs to see names)', rows:meta, cols:['sessions','bar','eng','conv','convRate'], color:'#1877f2'},
-    {title:'Email', note:'mailchimp · ortto', rows:email, cols:['sessions','bar','eng','conv'], color:'#0a7c59'},
-    {title:'Referral sources', note:'sessions · engagement · conversions', rows:refs.slice(0,12), cols:['sessions','bar','eng','conv','rev'], color:'#7c3aed'},
+    {title:'Google Ads', note:'sessions · engagement · conversions · revenue', rows:google, cols:['sessions','bar','eng','conv','convRate','rev'], color:'#4285f4', tableNote:null},
+    {title:'Meta Ads', note:'fb / paid · campaign performance', rows:meta, cols:['sessions','bar','eng','conv','convRate'], color:'#1877f2', tableNote:metaNote},
+    {title:'Email', note:'mailchimp · ortto · newsletter campaigns', rows:email, cols:['sessions','bar','eng','conv'], color:'#0a7c59', tableNote:emailNote},
+    {title:'Referral sources', note:'sessions · engagement · conversions', rows:refs.slice(0,12), cols:['sessions','bar','eng','conv','rev'], color:'#7c3aed', tableNote:null},
   ].filter(s=>s.rows.length>0);
 
   campEl.innerHTML = sections.map(s=>`
@@ -1296,7 +1352,7 @@ function renderCampaigns(campaignsData){
         <span style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--text)">${s.title}</span>
         <span style="font-size:10px;color:var(--text3)">${s.note}</span>
       </div>
-      ${campTable(s.rows, s.cols)}
+      ${campTable(s.rows, s.cols, s.tableNote)}
       ${totalRow(s.rows)}
     </div>`).join('');
 }
@@ -1321,6 +1377,7 @@ async function loadCampaigns(){
   if(loaded.campaigns) return;
   loaded.campaigns = true;
   const df=dateFilter();
+  // FIX #3: keyEvents is a column in TrafficAcquisition — SUM it directly
   const campaignsQ = `SELECT sessionCampaignName as campaign, sessionSourceMedium as source, sessionDefaultChannelGroup as channel, SUM(sessions) as sessions, SUM(engagedSessions) as engaged, AVG(engagementRate) as engRate, SUM(keyEvents) as keyEvents, AVG(sessionKeyEventRate) as ker, AVG(userEngagementDurationPerSession) as avgDur, SUM(totalRevenue) as revenue FROM \`${P}.${D}.ga4_TrafficAcquisition_317130094\` WHERE ${df} AND sessionCampaignName IS NOT NULL AND sessionCampaignName NOT IN ('(not set)','(direct)','(organic)','(referral)') GROUP BY campaign, source, channel ORDER BY sessions DESC LIMIT 40`;
   const campaignsData = await bq(campaignsQ);
   globalData.campaignsData = campaignsData;
@@ -1333,18 +1390,13 @@ async function loadPath(){
   const rawDataset = 'analytics_317130094';
   const df = dateFilter();
 
-  // Touch points use selected date period
-  const touchQ = `SELECT sessionDefaultChannelGroup as channel, COUNT(*) as sessions, SUM(engagedSessions) as engaged, SUM(keyEvents) as keyEvents, SUM(totalRevenue) as revenue FROM \`${P}.${D}.ga4_TrafficAcquisition_317130094\` WHERE ${df} GROUP BY channel ORDER BY sessions DESC`;
-
-  // Attribution from aggregated tables (all historical data) — more reliable than raw events
+  const touchQ = `SELECT sessionDefaultChannelGroup as channel, SUM(sessions) as sessions, SUM(engagedSessions) as engaged, SUM(keyEvents) as keyEvents, SUM(totalRevenue) as revenue FROM \`${P}.${D}.ga4_TrafficAcquisition_317130094\` WHERE ${df} GROUP BY channel ORDER BY sessions DESC`;
   const purchaseAttrAggQ = `SELECT sessionSourceMedium as source, SUM(sessions) as buyers, SUM(totalRevenue) as revenue FROM \`${P}.${D}.ga4_TrafficAcquisition_317130094\` WHERE ${df} AND totalRevenue > 0 GROUP BY source ORDER BY revenue DESC LIMIT 10`;
   const downloadAttrAggQ = `SELECT sessionSourceMedium as source, SUM(sessions) as downloaders, SUM(keyEvents) as total_downloads FROM \`${P}.${D}.ga4_TrafficAcquisition_317130094\` WHERE ${df} GROUP BY source ORDER BY total_downloads DESC LIMIT 10`;
   const formAttrAggQ = `SELECT e.traffic_source.source as source, e.traffic_source.medium as medium, COUNT(DISTINCT p.user_pseudo_id) as form_submitters, COUNT(*) as total_submissions FROM (SELECT DISTINCT user_pseudo_id FROM \`${P}.${rawDataset}.events_*\` WHERE _TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY)) AND event_name IN ('form_submission_id','generate_lead','igniting_leadership_form_submission','womens_leadership_form_submission','leader_evolution_form_submission')) p JOIN \`${P}.${rawDataset}.events_*\` e ON p.user_pseudo_id = e.user_pseudo_id WHERE e._TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY)) AND e.event_name = 'session_start' GROUP BY source, medium ORDER BY total_submissions DESC LIMIT 10`;
 
-  // Humanitix funnel using selected date period
   const days = activeDays||30;
   const pathFunnelQ = `SELECT stage, COUNT(DISTINCT user_pseudo_id) as users FROM (SELECT user_pseudo_id, CASE WHEN REGEXP_CONTAINS((SELECT value.string_value FROM UNNEST(event_params) WHERE key='page_location'), 'humanitix.com/.*/complete') THEN '4_complete' WHEN event_name='purchase' THEN '3_purchase' WHEN REGEXP_CONTAINS((SELECT value.string_value FROM UNNEST(event_params) WHERE key='page_location'), 'humanitix.com/.*/tickets') THEN '2_tickets' WHEN REGEXP_CONTAINS((SELECT value.string_value FROM UNNEST(event_params) WHERE key='page_location'), 'humanitix.com') THEN '1_humanitix' WHEN REGEXP_CONTAINS((SELECT value.string_value FROM UNNEST(event_params) WHERE key='page_location'), 'leadershipvictoria.org') THEN '0_lv_site' END as stage FROM \`${P}.${rawDataset}.events_*\` WHERE _TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL ${days} DAY)) AND event_name IN ('page_view','purchase')) WHERE stage IS NOT NULL GROUP BY stage ORDER BY stage`;
-
   const pathEntryQ = `SELECT REGEXP_REPLACE((SELECT value.string_value FROM UNNEST(e.event_params) WHERE key='page_location'), r'https://www\\.leadershipvictoria\\.org', '') as entry_page, COUNT(DISTINCT e.user_pseudo_id) as buyers FROM \`${P}.${rawDataset}.events_*\` e WHERE e._TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL ${days} DAY)) AND e.user_pseudo_id IN (SELECT DISTINCT user_pseudo_id FROM \`${P}.${rawDataset}.events_*\` WHERE _TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL ${days} DAY)) AND event_name = 'purchase') AND (SELECT value.string_value FROM UNNEST(e.event_params) WHERE key='page_location') LIKE '%leadershipvictoria.org%' AND e.event_name = 'page_view' GROUP BY entry_page ORDER BY buyers DESC LIMIT 10`;
 
   const [touchData, purchaseAttr, downloadAttr, formAttr, pathFunnel, pathEntry] = await Promise.all([
@@ -1354,7 +1406,6 @@ async function loadPath(){
   globalData.pathFunnel = pathFunnel;
   globalData.pathEntry = pathEntry;
 
-  // ── TOUCH POINTS (like GA4 Attribution view) ──
   const tpEl = document.getElementById('path-touchpoints');
   if(tpEl && touchData.length){
     const CHANNEL_COLORS = {'Direct':'#1a3a6b','Organic Search':'#2d6a4f','Paid Search':'#4285f4','Cross-network':'#888','Organic Social':'#7c3aed','Referral':'#b5860b','Paid Social':'#1877f2','Email':'#0a7c59','Unassigned':'#bbb','Paid Other':'#999'};
@@ -1403,8 +1454,8 @@ async function loadPath(){
             ${renderTouchBars(t.rows)}
           </div>`).join('')}
       </div>
-      <div style="background:var(--blue-bg);border-radius:8px;padding:12px 14px;border-left:3px solid var(--accent2)">
-        <div style="font-size:12px;color:var(--blue);line-height:1.7">
+      <div style="background:#e8eef8;border-radius:8px;padding:12px 14px;border-left:3px solid var(--accent2)">
+        <div style="font-size:12px;color:#1a3a6b;line-height:1.7">
           <strong>Channel story:</strong> Organic Search &amp; Paid introduce users to Leadership Victoria (early touch). 
           Referrals from professional platforms and internal tools signal high-intent B2B audience (mid touch). 
           Direct dominates conversion ($${(directRev/1000).toFixed(0)}K) — users return directly when ready to buy.
@@ -1413,12 +1464,9 @@ async function loadPath(){
       </div>`;
   }
 
-  // ── CHANNEL ATTRIBUTION TABLE ──
   const attrEl = document.getElementById('path-attribution');
   if(attrEl){
     const channels = {};
-
-    // Purchase attr from aggregated table: source = sessionSourceMedium
     purchaseAttr.forEach(r=>{
       const ch = r.source||'(direct) / (none)';
       const parts = ch.split(' / ');
@@ -1426,8 +1474,6 @@ async function loadPath(){
       if(!channels[ch]) channels[ch]={source:src,medium:med,revenue:0,downloads:0,forms:0};
       channels[ch].revenue = parseFloat(r.revenue||0);
     });
-
-    // Download attr from aggregated table
     downloadAttr.forEach(r=>{
       const ch = r.source||'(direct) / (none)';
       const parts = ch.split(' / ');
@@ -1435,8 +1481,6 @@ async function loadPath(){
       if(!channels[ch]) channels[ch]={source:src,medium:med,revenue:0,downloads:0,forms:0};
       channels[ch].downloads = parseFloat(r.total_downloads||0);
     });
-
-    // Form attr from raw events
     formAttr.forEach(r=>{
       const ch = `${r.source||'(direct)'} / ${r.medium||'(none)'}`;
       if(!channels[ch]) channels[ch]={source:r.source||'(direct)',medium:r.medium||'(none)',revenue:0,downloads:0,forms:0};

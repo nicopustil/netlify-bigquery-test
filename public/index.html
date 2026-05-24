@@ -199,21 +199,20 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
   <button class="pBtn" id="cmp-year" onclick="setCompare('year',this)">Prev year</button>
   <button class="pBtn" id="cmp-none" onclick="setCompare('none',this)">None</button>
   <span class="last-updated" id="lastUpdated"></span>
-  <span style="font-size:10px;color:var(--text3);margin-left:8px">v3.1.0</span>
+  <span style="font-size:10px;color:var(--text3);margin-left:8px">v3.2.0</span>
 </div>
 
 <!-- MAIN NAV -->
 <div class="tabs" id="main-nav">
-  <button class="tab active" id="mnav-strategy" onclick="switchMain('strategy',this)">⚡ What's Happening</button>
-  <button class="tab" id="mnav-analytics" onclick="switchMain('analytics',this)">Analytics</button>
+  <button class="tab active" id="mnav-analytics" onclick="switchMain('analytics',this)">Analytics</button>
   <button class="tab" id="mnav-meta" style="color:#1877f2" onclick="switchMain('meta',this)">Meta</button>
+  <button class="tab" id="mnav-linkedin" style="color:#0077b5" onclick="switchMain('linkedin',this)">LinkedIn</button>
   <button class="tab agency-only" id="mnav-insights" onclick="switchMain('insights',this)">Internal</button>
-  <button class="tab" id="mnav-ai" onclick="switchMain('ai',this)">🤖 AI Strategist</button>
 </div>
 
 <!-- ANALYTICS SUBTABS -->
-<div id="subnav-analytics" style="display:none;padding:0 32px;border-bottom:0.5px solid var(--border);overflow-x:auto;background:var(--bg2)">
-  <button class="tab" style="font-size:11px;padding:7px 12px 9px" onclick="switchSub('analytics','overview',this)">Overview</button>
+<div id="subnav-analytics" style="display:flex;padding:0 32px;border-bottom:0.5px solid var(--border);overflow-x:auto;background:var(--bg2)">
+  <button class="tab active" style="font-size:11px;padding:7px 12px 9px" onclick="switchSub('analytics','overview',this)">Overview</button>
   <button class="tab" style="font-size:11px;padding:7px 12px 9px" onclick="switchSub('analytics','traffic',this)">Traffic</button>
   <button class="tab" style="font-size:11px;padding:7px 12px 9px" onclick="switchSub('analytics','engagement',this)">Engagement</button>
   <button class="tab" style="font-size:11px;padding:7px 12px 9px" onclick="switchSub('analytics','programs',this)">Programs</button>
@@ -232,17 +231,26 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
   <button class="tab" style="font-size:11px;padding:7px 12px 9px;color:#1877f2" onclick="switchSub('meta','mhealth',this)">Tracking</button>
 </div>
 
+<!-- LINKEDIN SUBTABS -->
+<div id="subnav-linkedin" style="display:none;padding:0 32px;border-bottom:0.5px solid var(--border);overflow-x:auto;background:var(--bg2)">
+  <button class="tab" style="font-size:11px;padding:7px 12px 9px;color:#0077b5" onclick="switchSub('linkedin','loverview',this)">Overview</button>
+  <button class="tab" style="font-size:11px;padding:7px 12px 9px;color:#0077b5" onclick="switchSub('linkedin','lcampaigns',this)">Campaigns</button>
+  <button class="tab" style="font-size:11px;padding:7px 12px 9px;color:#0077b5" onclick="switchSub('linkedin','lfunnel',this)">Funnel</button>
+  <button class="tab" style="font-size:11px;padding:7px 12px 9px;color:#0077b5" onclick="switchSub('linkedin','lads',this)">Ad Creatives</button>
+  <button class="tab" style="font-size:11px;padding:7px 12px 9px;color:#0077b5" onclick="switchSub('linkedin','lhealth',this)">Tracking</button>
+</div>
+
 <div class="body">
 
   <!-- WHAT'S HAPPENING -->
-  <div class="tab-content active" id="tab-strategy">
+  <div class="tab-content" id="tab-strategy">
     <div id="strategy-content">
       <div class="loading-row"><span class="spinner"></span> Analysing data...</div>
     </div>
   </div>
 
   <!-- OVERVIEW -->
-  <div class="tab-content" id="tab-overview">
+  <div class="tab-content active" id="tab-overview">
     <div class="kpi-grid">
       <div class="kpi">
         <div class="kpi-label">Sessions</div>
@@ -565,6 +573,23 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
   <!-- META: TRACKING -->
   <div class="tab-content" id="tab-meta-mhealth">
     <div id="meta-health-content"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+  </div>
+
+  <!-- LINKEDIN PANES -->
+  <div class="tab-content" id="tab-linkedin-loverview">
+    <div id="linkedin-overview-content"><div class="loading-row"><span class="spinner"></span></div></div>
+  </div>
+  <div class="tab-content" id="tab-linkedin-lcampaigns">
+    <div id="linkedin-campaigns-content"><div class="loading-row"><span class="spinner"></span></div></div>
+  </div>
+  <div class="tab-content" id="tab-linkedin-lfunnel">
+    <div id="linkedin-funnel-content"><div class="loading-row"><span class="spinner"></span></div></div>
+  </div>
+  <div class="tab-content" id="tab-linkedin-lads">
+    <div id="linkedin-ads-content"><div class="loading-row"><span class="spinner"></span></div></div>
+  </div>
+  <div class="tab-content" id="tab-linkedin-lhealth">
+    <div id="linkedin-health-content"><div class="loading-row"><span class="spinner"></span></div></div>
   </div>
 
   <!-- AI STRATEGIST -->
@@ -1279,7 +1304,7 @@ TOP ENTRY PAGES FOR BUYERS:
 ${entryPages}
 
 TRAFFIC:
-- Total sessions: ${fmt(totS2)} | Engagement rate: ${fmtPct(avgEr2)} | Revenue: $${(totalRev3/1000).toFixed(1)}K
+- Total sessions: ${fmt(totS2)} | Engagement rate: ${fmtPct(avgEr2)} | Revenue: $${(totalRev3.2.00).toFixed(1)}K
 - Top channels: ${d.traffic?.slice(0,6).map(r=>`${r.source}: ${fmt(r.sessions)} sess, ${fmtPct(parseFloat(r.engRate||0))} eng`).join(' | ')||'—'}
 
 ORGANIC SEARCH:
@@ -2106,8 +2131,8 @@ async function loadInsights(){
 }
 
 // ── NAVIGATION ────────────────────────────────────────────────────────────────
-let currentMain = 'strategy';
-let currentSub = { analytics: 'overview', meta: 'moverview' };
+let currentMain = 'analytics';
+let currentSub = { analytics: 'overview', meta: 'moverview', linkedin: 'loverview' };
 
 // Legacy switchTab — still works for direct calls
 function switchTab(name, btn) {
@@ -2116,11 +2141,11 @@ function switchTab(name, btn) {
 }
 
 function switchMain(name, btn) {
-  // Hide all panes and subnavs
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('#main-nav .tab').forEach(b => b.classList.remove('active'));
   document.getElementById('subnav-analytics').style.display = 'none';
   document.getElementById('subnav-meta').style.display = 'none';
+  document.getElementById('subnav-linkedin').style.display = 'none';
 
   currentMain = name;
   if (btn) btn.classList.add('active');
@@ -2130,7 +2155,6 @@ function switchMain(name, btn) {
   } else if (name === 'analytics') {
     document.getElementById('subnav-analytics').style.display = 'flex';
     const sub = currentSub.analytics || 'overview';
-    // activate first subtab button
     const subBtns = document.querySelectorAll('#subnav-analytics .tab');
     subBtns.forEach(b => b.classList.remove('active'));
     const subMap = {overview:0,traffic:1,engagement:2,programs:3,campaigns:4,organic:5,path:6};
@@ -2156,6 +2180,15 @@ function switchMain(name, btn) {
     if (subBtns[subMap[sub]]) subBtns[subMap[sub]].classList.add('active');
     document.getElementById('tab-meta-' + sub).classList.add('active');
     loadMeta(sub);
+  } else if (name === 'linkedin') {
+    document.getElementById('subnav-linkedin').style.display = 'flex';
+    const sub = currentSub.linkedin || 'loverview';
+    const subBtns = document.querySelectorAll('#subnav-linkedin .tab');
+    subBtns.forEach(b => b.classList.remove('active'));
+    const subMap = {loverview:0,lcampaigns:1,lfunnel:2,lads:3,lhealth:4};
+    if (subBtns[subMap[sub]]) subBtns[subMap[sub]].classList.add('active');
+    document.getElementById('tab-linkedin-' + sub).classList.add('active');
+    loadLinkedIn(sub);
   } else if (name === 'insights') {
     document.getElementById('tab-insights').classList.add('active');
     loadInsights();
@@ -2192,7 +2225,179 @@ function switchSub(main, sub, btn) {
     });
     document.getElementById('tab-meta-' + sub).classList.add('active');
     loadMeta(sub);
+  } else if (main === 'linkedin') {
+    document.querySelectorAll('#subnav-linkedin .tab').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    document.querySelectorAll('.tab-content').forEach(t => {
+      if (t.id.startsWith('tab-linkedin-')) t.classList.remove('active');
+    });
+    document.getElementById('tab-linkedin-' + sub).classList.add('active');
+    loadLinkedIn(sub);
   }
+}
+
+// ── LOAD LINKEDIN ─────────────────────────────────────────────────────────────
+const LI_GOALS = {
+  form_submission: 'Form Submission',
+  file_download: 'File Download',
+  donate: 'Donate',
+  phone_call: 'Phone Call',
+  purchase: 'Purchase',
+};
+
+async function loadLinkedIn(sub) {
+  sub = sub || 'loverview';
+  const elMap = {
+    loverview: 'linkedin-overview-content',
+    lcampaigns: 'linkedin-campaigns-content',
+    lfunnel: 'linkedin-funnel-content',
+    lads: 'linkedin-ads-content',
+    lhealth: 'linkedin-health-content',
+  };
+  const el = document.getElementById(elMap[sub]);
+  if (!el) return;
+
+  // Check if LinkedIn data exists in BigQuery
+  if (!loaded.linkedinSchema) {
+    loaded.linkedinSchema = true;
+    try {
+      const tables = await bq(`SELECT table_name FROM \`${P}.INFORMATION_SCHEMA.SCHEMATA\` LIMIT 1`);
+      // Try to find linkedin table
+      const liTables = await bq(`SELECT table_name FROM \`${P}.google_ads_lv.INFORMATION_SCHEMA.TABLES\` WHERE table_name LIKE '%linkedin%' LIMIT 5`);
+      globalData.linkedinTables = liTables.map(r => r.table_name);
+    } catch(e) {
+      globalData.linkedinTables = [];
+    }
+  }
+
+  const hasData = globalData.linkedinTables && globalData.linkedinTables.length > 0;
+
+  if (sub === 'lhealth') { renderLinkedInHealth(el); return; }
+  if (!hasData) { renderLinkedInNoData(el, sub); return; }
+
+  // Has data — load from BigQuery
+  if (!loaded['li_' + sub]) {
+    loaded['li_' + sub] = true;
+    const rows = await bq(`SELECT * FROM \`${P}.google_ads_lv.linkedin_ads_daily\` WHERE date >= DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY) ORDER BY spend DESC LIMIT 100`);
+    globalData.linkedinRows = rows;
+  }
+  renderLinkedInTab(el, sub, globalData.linkedinRows || []);
+}
+
+function renderLinkedInNoData(el, sub) {
+
+  const kpis = ['Spend','Impressions','Clicks','CTR','Form Submissions','File Downloads','Donate','Phone Calls','Purchase'];
+
+  if (sub === 'loverview') {
+    el.innerHTML = `
+      <div style="background:white;border:0.5px solid var(--border);border-radius:10px;padding:16px 18px;margin-bottom:12px">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:10px;font-weight:500">LinkedIn Ads · no campaigns yet</div>
+        <div style="background:#e8f4fa;border-left:3px solid #0077b5;border-radius:0 8px 8px 0;padding:10px 14px;font-size:12px;color:#004a77;margin-bottom:16px">
+          No LinkedIn campaigns running yet. Once you launch campaigns and connect Windsor.ai, this tab will populate automatically. The structure is ready for: Form Submissions, File Downloads, Donate, Phone Calls and Purchase events.
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px">
+          ${kpis.map(l=>`<div style="background:var(--bg2);border-radius:10px;padding:12px 14px;border-top:2px solid #0077b520">
+            <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">${l}</div>
+            <div style="font-size:22px;font-weight:400;font-family:'Cormorant Garamond',serif;color:var(--text3)">—</div>
+          </div>`).join('')}
+        </div>
+      </div>
+      <div style="background:white;border:0.5px solid var(--border);border-radius:10px;padding:14px 16px">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:10px;font-weight:500">GA4 organic referral · LinkedIn.com</div>
+        <div id="li-ga4-referral"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+      </div>`;
+
+    // Load GA4 LinkedIn referral data
+    const df = dateFilter();
+    bq(`SELECT sessionSourceMedium as source, SUM(sessions) as sessions, SUM(engagedSessions) as engaged, AVG(engagementRate) as engRate, SUM(keyEvents) as keyEvents FROM \`${P}.${D}.ga4_TrafficAcquisition_317130094\` WHERE ${df} AND (sessionSourceMedium LIKE '%linkedin%' OR sessionSourceMedium LIKE '%lnkd%') GROUP BY source ORDER BY sessions DESC`).then(rows => {
+      const el2 = document.getElementById('li-ga4-referral');
+      if (!el2) return;
+      if (!rows.length) { el2.innerHTML = '<div class="no-data">No LinkedIn referral traffic this period</div>'; return; }
+      const totS = rows.reduce((a,r)=>a+parseFloat(r.sessions||0),0);
+      const totE = rows.reduce((a,r)=>a+parseFloat(r.engaged||0),0);
+      el2.innerHTML = `
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px">
+          <div style="background:var(--bg2);border-radius:8px;padding:10px 12px;border-top:2px solid #0077b5">
+            <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Sessions</div>
+            <div style="font-size:20px;font-family:'Cormorant Garamond',serif">${fmt(totS)}</div>
+          </div>
+          <div style="background:var(--bg2);border-radius:8px;padding:10px 12px;border-top:2px solid #0077b5">
+            <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Engaged</div>
+            <div style="font-size:20px;font-family:'Cormorant Garamond',serif">${fmt(totE)}</div>
+          </div>
+          <div style="background:var(--bg2);border-radius:8px;padding:10px 12px;border-top:2px solid #0077b5">
+            <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Eng Rate</div>
+            <div style="font-size:20px;font-family:'Cormorant Garamond',serif">${totS>0?(totE/totS*100).toFixed(0):'0'}%</div>
+          </div>
+        </div>
+        ${rows.map(r=>`<div class="data-row"><span class="row-name">${r.source}</span><span class="row-val">${fmt(r.sessions)} sessions</span><span class="row-sub">${(parseFloat(r.engRate||0)*100).toFixed(0)}% eng</span></div>`).join('')}
+        <div style="font-size:11px;color:var(--text3);margin-top:8px;font-style:italic">Organic LinkedIn referral only — no paid campaigns detected</div>`;
+    });
+  } else if (sub === 'lfunnel') {
+    const steps = [
+      {label:'Ad Impression',note:'Paid reach',color:'#0077b5'},
+      {label:'Click',note:'Visited landing page',color:'#0077b5'},
+      {label:'Form Submission',note:'Contact / enquiry',color:'#2d6a4f'},
+      {label:'File Download',note:'Brochure / resource',color:'#2d6a4f'},
+      {label:'Donate',note:'Donation intent',color:'#b5860b'},
+      {label:'Purchase',note:'Ticket confirmed',color:'#22c55e'},
+    ];
+    el.innerHTML = `<div style="background:white;border:0.5px solid var(--border);border-radius:10px;padding:16px 18px">
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:12px;font-weight:500">LinkedIn funnel · awaiting campaign data</div>
+      ${steps.map((s,i)=>{
+        const pct = 100 - i*18;
+        return `<div style="margin-bottom:6px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+            <div><span style="font-size:12px;font-weight:500">${s.label}</span><span style="font-size:10px;color:var(--text3);margin-left:6px">${s.note}</span></div>
+            <span style="font-size:16px;font-weight:500;color:var(--text3)">—</span>
+          </div>
+          <div style="height:24px;background:var(--bg2);border-radius:5px;overflow:hidden">
+            <div style="height:24px;width:${pct}%;background:${s.color};opacity:.25;border-radius:5px"></div>
+          </div>
+        </div>`;
+      }).join('')}
+      <div style="margin-top:10px;font-size:11px;color:var(--text3);font-style:italic">Funnel will show real data once LinkedIn campaigns are live and Windsor.ai is connected</div>
+    </div>`;
+  } else if (sub === 'lads') {
+    el.innerHTML = `<div style="background:white;border:0.5px solid var(--border);border-radius:10px;padding:32px;text-align:center">
+      <div style="font-size:24px;margin-bottom:10px">🖼️</div>
+      <div style="font-size:13px;font-weight:500;color:var(--text2);margin-bottom:6px">Ad creatives will appear here</div>
+      <div style="font-size:12px;color:var(--text3);max-width:320px;margin:0 auto">Once LinkedIn campaigns are running and Windsor.ai is connected, ad thumbnails, names, CTR and conversion rates will appear here.</div>
+    </div>`;
+  } else {
+    el.innerHTML = `<div style="border:1px dashed var(--border);border-radius:10px;padding:32px;text-align:center;color:var(--text3)">
+      <div style="font-size:24px;margin-bottom:10px">💼</div>
+      <div style="font-size:13px;font-weight:500;color:var(--text2);margin-bottom:6px">LinkedIn data arriving soon</div>
+      <div style="font-size:12px">Connect Windsor.ai once campaigns are live. This tab populates automatically.</div>
+    </div>`;
+  }
+}
+
+function renderLinkedInHealth(el) {
+  const checks = [
+    ['na','Windsor.ai → BigQuery','Not configured — set up once campaigns are live'],
+    ['na','LinkedIn Insight Tag','Install on leadershipvictoria.org to track conversions'],
+    ['na','Form Submission tracking','Configure in LinkedIn Campaign Manager → Conversions'],
+    ['na','File Download tracking','Configure in LinkedIn Campaign Manager → Conversions'],
+    ['na','Purchase tracking','Configure in LinkedIn Campaign Manager → Conversions'],
+    ['ok','GA4 organic referral','linkedin.com/referral sessions tracked in GA4'],
+  ];
+  const bg={ok:'#E8F5EE',warn:'#FEF3DC',err:'#FDECEA',na:'#f0f4ff'};
+  const dot={ok:'#2d6a4f',warn:'#b5860b',err:'#c0392b',na:'#0077b5'};
+  const badge={ok:'✓ Active',warn:'⚠ Verify',err:'✗ Fix needed',na:'— Not set up'};
+  el.innerHTML = `<div style="background:white;border:0.5px solid var(--border);border-radius:10px;padding:16px 18px">
+    <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:12px;font-weight:500">LinkedIn tracking health</div>
+    ${checks.map(([s,l,d])=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--border);font-size:12px">
+      <div style="width:8px;height:8px;border-radius:50%;background:${dot[s]};flex-shrink:0"></div>
+      <div style="flex:1"><div style="font-weight:500;color:var(--text)">${l}</div><div style="font-size:11px;color:var(--text3);margin-top:1px">${d}</div></div>
+      <span style="font-size:10px;padding:2px 8px;border-radius:10px;background:${bg[s]};color:${dot[s]};font-weight:500">${badge[s]}</span>
+    </div>`).join('')}
+  </div>`;
+}
+
+function renderLinkedInTab(el, sub, rows) {
+  // Will render real data when LinkedIn BigQuery table exists
+  renderLinkedInNoData(el, sub);
 }
 
 // ── LOAD META ─────────────────────────────────────────────────────────────────
@@ -2464,6 +2669,12 @@ function switchTab(name, btn) {
   if(name==='organic') loadOrganic();
   if(name==='insights') loadInsights();
 }
+
+// Init on load — Analytics Overview
+document.getElementById('mnav-analytics').classList.add('active');
+document.getElementById('subnav-analytics').style.display = 'flex';
+document.getElementById('tab-overview').classList.add('active');
+document.querySelectorAll('#subnav-analytics .tab')[0].classList.add('active');
 
 loadAll();
 </script>

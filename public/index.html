@@ -1304,7 +1304,7 @@ TOP ENTRY PAGES FOR BUYERS:
 ${entryPages}
 
 TRAFFIC:
-- Total sessions: ${fmt(totS2)} | Engagement rate: ${fmtPct(avgEr2)} | Revenue: $${(totalRev3.2.00).toFixed(1)}K
+- Total sessions: ${fmt(totS2)} | Engagement rate: ${fmtPct(avgEr2)} | Revenue: $${(totalRev3/1000).toFixed(1)}K
 - Top channels: ${d.traffic?.slice(0,6).map(r=>`${r.source}: ${fmt(r.sessions)} sess, ${fmtPct(parseFloat(r.engRate||0))} eng`).join(' | ')||'—'}
 
 ORGANIC SEARCH:

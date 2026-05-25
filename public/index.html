@@ -1176,7 +1176,7 @@ STRICT RULES — violating these means the output is wrong:
   // ── DEVICES (raw dataset — last 7 days rolling) ──
   let deviceData = [];
   try {
-    deviceData = await bq(`SELECT device.category as device, COUNT(DISTINCT user_pseudo_id) as users FROM \\`${P}.ga4_leadership_victoria_us.events_*\\` WHERE _TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY)) GROUP BY device ORDER BY users DESC`);
+    deviceData = await bq(`SELECT device.category as device, COUNT(DISTINCT user_pseudo_id) as users FROM \`${P}.ga4_leadership_victoria_us.events_*\` WHERE _TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY)) GROUP BY device ORDER BY users DESC`);
   } catch(e) { console.log('Device data skipped:', e.message); }
   renderDevices(deviceData);
 

@@ -2412,10 +2412,10 @@ function renderLinkedInTab(el, sub, rows) {
 
 // ── LOAD META ─────────────────────────────────────────────────────────────────
 const AD_IMAGES = {
-  'Reach: Evolve A': '/LV_REACH AD_EVOLVE A.png',
-  'Reach: Evolve B': '/LV_REACH AD_EVOLVE B.png',
-  'Reach: Ignite A': '/LV_REACH AD_IGNITE 1.png',
-  'Reach: Ignite B': '/LV_REACH AD_IGNITE 2.png',
+  'Reach: Evolve A': '/LV_REACH%20AD_EVOLVE%20A.png',
+  'Reach: Evolve B': '/LV_REACH%20AD_EVOLVE%20B.png',
+  'Reach: Ignite A': '/LV_REACH%20AD_IGNITE%201.png',
+  'Reach: Ignite B': '/LV_REACH%20AD_IGNITE%202.png',
 };
 const META_PROG = {
   igniting: kw => /igniting|ilp|ignite/i.test(kw),
@@ -2821,7 +2821,7 @@ function renderMetaTab(el, sub, rows) {
         const effLabel=ctr>avgCTR*1.2?'Above avg CTR':ctr<avgCTR*0.8?'Below avg CTR':'Avg CTR';
         return '<div style="background:white;border:0.5px solid var(--border);border-left:3px solid '+effColor+';border-radius:10px;padding:14px 16px;margin-bottom:10px">'
           +'<div style="display:flex;gap:14px;margin-bottom:10px">'
-          +(AD_IMAGES[a.ad_name]?'<img src="'+AD_IMAGES[a.ad_name]+'" style="width:90px;height:90px;object-fit:cover;border-radius:8px;flex-shrink:0" onerror="this.style.display=\'none\'">':'')
+          +(AD_IMAGES[a.ad_name]?'<img src="'+AD_IMAGES[a.ad_name]+'" style="width:60px;height:60px;object-fit:cover;border-radius:6px;flex-shrink:0" onerror="this.style.display=\'none\'">':'')
           +'<div style="flex:1;min-width:0"><div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px">'
           +'<div style="min-width:0;flex:1">'
 

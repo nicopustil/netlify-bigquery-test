@@ -767,6 +767,9 @@ let globalData = {};
 let chatHistory = [];
 
 async function loadAll(){
+  loaded = {};
+  globalData = {};
+  chatHistory = [];
   document.getElementById('loading').classList.remove('hidden');
   document.getElementById('loadMsg').textContent='Loading data...';
 
@@ -2444,17 +2447,32 @@ async function loadMeta(sub) {
   }
 
   // Has data — load from BigQuery Windsor table
-  const df = dateFilter();
-  if (!loaded['meta_' + sub]) {
-    loaded['meta_' + sub] = true;
-    const campQ = `SELECT date, campaign, spend, impressions, clicks, link_clicks, reach, ctr, cpc, cpm,
-      actions_lead, actions_offsite_conversion_fb_pixel_lead,
-      conversions_offsite_conversion_fb_pixel_custom_file_download,
-      actions_complete_registration, actions_offsite_conversion_fb_pixel_complete_registration,
-      cost_per_action_type_lead, cost_per_action_type_complete_registration
+  if (!loaded['meta_data']) {
+    loaded['meta_data'] = true;
+    const days = activeDays || 30;
+    const campQ = `SELECT date, campaign, adset_name, ad_name,
+      CAST(spend AS FLOAT64) as spend,
+      CAST(impressions AS FLOAT64) as impressions,
+      CAST(clicks AS FLOAT64) as clicks,
+      CAST(link_clicks AS FLOAT64) as link_clicks,
+      CAST(reach AS FLOAT64) as reach,
+      CAST(ctr AS FLOAT64) as ctr,
+      CAST(frequency AS FLOAT64) as frequency,
+      CAST(actions_lead AS FLOAT64) as actions_lead,
+      CAST(actions_offsite_conversion_fb_pixel_lead AS FLOAT64) as actions_offsite_conversion_fb_pixel_lead,
+      CAST(conversions_offsite_conversion_fb_pixel_custom_file_download AS FLOAT64) as conversions_offsite_conversion_fb_pixel_custom_file_download,
+      CAST(actions_complete_registration AS FLOAT64) as actions_complete_registration,
+      CAST(actions_offsite_conversion_fb_pixel_complete_registration AS FLOAT64) as actions_offsite_conversion_fb_pixel_complete_registration,
+      CAST(cost_per_action_type_lead AS FLOAT64) as cost_per_action_type_lead,
+      CAST(cost_per_action_type_complete_registration AS FLOAT64) as cost_per_action_type_complete_registration,
+      CAST(video_thruplay_watched_actions AS FLOAT64) as video_thruplay_watched_actions,
+      CAST(video_p25_watched_actions AS FLOAT64) as video_p25_watched_actions,
+      CAST(video_p50_watched_actions AS FLOAT64) as video_p50_watched_actions,
+      CAST(video_p75_watched_actions AS FLOAT64) as video_p75_watched_actions,
+      CAST(video_p100_watched_actions AS FLOAT64) as video_p100_watched_actions
       FROM \`${P}.google_ads_lv.meta_ads_daily\`
-      WHERE date >= DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY)
-      ORDER BY spend DESC LIMIT 100`;
+      WHERE date >= DATE_SUB(CURRENT_DATE(), INTERVAL ${days} DAY)
+      ORDER BY date DESC, spend DESC LIMIT 500`;
     const rows = await bq(campQ);
     globalData.metaRows = rows;
   }
@@ -2517,7 +2535,7 @@ function renderMetaTab(el, sub, rows) {
 
     el.innerHTML = `
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px;margin-bottom:16px">
-        ${[['Spend','$'+ilSpend>0?(totSpend/1000).toFixed(1)+'K':'$'+totSpend.toFixed(0),''],['Reach',fmt(totReach),''],['Impressions',fmt(totImpr),''],['Link Clicks',fmt(totClicks),'CTR '+(totImpr>0?(totClicks/totImpr*100).toFixed(2):'0')+'%'],['Downloads',fmt(totDL),''],['Contacts',fmt(totContact),''],['Register Intent',fmt(totReg),'']].map(([l,v,s])=>`
+        ${[['Spend', ilSpend>0 ? '$'+(totSpend/1000).toFixed(1)+'K' : '$'+totSpend.toFixed(0), ''],['Reach',fmt(totReach),''],['Impressions',fmt(totImpr),''],['Link Clicks',fmt(totClicks),'CTR '+(totImpr>0?(totClicks/totImpr*100).toFixed(2):'0')+'%'],['Downloads',fmt(totDL),''],['Contacts',fmt(totContact),''],['Register Intent',fmt(totReg),'']].map(([l,v,s])=>`
           <div style="background:var(--bg2);border-radius:10px;padding:12px 14px">
             <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">${l}</div>
             <div style="font-size:22px;font-weight:400;font-family:'Cormorant Garamond',serif;color:var(--text)">${v}</div>

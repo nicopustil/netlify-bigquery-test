@@ -767,9 +767,9 @@ let globalData = {};
 let chatHistory = [];
 
 async function loadAll(){
-  loaded = {};
-  globalData = {};
-  chatHistory = [];
+  Object.keys(loaded).forEach(k => delete loaded[k]);
+  Object.keys(globalData).forEach(k => delete globalData[k]);
+  chatHistory.length = 0;
   document.getElementById('loading').classList.remove('hidden');
   document.getElementById('loadMsg').textContent='Loading data...';
 

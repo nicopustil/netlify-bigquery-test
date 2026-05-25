@@ -229,7 +229,6 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
   <button class="tab" style="font-size:11px;padding:7px 12px 9px;color:#1877f2" onclick="switchSub('meta','mfunnel',this)">Funnel</button>
   <button class="tab" style="font-size:11px;padding:7px 12px 9px;color:#1877f2" onclick="switchSub('meta','maudiences',this)">Audiences</button>
   <button class="tab" style="font-size:11px;padding:7px 12px 9px;color:#1877f2" onclick="switchSub('meta','mads',this)">Ad Creatives</button>
-  <button class="tab" style="font-size:11px;padding:7px 12px 9px;color:#1877f2" onclick="switchSub('meta','mhealth',this)">Tracking</button>
 </div>
 
 <!-- LINKEDIN SUBTABS -->
@@ -2412,6 +2411,12 @@ function renderLinkedInTab(el, sub, rows) {
 }
 
 // ── LOAD META ─────────────────────────────────────────────────────────────────
+const AD_IMAGES = {
+  'Reach: Evolve A': '/LV_REACH AD_EVOLVE A.png',
+  'Reach: Evolve B': '/LV_REACH AD_EVOLVE B.png',
+  'Reach: Ignite A': '/LV_REACH AD_IGNITE 1.png',
+  'Reach: Ignite B': '/LV_REACH AD_IGNITE 2.png',
+};
 const META_PROG = {
   igniting: kw => /igniting|ilp|ignite/i.test(kw),
   evolution: kw => /evolution|levo|leaderevolution|evolve/i.test(kw),
@@ -2771,15 +2776,37 @@ function renderMetaTab(el, sub, rows) {
     const sumCVR=sumClicks>0&&sumDL>0?(sumDL/sumClicks*100).toFixed(1):0;
     const sumCPDL=sumDL>0?'$'+(sumSpend/sumDL).toFixed(2):'—';
 
+    // Filter state
+    const filtProg = el.dataset.filtProg || 'all';
+    const filteredAds = filtProg === 'all' ? ads : ads.filter(a=>a.prog===filtProg);
+    const fSpend=filteredAds.reduce((a,r)=>a+r.spend,0);
+    const fImpr=filteredAds.reduce((a,r)=>a+r.impressions,0);
+    const fClicks=filteredAds.reduce((a,r)=>a+r.clicks,0);
+    const fReach=filteredAds.reduce((a,r)=>a+r.reach,0);
+    const fDL=filteredAds.reduce((a,r)=>a+r.dl,0);
+    const fEng=filteredAds.reduce((a,r)=>a+r.post_eng,0);
+    const fCTR=fImpr>0?(fClicks/fImpr*100).toFixed(2):0;
+    const fCVR=fClicks>0&&fDL>0?(fDL/fClicks*100).toFixed(1):0;
+    const fCPDL=fDL>0?'$'+(fSpend/fDL).toFixed(2):'—';
+
     el.innerHTML = `
-      <div style="background:white;border:0.5px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:16px">
-        <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:10px;font-weight:500">Summary — all ${ads.length} ads</div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:8px">
-          ${[['Total Spend','$'+sumSpend.toFixed(0)],['Total Reach',fmt(sumReach)],['Impressions',fmt(sumImpr)],['Link Clicks',fmt(sumClicks)],['CTR',sumCTR+'%'],['Conv Rate',sumCVR>0?sumCVR+'%':'—'],['Downloads',fmt(sumDL)],['Cost/Download',sumCPDL],['Post Engagement',fmt(sumEng)],['Video Views',fmt(sumVV)]].map(([l,v])=>'<div style="background:var(--bg2);border-radius:8px;padding:8px 10px"><div style="font-size:10px;color:var(--text3);margin-bottom:2px">'+l+'</div><div style="font-size:15px;font-weight:500">'+v+'</div></div>').join('')}
+      <div style="margin-bottom:14px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+          <span style="font-size:12px;font-weight:500;color:var(--text)">Filter:</span>
+          <button onclick="this.closest('[id]').dataset.filtProg='all';loadMeta('mads')" style="font-size:11px;padding:4px 12px;border-radius:20px;border:1px solid var(--border);background:var(--bg2);cursor:pointer">All ads</button>
+          <button onclick="this.closest('[id]').dataset.filtProg='igniting';loadMeta('mads')" style="font-size:11px;padding:4px 12px;border-radius:20px;border:1px solid #185FA5;background:#E6F1FB;color:#185FA5;cursor:pointer">Igniting Leadership</button>
+          <button onclick="this.closest('[id]').dataset.filtProg='evolution';loadMeta('mads')" style="font-size:11px;padding:4px 12px;border-radius:20px;border:1px solid #0F6E56;background:#E1F5EE;color:#0F6E56;cursor:pointer">Leader Evolution</button>
         </div>
       </div>
-      <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:12px;font-weight:500">${ads.length} ads · sorted by spend</div>
-      ${ads.map(a=>{
+      <div style="background:white;border:0.5px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:16px">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:10px;font-weight:500">Summary — ${filtProg==='all'?'all '+filteredAds.length+' ads':filtProg==='igniting'?'Igniting Leadership':'Leader Evolution'}</div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:10px">Spend, downloads and clicks are exact totals. Reach is summed across ads — actual unique reach is lower due to audience overlap.</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:8px">
+          ${[['Total Spend','$'+fSpend.toFixed(0)],['Total Reach',fmt(fReach)],['Impressions',fmt(fImpr)],['Link Clicks',fmt(fClicks)],['CTR',fCTR+'%'],['Conv Rate',fCVR>0?fCVR+'%':'—'],['Downloads',fmt(fDL)],['Cost/Download',fCPDL],['Post Engagement',fmt(fEng)]].map(([l,v])=>'<div style="background:var(--bg2);border-radius:8px;padding:8px 10px"><div style="font-size:10px;color:var(--text3);margin-bottom:2px">'+l+'</div><div style="font-size:15px;font-weight:500">'+v+'</div></div>').join('')}
+        </div>
+      </div>
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:12px;font-weight:500">${filteredAds.length} ads · sorted by spend</div>
+      ${filteredAds.map(a=>{
         const ctr=a.impressions>0?(a.clicks/a.impressions*100).toFixed(2):0;
         const cvr=a.clicks>0&&a.dl>0?(a.dl/a.clicks*100).toFixed(1):0;
         const cpdl=a.dl>0?'$'+(a.spend/a.dl).toFixed(2):'—';
@@ -2793,18 +2820,21 @@ function renderMetaTab(el, sub, rows) {
         const effColor=ctr>avgCTR*1.2?'#0F6E56':ctr<avgCTR*0.8?'#c0392b':'#b5860b';
         const effLabel=ctr>avgCTR*1.2?'Above avg CTR':ctr<avgCTR*0.8?'Below avg CTR':'Avg CTR';
         return '<div style="background:white;border:0.5px solid var(--border);border-left:3px solid '+effColor+';border-radius:10px;padding:14px 16px;margin-bottom:10px">'
-          +'<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px">'
+          +'<div style="display:flex;gap:14px;margin-bottom:10px">'
+          +(AD_IMAGES[a.ad_name]?'<img src="'+AD_IMAGES[a.ad_name]+'" style="width:90px;height:90px;object-fit:cover;border-radius:8px;flex-shrink:0" onerror="this.style.display=\'none\'">':'')
+          +'<div style="flex:1;min-width:0"><div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px">'
           +'<div style="min-width:0;flex:1">'
+
           +'<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">'
           +'<span style="font-size:9px;padding:2px 6px;border-radius:8px;background:'+pBg+';color:'+pColor+';font-weight:500">'+pLabel+'</span>'
           +'<span style="font-size:13px;font-weight:500;color:var(--text)">'+a.ad_name+'</span>'
           +'</div>'
-          +'<div style="font-size:11px;color:var(--text3)">'+a.adset_name+' · '+a.campaign+'</div>'
+          +'<div style="font-size:11px;color:var(--text3)">'+(a.adset_name.replace('_FileDownload','').replace('_',' '))+' · '+a.campaign+'</div>'
           +'<div style="display:flex;gap:4px;margin-top:6px;flex-wrap:wrap">'
           +'<span style="font-size:9px;padding:2px 6px;border-radius:6px;background:'+effColor+'22;color:'+effColor+'">'+effLabel+'</span>'
           +rankBadge('Quality',a.quality)+rankBadge('Engagement',a.eng_rank)+rankBadge('Conversion',a.conv_rank)
           +'</div>'
-          +'</div>'
+          +'</div></div>'
           +'<div style="text-align:right;flex-shrink:0;margin-left:12px">'
           +'<div style="font-size:18px;font-weight:500">$'+a.spend.toFixed(0)+'</div>'
           +'<div style="font-size:11px;color:var(--text3)">'+fmt(a.reach)+' reach</div>'
@@ -2812,7 +2842,7 @@ function renderMetaTab(el, sub, rows) {
           +'</div>'
           +'</div>'
           +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:8px;margin-bottom:'+(hasVideo?'10':'0')+'px">'
-          +[['Impressions',fmt(a.impressions)],['Link Clicks',fmt(a.clicks)],['Conv Rate',cvr>0?cvr+'%':'—'],['Downloads',fmt(a.dl)],['Cost/Download',cpdl],['Post Engagement',fmt(a.post_eng)],['Video Views',fmt(a.video_views)]].map(([l,v])=>'<div style="background:var(--bg2);border-radius:8px;padding:8px 10px"><div style="font-size:10px;color:var(--text3);margin-bottom:2px">'+l+'</div><div style="font-size:14px;font-weight:500">'+v+'</div></div>').join('')
+          +[['Impressions',fmt(a.impressions)],['Link Clicks',fmt(a.clicks)],['Conv Rate',cvr>0?cvr+'%':'—'],['Downloads',fmt(a.dl)],['Cost/Download',cpdl],['Post Engagement',fmt(a.post_eng)]].map(([l,v])=>'<div style="background:var(--bg2);border-radius:8px;padding:8px 10px"><div style="font-size:10px;color:var(--text3);margin-bottom:2px">'+l+'</div><div style="font-size:14px;font-weight:500">'+v+'</div></div>').join('')
           +'</div>'
           +(hasVideo?'<div style="margin-top:6px"><div style="font-size:10px;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.6px">Video retention</div>'
           +'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">'
@@ -2853,7 +2883,7 @@ function renderMetaTab(el, sub, rows) {
         const spPct=totSpend2>0?(a.spend/totSpend2*100).toFixed(0):0;
         return '<div style="background:white;border:0.5px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px">'
           +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'
-          +'<div><div style="font-size:13px;font-weight:500;color:var(--text)">'+a.adset+'</div>'
+          +'<div><div style="font-size:13px;font-weight:500;color:var(--text)">'+a.adset.replace('_FileDownload','').replace('_',' ')+'</div>'
           +'<div style="font-size:11px;color:var(--text3);margin-top:2px">'+spPct+'% of budget · Freq: '+freq+'x</div></div>'
           +'<div style="text-align:right"><div style="font-size:18px;font-weight:500">$'+a.spend.toFixed(0)+'</div>'
           +'<div style="font-size:11px;color:var(--text3)">'+fmt(a.reach)+' reach</div></div>'

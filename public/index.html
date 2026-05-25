@@ -2824,38 +2824,29 @@ function renderMetaTab(el, sub, rows) {
         const effColor=ctr>avgCTR*1.2?'#0F6E56':ctr<avgCTR*0.8?'#c0392b':'#b5860b';
         const effLabel=ctr>avgCTR*1.2?'Above avg CTR':ctr<avgCTR*0.8?'Below avg CTR':'Avg CTR';
         return '<div style="background:white;border:0.5px solid var(--border);border-left:3px solid '+effColor+';border-radius:10px;padding:14px 16px;margin-bottom:10px">'
-          +'<div style="display:flex;gap:14px;margin-bottom:10px">'
-          +(AD_IMAGES[a.ad_name]?'<img src="'+AD_IMAGES[a.ad_name]+'" style="width:60px;height:60px;object-fit:cover;border-radius:6px;flex-shrink:0" onerror="this.style.display=\'none\'">':'')
-          +'<div style="flex:1;min-width:0"><div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px">'
-          +'<div style="min-width:0;flex:1">'
-
-          +'<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">'
+          +'<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">'
+          +(AD_IMAGES[a.ad_name]?'<img src="'+AD_IMAGES[a.ad_name]+'" style="width:56px;height:56px;object-fit:cover;border-radius:6px;flex-shrink:0" onerror="this.style.display=\'none\'">':'')
+          +'<div style="flex:1;min-width:0">'
+          +'<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">'
           +'<span style="font-size:9px;padding:2px 6px;border-radius:8px;background:'+pBg+';color:'+pColor+';font-weight:500">'+pLabel+'</span>'
           +'<span style="font-size:13px;font-weight:500;color:var(--text)">'+a.ad_name+'</span>'
           +'</div>'
-          +'<div style="font-size:11px;color:var(--text3)">'+(a.adset_name.replace('_FileDownload','').replace('_',' '))+' · '+a.campaign+'</div>'
-          +'<div style="display:flex;gap:4px;margin-top:6px;flex-wrap:wrap">'
-          +'<span style="font-size:9px;padding:2px 6px;border-radius:6px;background:'+effColor+'22;color:'+effColor+'">'+effLabel+'</span>'
-          +rankBadge('Quality',a.quality)+rankBadge('Engagement',a.eng_rank)+rankBadge('Conversion',a.conv_rank)
+          +'<div style="font-size:11px;color:var(--text3)">'+a.adset_name.replace('_FileDownload','').replace('_',' ')+' · '+a.campaign+'</div>'
+          +'<div style="display:flex;gap:6px;margin-top:5px;flex-wrap:wrap">'
+          +'<span style="font-size:9px;padding:2px 8px;border-radius:6px;background:'+effColor+'22;color:'+effColor+';font-weight:500">'+effLabel+'</span>'
+          +'<span style="font-size:9px;padding:2px 8px;border-radius:6px;background:var(--bg2);color:var(--text3)">CTR '+ctr+'%</span>'
+          +(cvr>0?'<span style="font-size:9px;padding:2px 8px;border-radius:6px;background:var(--bg2);color:var(--text3)">Conv '+cvr+'%</span>':'')
+          +rankBadge('Quality',a.quality)
           +'</div>'
-          +'</div></div>'
-          +'<div style="text-align:right;flex-shrink:0;margin-left:12px">'
+          +'</div>'
+          +'<div style="text-align:right;flex-shrink:0">'
           +'<div style="font-size:18px;font-weight:500">$'+a.spend.toFixed(0)+'</div>'
           +'<div style="font-size:11px;color:var(--text3)">'+fmt(a.reach)+' reach</div>'
-          +'<div style="font-size:11px;color:'+effColor+';font-weight:500">CTR '+ctr+'%</div>'
           +'</div>'
           +'</div>'
-          +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:8px;margin-bottom:'+(hasVideo?'10':'0')+'px">'
-          +[['Impressions',fmt(a.impressions)],['Link Clicks',fmt(a.clicks)],['Conv Rate',cvr>0?cvr+'%':'—'],['Downloads',fmt(a.dl)],['Cost/Download',cpdl],['Post Engagement',fmt(a.post_eng)]].map(([l,v])=>'<div style="background:var(--bg2);border-radius:8px;padding:8px 10px"><div style="font-size:10px;color:var(--text3);margin-bottom:2px">'+l+'</div><div style="font-size:14px;font-weight:500">'+v+'</div></div>').join('')
+          +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:8px">'
+          +[['Impressions',fmt(a.impressions)],['Link Clicks',fmt(a.clicks)],['Downloads',fmt(a.dl)],['Cost/Download',cpdl],['Post Engagement',fmt(a.post_eng)]].map(([l,v])=>'<div style="background:var(--bg2);border-radius:8px;padding:8px 10px"><div style="font-size:10px;color:var(--text3);margin-bottom:2px">'+l+'</div><div style="font-size:14px;font-weight:500">'+v+'</div></div>').join('')
           +'</div>'
-          +(hasVideo?'<div style="margin-top:6px"><div style="font-size:10px;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.6px">Video retention</div>'
-          +'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">'
-          +[['25%',a.v25],['50%',a.v50],['75%',a.v75],['100%',a.v100]].map(([l,v])=>{
-            const ret=a.v25>0?(v/a.v25*100).toFixed(0):0;
-            const retColor=ret>50?'#0F6E56':ret>25?'#b5860b':'#c0392b';
-            return '<div style="background:var(--bg2);border-radius:8px;padding:8px;text-align:center"><div style="font-size:11px;color:var(--text3)">'+l+'</div><div style="font-size:14px;font-weight:500">'+fmt(v)+'</div><div style="font-size:10px;color:'+retColor+';font-weight:500">'+ret+'% ret</div></div>';
-          }).join('')
-          +'</div></div>':'')
           +'</div>';
       }).join('')}`;
 

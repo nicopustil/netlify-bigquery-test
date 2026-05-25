@@ -1174,7 +1174,10 @@ STRICT RULES — violating these means the output is wrong:
   }
 
   // ── DEVICES (raw dataset — last 7 days rolling) ──
-  const deviceData = await bq(`SELECT device.category as device, COUNT(DISTINCT user_pseudo_id) as users, ROUND(SUM((SELECT value.int_value FROM UNNEST(event_params) WHERE key='engagement_time_msec'))/1000) as eng_sec FROM \`${P}.ga4_leadership_victoria_us.events_DISABLED\` WHERE _TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY)) GROUP BY device ORDER BY users DESC`);
+  let deviceData = [];
+  try {
+    deviceData = await bq(`SELECT device.category as device, COUNT(DISTINCT user_pseudo_id) as users FROM \\`${P}.ga4_leadership_victoria_us.events_*\\` WHERE _TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY)) GROUP BY device ORDER BY users DESC`);
+  } catch(e) { console.log('Device data skipped:', e.message); }
   renderDevices(deviceData);
 
   document.getElementById('lastUpdated').textContent='Updated '+new Date().toLocaleTimeString('en-AU',{timeZone:'Australia/Sydney',hour:'2-digit',minute:'2-digit'});

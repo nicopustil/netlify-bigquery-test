@@ -2405,10 +2405,16 @@ function renderLinkedInTab(el, sub, rows) {
 
 // ── LOAD META ─────────────────────────────────────────────────────────────────
 const META_PROG = {
-  igniting: kw => /igniting|ilp|ignite/i.test(kw),
-  evolution: kw => /evolution|levo|leaderevolution/i.test(kw),
+  igniting: kw => /igniting|ilp|ignite|igniting leadership/i.test(kw),
+  evolution: kw => /evolution|levo|leaderevolution|leader evolution/i.test(kw),
 };
-const META_FUNNEL = kw => /^tof/i.test(kw) ? 'TOF' : /^mof/i.test(kw) ? 'MOF' : /^bof/i.test(kw) ? 'BOF' : null;
+function metaProgMatch(row) {
+  const fields = [row.campaign||"", row.adset_name||"", row.ad_name||""].join(" ");
+  if (META_PROG.igniting(fields)) return "igniting";
+  if (META_PROG.evolution(fields)) return "evolution";
+  return "other";
+}
+const META_FUNNEL = kw => /^tof/i.test(kw) ? "TOF" : /^mof/i.test(kw) ? "MOF" : /^bof/i.test(kw) ? "BOF" : null;
 
 async function loadMeta(sub) {
   sub = sub || 'moverview';
@@ -2516,7 +2522,7 @@ function renderMetaNoData(el, sub) {
 
 function renderMetaTab(el, sub, rows) {
   const cn = (v) => parseFloat(String(v||0).replace(',',''))||0;
-  const prog = name => META_PROG.igniting(name||'') ? 'igniting' : META_PROG.evolution(name||'') ? 'evolution' : 'other';
+  const prog = row => metaProgMatch(typeof row === "string" ? {campaign:row} : row);
   const funnel = name => META_FUNNEL(name||'');
 
   if (sub === 'moverview') {
@@ -2528,8 +2534,8 @@ function renderMetaTab(el, sub, rows) {
     const totContact = rows.reduce((a,r)=>a+cn(r.actions_lead)+cn(r.actions_offsite_conversion_fb_pixel_lead),0);
     const totReg = rows.reduce((a,r)=>a+cn(r.actions_complete_registration)+cn(r.actions_offsite_conversion_fb_pixel_complete_registration),0);
 
-    const ilRows = rows.filter(r=>prog(r.campaign)==='igniting');
-    const leRows = rows.filter(r=>prog(r.campaign)==='evolution');
+    const ilRows = rows.filter(r=>prog(r)==='igniting');
+    const leRows = rows.filter(r=>prog(r)==='evolution');
     const ilSpend = ilRows.reduce((a,r)=>a+cn(r.spend),0);
     const leSpend = leRows.reduce((a,r)=>a+cn(r.spend),0);
 
@@ -2588,7 +2594,7 @@ function renderMetaTab(el, sub, rows) {
   } else {
     // Program-specific view
     const progKey = sub === 'igniting' ? 'igniting' : 'evolution';
-    const progRows = rows.filter(r => prog(r.campaign) === progKey);
+    const progRows = rows.filter(r => prog(r) === progKey);
     const progLabel = progKey === 'igniting' ? 'Igniting Leadership Program' : 'Leader Evolution';
     const progColor = progKey === 'igniting' ? '#185FA5' : '#0F6E56';
 

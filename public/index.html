@@ -227,6 +227,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
   <button class="tab" style="font-size:11px;padding:7px 12px 9px;color:#1877f2" onclick="switchSub('meta','igniting',this)">Igniting</button>
   <button class="tab" style="font-size:11px;padding:7px 12px 9px;color:#1877f2" onclick="switchSub('meta','evolution',this)">Evolution</button>
   <button class="tab" style="font-size:11px;padding:7px 12px 9px;color:#1877f2" onclick="switchSub('meta','mfunnel',this)">Funnel</button>
+  <button class="tab" style="font-size:11px;padding:7px 12px 9px;color:#1877f2" onclick="switchSub('meta','maudiences',this)">Audiences</button>
   <button class="tab" style="font-size:11px;padding:7px 12px 9px;color:#1877f2" onclick="switchSub('meta','mads',this)">Ad Creatives</button>
   <button class="tab" style="font-size:11px;padding:7px 12px 9px;color:#1877f2" onclick="switchSub('meta','mhealth',this)">Tracking</button>
 </div>
@@ -566,7 +567,11 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
   </div>
 
   <!-- META: ADS -->
-  <div class="tab-content" id="tab-meta-mads">
+    <div class="tab-content" id="tab-meta-maudiences">
+    <div id="meta-audiences-content"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+  </div>
+
+<div class="tab-content" id="tab-meta-mads">
     <div id="meta-ads-content"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
   </div>
 
@@ -2182,7 +2187,7 @@ function switchMain(name, btn) {
     const sub = currentSub.meta || 'moverview';
     const subBtns = document.querySelectorAll('#subnav-meta .tab');
     subBtns.forEach(b => b.classList.remove('active'));
-    const subMap = {moverview:0,igniting:1,evolution:2,mfunnel:3,mads:4,mhealth:5};
+    const subMap = {moverview:0,igniting:1,evolution:2,mfunnel:3,maudiences:4,mads:5,mhealth:6};
     if (subBtns[subMap[sub]]) subBtns[subMap[sub]].classList.add('active');
     document.getElementById('tab-meta-' + sub).classList.add('active');
     loadMeta(sub);
@@ -2433,6 +2438,7 @@ async function loadMeta(sub) {
     evolution: 'meta-evolution-content',
     mfunnel: 'meta-funnel-content',
     mads: 'meta-ads-content',
+    maudiences: 'meta-audiences-content',
     mhealth: 'meta-health-content',
   }[sub];
   const el = document.getElementById(elId);
@@ -2533,24 +2539,23 @@ function renderMetaTab(el, sub, rows) {
   const cn = (v) => parseFloat(String(v||0).replace(',',''))||0;
   const prog = row => metaProgMatch(typeof row === 'string' ? {campaign:row} : row);
   const funnel = name => META_FUNNEL(name||'');
+  const pct = (a,b) => b>0 ? (a/b*100).toFixed(1)+'%' : '—';
+  const cpa = (spend,conv) => conv>0 ? '$'+(spend/conv).toFixed(2) : '—';
 
   if (sub === 'moverview') {
     const totSpend = rows.reduce((a,r)=>a+cn(r.spend),0);
     const totReach = rows.reduce((a,r)=>a+cn(r.reach),0);
     const totClicks = rows.reduce((a,r)=>a+cn(r.link_clicks),0);
     const totImpr = rows.reduce((a,r)=>a+cn(r.impressions),0);
+    const totCTR = totImpr>0?(totClicks/totImpr*100).toFixed(2):0;
     const totDL = rows.reduce((a,r)=>a+cn(r.conversions_offsite_conversion_fb_pixel_custom_file_download),0);
-    const totContact = rows.reduce((a,r)=>a+cn(r.actions_lead)+cn(r.actions_offsite_conversion_fb_pixel_lead),0);
-    const totReg = rows.reduce((a,r)=>a+cn(r.actions_complete_registration)+cn(r.actions_offsite_conversion_fb_pixel_complete_registration),0);
-
+    const totCo = rows.reduce((a,r)=>a+cn(r.actions_lead)+cn(r.actions_offsite_conversion_fb_pixel_lead),0);
+    const totReg = rows.reduce((a,r)=>a+cn(r.actions_complete_registration),0);
     const ilRows = rows.filter(r=>prog(r)==='igniting');
     const leRows = rows.filter(r=>prog(r)==='evolution');
-    const ilSpend = ilRows.reduce((a,r)=>a+cn(r.spend),0);
-    const leSpend = leRows.reduce((a,r)=>a+cn(r.spend),0);
-
     el.innerHTML = `
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px;margin-bottom:16px">
-        ${[['Spend', ilSpend>0 ? '$'+(totSpend/1000).toFixed(1)+'K' : '$'+totSpend.toFixed(0), ''],['Reach',fmt(totReach),''],['Impressions',fmt(totImpr),''],['Link Clicks',fmt(totClicks),'CTR '+(totImpr>0?(totClicks/totImpr*100).toFixed(2):'0')+'%'],['Downloads',fmt(totDL),''],['Contacts',fmt(totContact),''],['Register Intent',fmt(totReg),'']].map(([l,v,s])=>`
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:10px;margin-bottom:16px">
+        ${[['Spend', totSpend>=1000 ? '$'+(totSpend/1000).toFixed(1)+'K' : '$'+totSpend.toFixed(0), ''],['Reach',fmt(totReach),''],['Impressions',fmt(totImpr),''],['Link Clicks',fmt(totClicks),''],['CTR',totCTR+'%',''],['Downloads',fmt(totDL),''],['Contacts',fmt(totCo),''],['Register Intent',fmt(totReg),'']].map(([l,v,s])=>`
           <div style="background:var(--bg2);border-radius:10px;padding:12px 14px">
             <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">${l}</div>
             <div style="font-size:22px;font-weight:400;font-family:'Cormorant Garamond',serif;color:var(--text)">${v}</div>
@@ -2560,7 +2565,7 @@ function renderMetaTab(el, sub, rows) {
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
         ${[['igniting','Igniting Leadership','#185FA5','#0C447C',ilRows],['evolution','Leader Evolution','#0F6E56','#085041',leRows]].map(([p,label,c,tc,pRows])=>{
           const sp=pRows.reduce((a,r)=>a+cn(r.spend),0);
-          const pct=totSpend>0?(sp/totSpend*100).toFixed(0):0;
+          const pct2=totSpend>0?(sp/totSpend*100).toFixed(0):0;
           const dl=pRows.reduce((a,r)=>a+cn(r.conversions_offsite_conversion_fb_pixel_custom_file_download),0);
           const co=pRows.reduce((a,r)=>a+cn(r.actions_lead)+cn(r.actions_offsite_conversion_fb_pixel_lead),0);
           const ri=pRows.reduce((a,r)=>a+cn(r.actions_complete_registration),0);
@@ -2569,9 +2574,9 @@ function renderMetaTab(el, sub, rows) {
             <div style="font-size:10px;font-weight:500;color:${tc};text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px">${label}</div>
             <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">
               <span style="font-size:20px;font-weight:500;color:var(--text)">$${sp.toFixed(0)}</span>
-              <span style="font-size:11px;color:var(--text3)">${pct}% of spend</span>
+              <span style="font-size:11px;color:var(--text3)">${pct2}% of spend</span>
             </div>
-            <div style="height:3px;background:var(--bg2);border-radius:2px;margin-bottom:12px"><div style="height:3px;width:${pct}%;background:${c};border-radius:2px"></div></div>
+            <div style="height:3px;background:var(--bg2);border-radius:2px;margin-bottom:12px"><div style="height:3px;width:${pct2}%;background:${c};border-radius:2px"></div></div>
             ${[['Reach',fmt(re)],['Downloads',fmt(dl)],['Contacts',fmt(co)],['Register Intent',fmt(ri)]].map(([l,v])=>'<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:12px;border-bottom:0.5px solid var(--border)"><span style="color:var(--text3)">'+l+'</span><span style="font-weight:500">'+v+'</span></div>').join('')}
           </div>`;
         }).join('')}
@@ -2607,33 +2612,34 @@ function renderMetaTab(el, sub, rows) {
           }).join('');
         })()}
       </div>`;
-  } else {
-    // Program-specific view
+
+  } else if (sub === 'igniting' || sub === 'evolution') {
     const progKey = sub === 'igniting' ? 'igniting' : 'evolution';
     const progRows = rows.filter(r => prog(r) === progKey);
     const progLabel = progKey === 'igniting' ? 'Igniting Leadership Program' : 'Leader Evolution';
     const progColor = progKey === 'igniting' ? '#185FA5' : '#0F6E56';
-
     if (!progRows.length) {
       el.innerHTML = `<div style="border:1px dashed var(--border);border-radius:10px;padding:24px;text-align:center;color:var(--text3);font-size:12px">No ${progLabel} campaigns found in this period</div>`;
       return;
     }
-
     const sp=progRows.reduce((a,r)=>a+cn(r.spend),0);
     const re=progRows.reduce((a,r)=>a+cn(r.reach),0);
     const cl=progRows.reduce((a,r)=>a+cn(r.link_clicks),0);
+    const im=progRows.reduce((a,r)=>a+cn(r.impressions),0);
     const dl=progRows.reduce((a,r)=>a+cn(r.conversions_offsite_conversion_fb_pixel_custom_file_download),0);
     const co=progRows.reduce((a,r)=>a+cn(r.actions_lead)+cn(r.actions_offsite_conversion_fb_pixel_lead),0);
     const ri=progRows.reduce((a,r)=>a+cn(r.actions_complete_registration),0);
-
+    const ctrVal=im>0?(cl/im*100).toFixed(2):0;
+    const cvRate=cl>0&&dl>0?(dl/cl*100).toFixed(1):0;
+    const uniqueCamps = new Set(progRows.map(r=>r.campaign)).size;
     el.innerHTML = `
       <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:${progKey==='igniting'?'#E6F1FB':'#E1F5EE'};border-radius:10px;margin-bottom:14px">
         <div style="width:9px;height:9px;border-radius:50%;background:${progColor};flex-shrink:0"></div>
         <div style="font-size:13px;font-weight:500;color:${progColor}">${progLabel}</div>
-        <div style="font-size:11px;color:var(--text3);margin-left:auto">Campaigns: ${progRows.length}</div>
+        <div style="font-size:11px;color:var(--text3);margin-left:auto">Campaigns: ${uniqueCamps} · Ads: ${progRows.length}</div>
       </div>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:10px;margin-bottom:14px">
-        ${[['Spend','$'+sp.toFixed(0)],['Reach',fmt(re)],['Clicks',fmt(cl)],['Downloads',fmt(dl)],['Contacts',fmt(co)],['Register',fmt(ri)]].map(([l,v])=>`
+        ${[['Spend','$'+sp.toFixed(0)],['Reach',fmt(re)],['Impressions',fmt(im)],['Link Clicks',fmt(cl)],['CTR',ctrVal+'%'],['Conv Rate',cvRate>0?cvRate+'%':'—'],['Downloads',fmt(dl)],['Contacts',fmt(co)],['Register',fmt(ri)]].map(([l,v])=>`
           <div style="background:var(--bg2);border-radius:10px;padding:11px 13px;border-top:2px solid ${progColor}">
             <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px">${l}</div>
             <div style="font-size:20px;font-weight:400;font-family:'Cormorant Garamond',serif;color:var(--text)">${v}</div>
@@ -2671,6 +2677,163 @@ function renderMetaTab(el, sub, rows) {
           }).join('');
         })()}
       </div>`;
+
+  } else if (sub === 'mfunnel') {
+    // TOF/MOF/BOF funnel breakdown
+    const stages = ['TOF','MOF','BOF'];
+    const stageData = {};
+    stages.forEach(s=>{ stageData[s]={spend:0,reach:0,impressions:0,clicks:0,dl:0,co:0,ri:0,rows:[]}; });
+    rows.forEach(r=>{
+      const f=funnel(r.campaign)||'TOF';
+      if(stageData[f]){
+        stageData[f].spend+=cn(r.spend);
+        stageData[f].reach+=cn(r.reach);
+        stageData[f].impressions+=cn(r.impressions);
+        stageData[f].clicks+=cn(r.link_clicks);
+        stageData[f].dl+=cn(r.conversions_offsite_conversion_fb_pixel_custom_file_download);
+        stageData[f].co+=cn(r.actions_lead)+cn(r.actions_offsite_conversion_fb_pixel_lead);
+        stageData[f].ri+=cn(r.actions_complete_registration);
+        stageData[f].rows.push(r);
+      }
+    });
+    const totSpend=rows.reduce((a,r)=>a+cn(r.spend),0);
+    const stageCfg={TOF:{label:'Top of Funnel',desc:'Awareness — new audiences',bg:'#E6F1FB',c:'#1d3557',tc:'#0C447C'},MOF:{label:'Middle of Funnel',desc:'Consideration — retargeting',bg:'#FEF3DC',c:'#b5860b',tc:'#7a5c00'},BOF:{label:'Bottom of Funnel',desc:'Conversion — warm leads',bg:'#E8F5EE',c:'#2d6a4f',tc:'#1a4532'}};
+    el.innerHTML = `
+      <div style="margin-bottom:14px">
+        ${stages.map(s=>{
+          const d=stageData[s]; const cfg=stageCfg[s];
+          const ctr=d.impressions>0?(d.clicks/d.impressions*100).toFixed(2):0;
+          const cvr=d.clicks>0&&d.dl>0?(d.dl/d.clicks*100).toFixed(1):0;
+          const spPct=totSpend>0?(d.spend/totSpend*100).toFixed(0):0;
+          return `<div style="background:white;border:0.5px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;border-left:3px solid ${cfg.c}">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+              <div>
+                <span style="font-size:9px;padding:2px 8px;border-radius:8px;background:${cfg.bg};color:${cfg.tc};font-weight:500">${s}</span>
+                <span style="font-size:12px;font-weight:500;color:var(--text);margin-left:8px">${cfg.label}</span>
+                <div style="font-size:11px;color:var(--text3);margin-top:2px">${cfg.desc}</div>
+              </div>
+              <div style="text-align:right">
+                <div style="font-size:18px;font-weight:500">$${d.spend.toFixed(0)}</div>
+                <div style="font-size:11px;color:var(--text3)">${spPct}% of budget</div>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px">
+              ${[['Reach',fmt(d.reach)],['Impressions',fmt(d.impressions)],['Clicks',fmt(d.clicks)],['CTR',ctr+'%'],['Conv Rate',cvr>0?cvr+'%':'—'],['Downloads',fmt(d.dl)]].map(([l,v])=>'<div style="background:var(--bg2);border-radius:8px;padding:8px 10px"><div style="font-size:10px;color:var(--text3);margin-bottom:2px">'+l+'</div><div style="font-size:14px;font-weight:500">'+v+'</div></div>').join('')}
+            </div>
+            ${d.rows.length===0?'<div style="font-size:11px;color:var(--text3);margin-top:8px;padding:8px;background:var(--bg2);border-radius:6px">No campaigns in this stage yet</div>':''}
+          </div>`;
+        }).join('')}
+      </div>`;
+
+  } else if (sub === 'mads') {
+    // Ad Creatives — stats per ad
+    const adGrp={};
+    rows.forEach(r=>{
+      const k=(r.ad_name||'Unknown')+'||'+(r.adset_name||'');
+      if(!adGrp[k]) adGrp[k]={
+        ad_name:r.ad_name||'Unknown', adset_name:r.adset_name||'',
+        campaign:r.campaign||'', prog:prog(r),
+        spend:0,impressions:0,clicks:0,reach:0,
+        dl:0,co:0,ri:0,
+        post_eng:0,video_views:0,thruplay:0,
+        v25:0,v50:0,v75:0,v100:0,
+        quality:r.quality_ranking||'',
+        eng_rank:r.engagement_rate_ranking||'',
+        conv_rank:r.conversion_rate_ranking||''
+      };
+      const g=adGrp[k];
+      g.spend+=cn(r.spend); g.impressions+=cn(r.impressions);
+      g.clicks+=cn(r.link_clicks); g.reach+=cn(r.reach);
+      g.dl+=cn(r.conversions_offsite_conversion_fb_pixel_custom_file_download);
+      g.co+=cn(r.actions_lead)+cn(r.actions_offsite_conversion_fb_pixel_lead);
+      g.ri+=cn(r.actions_complete_registration);
+      g.post_eng+=cn(r.actions_post_engagement);
+      g.video_views+=cn(r.actions_video_view);
+      g.thruplay+=cn(r.video_thruplay_watched_actions);
+      g.v25+=cn(r.video_p25_watched_actions);
+      g.v50+=cn(r.video_p50_watched_actions);
+      g.v75+=cn(r.video_p75_watched_actions);
+      g.v100+=cn(r.video_p100_watched_actions);
+    });
+    const ads=Object.values(adGrp).sort((a,b)=>b.spend-a.spend);
+    if(!ads.length){el.innerHTML='<div style="padding:24px;text-align:center;color:var(--text3);font-size:12px">No ad data available</div>';return;}
+    el.innerHTML = `
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:12px;font-weight:500">${ads.length} ads · sorted by spend</div>
+      ${ads.map(a=>{
+        const ctr=a.impressions>0?(a.clicks/a.impressions*100).toFixed(2):0;
+        const cvr=a.clicks>0&&a.dl>0?(a.dl/a.clicks*100).toFixed(1):0;
+        const hasVideo=a.v25>0||a.thruplay>0;
+        const pColor=a.prog==='igniting'?'#185FA5':a.prog==='evolution'?'#0F6E56':'var(--text3)';
+        const pBg=a.prog==='igniting'?'#E6F1FB':a.prog==='evolution'?'#E1F5EE':'var(--bg2)';
+        const pLabel=a.prog==='igniting'?'ILP':a.prog==='evolution'?'EVO':'—';
+        const rankBadge=(label,val)=>val&&val!=='UNKNOWN'?'<span style="font-size:9px;padding:2px 6px;border-radius:6px;background:var(--bg2);color:var(--text3)">'+label+': '+val.replace('_',' ').toLowerCase()+'</span>':'';
+        return '<div style="background:white;border:0.5px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px">'
+          +'<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px">'
+          +'<div style="min-width:0;flex:1">'
+          +'<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">'
+          +'<span style="font-size:9px;padding:2px 6px;border-radius:8px;background:'+pBg+';color:'+pColor+';font-weight:500">'+pLabel+'</span>'
+          +'<span style="font-size:13px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+a.ad_name+'</span>'
+          +'</div>'
+          +'<div style="font-size:11px;color:var(--text3)">'+a.adset_name+' · '+a.campaign+'</div>'
+          +'<div style="display:flex;gap:4px;margin-top:6px">'+rankBadge('Quality',a.quality)+rankBadge('Eng',a.eng_rank)+rankBadge('Conv',a.conv_rank)+'</div>'
+          +'</div>'
+          +'<div style="text-align:right;flex-shrink:0;margin-left:12px">'
+          +'<div style="font-size:18px;font-weight:500">$'+a.spend.toFixed(0)+'</div>'
+          +'<div style="font-size:11px;color:var(--text3)">'+fmt(a.reach)+' reach</div>'
+          +'</div>'
+          +'</div>'
+          +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:8px;margin-bottom:10px">'
+          +[['Impressions',fmt(a.impressions)],['Link Clicks',fmt(a.clicks)],['CTR',ctr+'%'],['Conv Rate',cvr>0?cvr+'%':'—'],['Downloads',fmt(a.dl)],['Post Eng',fmt(a.post_eng)],['Video Views',fmt(a.video_views)]].map(([l,v])=>'<div style="background:var(--bg2);border-radius:8px;padding:8px 10px"><div style="font-size:10px;color:var(--text3);margin-bottom:2px">'+l+'</div><div style="font-size:14px;font-weight:500">'+v+'</div></div>').join('')
+          +'</div>'
+          +(hasVideo?'<div style="margin-top:6px"><div style="font-size:10px;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.6px">Video retention</div>'
+          +'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">'
+          +[['25%',a.v25],['50%',a.v50],['75%',a.v75],['100%',a.v100]].map(([l,v])=>{
+            const pct2=a.v25>0?(v/a.v25*100).toFixed(0):0;
+            return '<div style="background:var(--bg2);border-radius:8px;padding:8px;text-align:center"><div style="font-size:11px;color:var(--text3)">'+l+'</div><div style="font-size:14px;font-weight:500">'+fmt(v)+'</div><div style="font-size:10px;color:var(--text3)">'+pct2+'% ret</div></div>';
+          }).join('')
+          +'</div></div>':'')
+          +'</div>';
+      }).join('')}`;
+
+  } else if (sub === 'maudiences') {
+    // Audiences — performance by adset
+    const adsetGrp={};
+    rows.forEach(r=>{
+      const k=r.adset_name||'Unknown';
+      if(!adsetGrp[k]) adsetGrp[k]={adset:k,spend:0,reach:0,impressions:0,clicks:0,dl:0,co:0,ri:0,post_eng:0,freq_sum:0,freq_count:0};
+      const g=adsetGrp[k];
+      g.spend+=cn(r.spend); g.reach+=cn(r.reach);
+      g.impressions+=cn(r.impressions); g.clicks+=cn(r.link_clicks);
+      g.dl+=cn(r.conversions_offsite_conversion_fb_pixel_custom_file_download);
+      g.co+=cn(r.actions_lead)+cn(r.actions_offsite_conversion_fb_pixel_lead);
+      g.ri+=cn(r.actions_complete_registration);
+      g.post_eng+=cn(r.actions_post_engagement);
+      if(cn(r.frequency)>0){g.freq_sum+=cn(r.frequency);g.freq_count++;}
+    });
+    const adsets=Object.values(adsetGrp).sort((a,b)=>b.spend-a.spend);
+    const totSpend2=adsets.reduce((a,r)=>a+r.spend,0);
+    if(!adsets.length){el.innerHTML='<div style="padding:24px;text-align:center;color:var(--text3)">No audience data</div>';return;}
+    el.innerHTML=`
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:12px;font-weight:500">${adsets.length} audiences · performance by ad set</div>
+      ${adsets.map(a=>{
+        const ctr=a.impressions>0?(a.clicks/a.impressions*100).toFixed(2):0;
+        const cvr=a.clicks>0&&a.dl>0?(a.dl/a.clicks*100).toFixed(1):0;
+        const cpl=a.dl>0?(a.spend/a.dl).toFixed(2):0;
+        const freq=a.freq_count>0?(a.freq_sum/a.freq_count).toFixed(1):0;
+        const spPct=totSpend2>0?(a.spend/totSpend2*100).toFixed(0):0;
+        return '<div style="background:white;border:0.5px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px">'
+          +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'
+          +'<div><div style="font-size:13px;font-weight:500;color:var(--text)">'+a.adset+'</div>'
+          +'<div style="font-size:11px;color:var(--text3);margin-top:2px">'+spPct+'% of budget · Freq: '+freq+'x</div></div>'
+          +'<div style="text-align:right"><div style="font-size:18px;font-weight:500">$'+a.spend.toFixed(0)+'</div>'
+          +'<div style="font-size:11px;color:var(--text3)">'+fmt(a.reach)+' reach</div></div>'
+          +'</div>'
+          +'<div style="height:3px;background:var(--bg2);border-radius:2px;margin-bottom:10px">'
+          +'<div style="height:3px;width:'+spPct+'%;background:#1877f2;border-radius:2px"></div></div>'
+          +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:8px">'
+          +[['Impressions',fmt(a.impressions)],['Link Clicks',fmt(a.clicks)],['CTR',ctr+'%'],['Conv Rate',cvr>0?cvr+'%':'—'],['Downloads',fmt(a.dl)],['Cost/DL',cpl>0?'$'+cpl:'—'],['Post Eng',fmt(a.post_eng)]].map(([l,v])=>'<div style="background:var(--bg2);border-radius:8px;padding:8px 10px"><div style="font-size:10px;color:var(--text3);margin-bottom:2px">'+l+'</div><div style="font-size:14px;font-weight:500">'+v+'</div></div>').join('')
+          +'</div></div>';
+      }).join('')}`;
   }
 }
 

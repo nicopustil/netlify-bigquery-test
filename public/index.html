@@ -1179,9 +1179,13 @@ STRICT RULES — violating these means the output is wrong:
 
   // ── DEVICES (raw dataset — last 7 days rolling) ──
   let deviceData = [];
+  // Raw events table may not exist — skip silently
   try {
-    deviceData = await bq(`SELECT device.category as device, COUNT(DISTINCT user_pseudo_id) as users FROM \`${P}.ga4_leadership_victoria_us.events_*\` WHERE _TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY)) GROUP BY device ORDER BY users DESC`);
-  } catch(e) { console.log('Device data skipped:', e.message); }
+    const hasTables = await bq(`SELECT COUNT(*) as n FROM \`${P}.ga4_leadership_victoria_us.INFORMATION_SCHEMA.TABLES\` WHERE table_name LIKE 'events_%' LIMIT 1`);
+    if(hasTables && hasTables[0] && parseInt(hasTables[0].n)>0){
+      deviceData = await bq(`SELECT device.category as device, COUNT(DISTINCT user_pseudo_id) as users FROM \`${P}.ga4_leadership_victoria_us.events_*\` WHERE _TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY)) GROUP BY device ORDER BY users DESC`);
+    }
+  } catch(e) { }
   renderDevices(deviceData);
 
   document.getElementById('lastUpdated').textContent='Updated '+new Date().toLocaleTimeString('en-AU',{timeZone:'Australia/Sydney',hour:'2-digit',minute:'2-digit'});
@@ -2412,10 +2416,10 @@ function renderLinkedInTab(el, sub, rows) {
 
 // ── LOAD META ─────────────────────────────────────────────────────────────────
 const AD_IMAGES = {
-  'Reach: Evolve A': '/LV_REACH_AD_EVOLVE_A.png',
-  'Reach: Evolve B': '/LV_REACH_%20AD_EVOLVE_B.png',
-  'Reach: Ignite A': '/LV_REACH_AD_IGNITE_A.png',
-  'Reach: Ignite B': '/LV_REACH_AD_IGNITE_B.png',
+  'Reach: Evolve A': '/LV_EVOLVE_A.png',
+  'Reach: Evolve B': '/LV_EVOLVE_B.png',
+  'Reach: Ignite A': '/LV_IGNITE_1.png',
+  'Reach: Ignite B': '/LV_IGNITE_2.png',
 };
 const META_PROG = {
   igniting: kw => /igniting|ilp|ignite/i.test(kw),

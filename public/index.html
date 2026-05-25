@@ -2408,14 +2408,20 @@ function renderLinkedInTab(el, sub, rows) {
 
 // ── LOAD META ─────────────────────────────────────────────────────────────────
 const META_PROG = {
-  igniting: kw => /igniting|ilp|ignite|igniting leadership/i.test(kw),
-  evolution: kw => /evolution|levo|leaderevolution|leader evolution/i.test(kw),
+  igniting: kw => /igniting|ilp|ignite/i.test(kw),
+  evolution: kw => /evolution|levo|evolve/i.test(kw),
 };
 function metaProgMatch(row) {
-  const fields = [row.campaign||"", row.adset_name||"", row.ad_name||""].join(" ");
-  if (META_PROG.igniting(fields)) return "igniting";
-  if (META_PROG.evolution(fields)) return "evolution";
-  return "other";
+  const adName = row.ad_name || '';
+  if (META_PROG.igniting(adName)) return 'igniting';
+  if (META_PROG.evolution(adName)) return 'evolution';
+  const adset = row.adset_name || '';
+  if (META_PROG.igniting(adset)) return 'igniting';
+  if (META_PROG.evolution(adset)) return 'evolution';
+  const camp = row.campaign || '';
+  if (META_PROG.igniting(camp)) return 'igniting';
+  if (META_PROG.evolution(camp)) return 'evolution';
+  return 'other';
 }
 const META_FUNNEL = kw => /^tof/i.test(kw) ? "TOF" : /^mof/i.test(kw) ? "MOF" : /^bof/i.test(kw) ? "BOF" : null;
 
@@ -2575,24 +2581,39 @@ function renderMetaTab(el, sub, rows) {
         <div style="display:grid;grid-template-columns:1fr 52px 52px 52px 52px;font-size:9px;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);padding-bottom:6px;border-bottom:1px solid var(--border);gap:6px">
           <span>Campaign</span><span style="text-align:right">Spend</span><span style="text-align:right">DL</span><span style="text-align:right">Contact</span><span style="text-align:right">Reg</span>
         </div>
-        ${rows.slice(0,12).map(r=>{
-          const f=funnel(r.campaign);
-          const stageBg=f==='TOF'?'#E6F1FB':f==='MOF'?'#FEF3DC':f==='BOF'?'#E8F5EE':'var(--bg2)';
-          const stageColor=f==='TOF'?'#1d3557':f==='MOF'?'#b5860b':f==='BOF'?'#2d6a4f':'var(--text3)';
-          const dl=cn(r.conversions_offsite_conversion_fb_pixel_custom_file_download);
-          const co=cn(r.actions_lead)+cn(r.actions_offsite_conversion_fb_pixel_lead);
-          const ri=cn(r.actions_complete_registration);
-          return `<div style="display:grid;grid-template-columns:1fr 52px 52px 52px 52px;padding:7px 0;border-bottom:0.5px solid var(--bg2);align-items:center;font-size:12px;gap:6px">
-            <div style="display:flex;align-items:center;gap:6px;min-width:0">
-              ${f?`<span style="font-size:9px;padding:2px 6px;border-radius:8px;font-weight:500;background:${stageBg};color:${stageColor};flex-shrink:0">${f}</span>`:''}
-              <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.campaign||'—'}</span>
-            </div>
-            <span style="text-align:right;font-weight:500">$${cn(r.spend).toFixed(0)}</span>
-            <span style="text-align:right;color:${dl>0?'var(--accent)':'var(--text3)'}">${dl>0?fmt(dl):'—'}</span>
-            <span style="text-align:right;color:${co>0?'var(--accent)':'var(--text3)'}">${co>0?fmt(co):'—'}</span>
-            <span style="text-align:right;color:${ri>0?'var(--accent)':'var(--text3)'}">${ri>0?fmt(ri):'—'}</span>
-          </div>`;
-        }).join('')}
+        ${(()=>{
+          // Group rows by campaign name
+          const grouped = {};
+          rows.forEach(r=>{
+            const key = r.campaign||'Unknown';
+            if(!grouped[key]) grouped[key]={campaign:key,spend:0,reach:0,link_clicks:0,dl:0,co:0,ri:0,prog:prog(r)};
+            grouped[key].spend+=cn(r.spend);
+            grouped[key].reach+=cn(r.reach);
+            grouped[key].link_clicks+=cn(r.link_clicks);
+            grouped[key].dl+=cn(r.conversions_offsite_conversion_fb_pixel_custom_file_download);
+            grouped[key].co+=cn(r.actions_lead)+cn(r.actions_offsite_conversion_fb_pixel_lead);
+            grouped[key].ri+=cn(r.actions_complete_registration);
+          });
+          return Object.values(grouped).sort((a,b)=>b.spend-a.spend).slice(0,12).map(r=>{
+            const f=funnel(r.campaign);
+            const stageBg=f==='TOF'?'#E6F1FB':f==='MOF'?'#FEF3DC':f==='BOF'?'#E8F5EE':'var(--bg2)';
+            const stageColor=f==='TOF'?'#1d3557':f==='MOF'?'#b5860b':f==='BOF'?'#2d6a4f':'var(--text3)';
+            const progLabel=r.prog==='igniting'?'ILP':r.prog==='evolution'?'EVO':null;
+            const progBg=r.prog==='igniting'?'#E6F1FB':r.prog==='evolution'?'#E1F5EE':null;
+            const progColor2=r.prog==='igniting'?'#185FA5':r.prog==='evolution'?'#0F6E56':null;
+            return \`<div style="display:grid;grid-template-columns:1fr 52px 52px 52px 52px;padding:7px 0;border-bottom:0.5px solid var(--bg2);align-items:center;font-size:12px;gap:6px">
+              <div style="display:flex;align-items:center;gap:4px;min-width:0">
+                \${f?\`<span style="font-size:9px;padding:2px 5px;border-radius:8px;font-weight:500;background:\${stageBg};color:\${stageColor};flex-shrink:0">\${f}</span>\`:''}
+                \${progLabel?\`<span style="font-size:9px;padding:2px 5px;border-radius:8px;font-weight:500;background:\${progBg};color:\${progColor2};flex-shrink:0">\${progLabel}</span>\`:''}
+                <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">\${r.campaign}</span>
+              </div>
+              <span style="text-align:right;font-weight:500">$\${r.spend.toFixed(0)}</span>
+              <span style="text-align:right;color:\${r.dl>0?'var(--accent)':'var(--text3)'}">\${r.dl>0?fmt(r.dl):'—'}</span>
+              <span style="text-align:right;color:\${r.co>0?'var(--accent)':'var(--text3)'}">\${r.co>0?fmt(r.co):'—'}</span>
+              <span style="text-align:right;color:\${r.ri>0?'var(--accent)':'var(--text3)'}">\${r.ri>0?fmt(r.ri):'—'}</span>
+            </div>\`;
+          }).join('');
+        })()}
       </div>`;
   } else {
     // Program-specific view
@@ -2617,7 +2638,7 @@ function renderMetaTab(el, sub, rows) {
       <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:${progKey==='igniting'?'#E6F1FB':'#E1F5EE'};border-radius:10px;margin-bottom:14px">
         <div style="width:9px;height:9px;border-radius:50%;background:${progColor};flex-shrink:0"></div>
         <div style="font-size:13px;font-weight:500;color:${progColor}">${progLabel}</div>
-        <div style="font-size:11px;color:var(--text3);margin-left:auto">Campaigns: ${progRows.length}</div>
+        <div style="font-size:11px;color:var(--text3);margin-left:auto">Campaigns: ${new Set(progRows.map(r=>r.campaign)).size} · Ads: ${progRows.length}</div>
       </div>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:10px;margin-bottom:14px">
         ${[['Spend','$'+sp.toFixed(0)],['Reach',fmt(re)],['Clicks',fmt(cl)],['Downloads',fmt(dl)],['Contacts',fmt(co)],['Register',fmt(ri)]].map(([l,v])=>`
@@ -2634,23 +2655,32 @@ function renderMetaTab(el, sub, rows) {
             return `<span style="font-size:10px;padding:3px 8px;border-radius:10px;background:${bgs[i]};color:${cs[i]};font-weight:500">${f}</span><span style="font-size:11px;color:var(--text3);margin-right:10px">${labels[i]}</span>`;
           }).join('')}
         </div>
-        ${progRows.map(r=>{
-          const f=funnel(r.campaign);
-          const stageBg=f==='TOF'?'#E6F1FB':f==='MOF'?'#FEF3DC':f==='BOF'?'#E8F5EE':'var(--bg2)';
-          const stageColor=f==='TOF'?'#1d3557':f==='MOF'?'#b5860b':f==='BOF'?'#2d6a4f':'var(--text3)';
-          const dl=cn(r.conversions_offsite_conversion_fb_pixel_custom_file_download);
-          const co=cn(r.actions_lead)+cn(r.actions_offsite_conversion_fb_pixel_lead);
-          const ri=cn(r.actions_complete_registration);
-          return `<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:0.5px solid var(--border);font-size:12px">
-            <div style="flex:1;display:flex;align-items:center;gap:6px;min-width:0">
-              ${f?`<span style="font-size:9px;padding:2px 6px;border-radius:8px;font-weight:500;background:${stageBg};color:${stageColor};flex-shrink:0">${f}</span>`:''}
-              <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.campaign||'—'}</span>
-            </div>
-            <span style="color:var(--text);font-weight:500">$${cn(r.spend).toFixed(0)}</span>
-            <span style="color:${dl>0?'var(--accent)':'var(--text3)'}">DL:${dl>0?fmt(dl):'—'}</span>
-            <span style="color:${co>0?'var(--accent)':'var(--text3)'}">Co:${co>0?fmt(co):'—'}</span>
-          </div>`;
-        }).join('')}
+        ${(()=>{
+          // Group progRows by campaign
+          const grp={};
+          progRows.forEach(r=>{
+            const key=r.campaign||'Unknown';
+            if(!grp[key]) grp[key]={campaign:key,spend:0,dl:0,co:0,ri:0};
+            grp[key].spend+=cn(r.spend);
+            grp[key].dl+=cn(r.conversions_offsite_conversion_fb_pixel_custom_file_download);
+            grp[key].co+=cn(r.actions_lead)+cn(r.actions_offsite_conversion_fb_pixel_lead);
+            grp[key].ri+=cn(r.actions_complete_registration);
+          });
+          return Object.values(grp).sort((a,b)=>b.spend-a.spend).map(r=>{
+            const f=funnel(r.campaign);
+            const stageBg=f==='TOF'?'#E6F1FB':f==='MOF'?'#FEF3DC':f==='BOF'?'#E8F5EE':'var(--bg2)';
+            const stageColor=f==='TOF'?'#1d3557':f==='MOF'?'#b5860b':f==='BOF'?'#2d6a4f':'var(--text3)';
+            return \`<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:0.5px solid var(--border);font-size:12px">
+              <div style="flex:1;display:flex;align-items:center;gap:6px;min-width:0">
+                \${f?\`<span style="font-size:9px;padding:2px 6px;border-radius:8px;font-weight:500;background:\${stageBg};color:\${stageColor};flex-shrink:0">\${f}</span>\`:''}
+                <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">\${r.campaign}</span>
+              </div>
+              <span style="color:var(--text);font-weight:500">$\${r.spend.toFixed(0)}</span>
+              <span style="color:\${r.dl>0?'var(--accent)':'var(--text3)'}">DL:\${r.dl>0?fmt(r.dl):'—'}</span>
+              <span style="color:\${r.co>0?'var(--accent)':'var(--text3)'}">Co:\${r.co>0?fmt(r.co):'—'}</span>
+            </div>\`;
+          }).join('');
+        })()}
       </div>`;
   }
 }

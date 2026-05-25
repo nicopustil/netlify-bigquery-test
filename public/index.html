@@ -2582,78 +2582,2672 @@ function renderMetaTab(el, sub, rows) {
           <span>Campaign</span><span style="text-align:right">Spend</span><span style="text-align:right">DL</span><span style="text-align:right">Contact</span><span style="text-align:right">Reg</span>
         </div>
         ${(()=>{
-          // Group rows by campaign name
-          const grouped = {};
+          const grouped={};
           rows.forEach(r=>{
-            const key = r.campaign||'Unknown';
-            if(!grouped[key]) grouped[key]={campaign:key,spend:0,reach:0,link_clicks:0,dl:0,co:0,ri:0,prog:prog(r)};
-            grouped[key].spend+=cn(r.spend);
-            grouped[key].reach+=cn(r.reach);
-            grouped[key].link_clicks+=cn(r.link_clicks);
-            grouped[key].dl+=cn(r.conversions_offsite_conversion_fb_pixel_custom_file_download);
-            grouped[key].co+=cn(r.actions_lead)+cn(r.actions_offsite_conversion_fb_pixel_lead);
-            grouped[key].ri+=cn(r.actions_complete_registration);
+            const k=r.campaign||'Unknown';
+            if(!grouped[k]) grouped[k]={campaign:k,spend:0,reach:0,link_clicks:0,dl:0,co:0,ri:0,prog:prog(r)};
+            grouped[k].spend+=cn(r.spend);
+            grouped[k].reach+=cn(r.reach);
+            grouped[k].link_clicks+=cn(r.link_clicks);
+            grouped[k].dl+=cn(r.conversions_offsite_conversion_fb_pixel_custom_file_download);
+            grouped[k].co+=cn(r.actions_lead)+cn(r.actions_offsite_conversion_fb_pixel_lead);
+            grouped[k].ri+=cn(r.actions_complete_registration);
           });
           return Object.values(grouped).sort((a,b)=>b.spend-a.spend).slice(0,12).map(r=>{
             const f=funnel(r.campaign);
-            const stageBg=f==='TOF'?'#E6F1FB':f==='MOF'?'#FEF3DC':f==='BOF'?'#E8F5EE':'var(--bg2)';
-            const stageColor=f==='TOF'?'#1d3557':f==='MOF'?'#b5860b':f==='BOF'?'#2d6a4f':'var(--text3)';
-            const progLabel=r.prog==='igniting'?'ILP':r.prog==='evolution'?'EVO':null;
-            const progBg=r.prog==='igniting'?'#E6F1FB':r.prog==='evolution'?'#E1F5EE':null;
-            const progColor2=r.prog==='igniting'?'#185FA5':r.prog==='evolution'?'#0F6E56':null;
-            return \`<div style="display:grid;grid-template-columns:1fr 52px 52px 52px 52px;padding:7px 0;border-bottom:0.5px solid var(--bg2);align-items:center;font-size:12px;gap:6px">
-              <div style="display:flex;align-items:center;gap:4px;min-width:0">
-                \${f?\`<span style="font-size:9px;padding:2px 5px;border-radius:8px;font-weight:500;background:\${stageBg};color:\${stageColor};flex-shrink:0">\${f}</span>\`:''}
-                \${progLabel?\`<span style="font-size:9px;padding:2px 5px;border-radius:8px;font-weight:500;background:\${progBg};color:\${progColor2};flex-shrink:0">\${progLabel}</span>\`:''}
-                <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">\${r.campaign}</span>
-              </div>
-              <span style="text-align:right;font-weight:500">$\${r.spend.toFixed(0)}</span>
-              <span style="text-align:right;color:\${r.dl>0?'var(--accent)':'var(--text3)'}">\${r.dl>0?fmt(r.dl):'—'}</span>
-              <span style="text-align:right;color:\${r.co>0?'var(--accent)':'var(--text3)'}">\${r.co>0?fmt(r.co):'—'}</span>
-              <span style="text-align:right;color:\${r.ri>0?'var(--accent)':'var(--text3)'}">\${r.ri>0?fmt(r.ri):'—'}</span>
-            </div>\`;
+            const fBg=f==='TOF'?'#E6F1FB':f==='MOF'?'#FEF3DC':f==='BOF'?'#E8F5EE':'var(--bg2)';
+            const fCl=f==='TOF'?'#1d3557':f==='MOF'?'#b5860b':f==='BOF'?'#2d6a4f':'var(--text3)';
+            const pBadge=r.prog==='igniting'?'<span style="font-size:9px;padding:2px 5px;border-radius:8px;font-weight:500;background:#E6F1FB;color:#185FA5;flex-shrink:0">ILP</span>':r.prog==='evolution'?'<span style="font-size:9px;padding:2px 5px;border-radius:8px;font-weight:500;background:#E1F5EE;color:#0F6E56;flex-shrink:0">EVO</span>':'';
+            const fBadge=f?'<span style="font-size:9px;padding:2px 5px;border-radius:8px;font-weight:500;background:'+fBg+';color:'+fCl+';flex-shrink:0">'+f+'</span>':'';
+            const dlC=r.dl>0?'var(--accent)':'var(--text3)';
+            const coC=r.co>0?'var(--accent)':'var(--text3)';
+            const riC=r.ri>0?'var(--accent)':'var(--text3)';
+            return '<div style="display:grid;grid-template-columns:1fr 52px 52px 52px 52px;padding:7px 0;border-bottom:0.5px solid var(--bg2);align-items:center;font-size:12px;gap:6px">'
+              +'<div style="display:flex;align-items:center;gap:4px;min-width:0">'+fBadge+pBadge+'<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+r.campaign+'</span></div>'
+              +'<span style="text-align:right;font-weight:500">$'+r.spend.toFixed(0)+'</span>'
+              +'<span style="text-align:right;color:'+dlC+'">'+(r.dl>0?fmt(r.dl):'—')+'</span>'
+              +'<span style="text-align:right;color:'+coC+'">'+(r.co>0?fmt(r.co):'—')+'</span>'
+              +'<span style="text-align:right;color:'+riC+'">'+(r.ri>0?fmt(r.ri):'—')+'</span>'
+              +'</div>';
           }).join('');
         })()}
-      </div>`;
-  } else {
-    // Program-specific view
-    const progKey = sub === 'igniting' ? 'igniting' : 'evolution';
-    const progRows = rows.filter(r => prog(r) === progKey);
-    const progLabel = progKey === 'igniting' ? 'Igniting Leadership Program' : 'Leader Evolution';
-    const progColor = progKey === 'igniting' ? '#185FA5' : '#0F6E56';
+        </div>
+        ${(()=>{
+          const grp={};
+          progRows.forEach(r=>{
+            const k=r.campaign||'Unknown';
+            if(!grp[k]) grp[k]={campaign:k,spend:0,dl:0,co:0,ri:0};
+            grp[k].spend+=cn(r.spend);
+            grp[k].dl+=cn(r.conversions_offsite_conversion_fb_pixel_custom_file_download);
+            grp[k].co+=cn(r.actions_lead)+cn(r.actions_offsite_conversion_fb_pixel_lead);
+            grp[k].ri+=cn(r.actions_complete_registration);
+          });
+          return Object.values(grp).sort((a,b)=>b.spend-a.spend).map(r=>{
+            const f=funnel(r.campaign);
+            const fBg=f==='TOF'?'#E6F1FB':f==='MOF'?'#FEF3DC':f==='BOF'?'#E8F5EE':'var(--bg2)';
+            const fCl=f==='TOF'?'#1d3557':f==='MOF'?'#b5860b':f==='BOF'?'#2d6a4f':'var(--text3)';
+            const fBadge=f?'<span style="font-size:9px;padding:2px 6px;border-radius:8px;font-weight:500;background:'+fBg+';color:'+fCl+';flex-shrink:0">'+f+'</span>':'';
+            const dlC=r.dl>0?'var(--accent)':'var(--text3)';
+            const coC=r.co>0?'var(--accent)':'var(--text3)';
+            return '<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:0.5px solid var(--border);font-size:12px">'
+              +'<div style="flex:1;display:flex;align-items:center;gap:6px;min-width:0">'+fBadge+'<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+r.campaign+'</span></div>'
+              +'<span style="color:var(--text);font-weight:500">$'+r.spend.toFixed(0)+'</span>'
+              +'<span style="color:'+dlC+'">DL:'+(r.dl>0?fmt(r.dl):'—')+'</span>'
+              +'<span style="color:'+coC+'">Co:'+(r.co>0?fmt(r.co):'—')+'</span>'
+              +'</div>';
+          }).join('');
+        })()}ml lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leadership Victoria · Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#faf9f7;--bg2:#f2f0ec;--bg3:#e8e3db;--border:#e8e3db;--text:#1a1814;--text2:#6b6560;--text3:#a09890;--accent:#2d6a4f;--accent2:#1d3557;--warn:#c0392b;--gold:#b5860b}
+html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:var(--border)}
+@keyframes load{to{left:200%}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeUp .4s ease both}
 
-    if (!progRows.length) {
-      el.innerHTML = `<div style="border:1px dashed var(--border);border-radius:10px;padding:24px;text-align:center;color:var(--text3);font-size:12px">No ${progLabel} campaigns found in this period</div>`;
-      return;
+/* LOADING */
+#loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;transition:opacity .5s}
+#loading.hidden{opacity:0;pointer-events:none}
+.load-logo{font-family:'Cormorant Garamond',serif;font-size:28px;margin-bottom:24px}
+.load-bar{width:200px;height:1px;background:var(--border);position:relative;overflow:hidden}
+.load-bar::after{content:'';position:absolute;left:-100%;width:100%;height:100%;background:var(--text);animation:load 2s ease infinite}
+.load-msg{font-size:11px;color:var(--text3);margin-top:16px;letter-spacing:1px;text-transform:uppercase}
+
+/* HEADER */
+.header{padding:14px 32px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg);position:sticky;top:0;z-index:100}
+.logo{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400}
+.logo-sub{font-size:10px;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;margin-top:1px}
+.agency-badge{font-size:10px;padding:3px 10px;border-radius:20px;background:var(--accent2);color:white;font-weight:500;display:none;margin-left:14px}
+.agency-badge.show{display:inline-flex}
+
+/* DATE BAR */
+.date-bar{padding:9px 32px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--bg)}
+.date-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px}
+.date-btn{border:0.5px solid var(--border);border-radius:6px;padding:4px 12px;font-size:12px;color:var(--text2);background:none;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s}
+.date-btn:hover,.date-btn.active{background:var(--text);color:var(--bg);border-color:var(--text)}
+.date-input{border:0.5px solid var(--border);border-radius:6px;padding:3px 8px;font-size:12px;color:var(--text);background:var(--bg2);font-family:'DM Sans',sans-serif}
+.date-input:focus{outline:none}
+.date-apply{border:none;border-radius:6px;padding:4px 14px;font-size:12px;background:var(--text);color:var(--bg);cursor:pointer;font-family:'DM Sans',sans-serif}
+.last-updated{margin-left:auto;font-size:11px;color:var(--text3)}
+
+/* TABS */
+.tabs{padding:0 32px;border-bottom:0.5px solid var(--border);display:flex;overflow-x:auto;background:var(--bg)}
+.tab{border:none;background:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--text3);padding:10px 14px 12px;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap}
+.tab.active{color:var(--text);border-bottom-color:var(--text);font-weight:500}
+.tab.agency-only{display:none}
+.tab.agency-only.show{display:block}
+
+/* BODY */
+.body{padding:22px 32px;max-width:1200px}
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+/* KPI */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:18px}
+.kpi-grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:18px}
+.kpi{background:white;border:0.5px solid var(--border);border-radius:10px;padding:14px 16px}
+.kpi-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
+.kpi-value{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:400;color:var(--text);letter-spacing:-.5px;line-height:1}
+.kpi-sub{font-size:11px;color:var(--text3);margin-top:5px}
+.kpi-delta{font-size:11px;margin-top:4px;font-weight:500}
+.up{color:var(--accent)}.down{color:var(--warn)}.flat{color:var(--text3)}
+
+/* PANELS */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.panel{background:white;border:0.5px solid var(--border);border-radius:10px;padding:16px 18px;margin-bottom:12px}
+.panel-title{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:12px;font-weight:500;display:flex;align-items:center;justify-content:space-between}
+
+/* TABLE HEADERS */
+.table-header{display:flex;align-items:center;gap:8px;padding:0 0 6px;border-bottom:1px solid var(--border);font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);margin-bottom:4px}
+.th-name{flex:1}
+.th-bar{width:80px;flex-shrink:0}
+.th-val{min-width:52px;text-align:right}
+.th-sub{min-width:40px;text-align:right}
+.th-delta{min-width:44px;text-align:right}
+
+/* ROWS */
+.data-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:0.5px solid var(--border);font-size:12px}
+.data-row:last-child{border-bottom:none}
+.row-name{flex:1;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar-wrap{width:80px;height:3px;background:var(--bg2);border-radius:2px;flex-shrink:0}
+.bar{height:3px;border-radius:2px}
+.row-val{min-width:52px;text-align:right;font-size:12px;font-weight:500;color:var(--text)}
+.row-delta{min-width:44px;text-align:right;font-size:11px}
+.row-sub{min-width:40px;text-align:right;font-size:11px;color:var(--text3)}
+
+/* INSIGHTS */
+.insight{border-radius:8px;padding:12px 14px;margin-bottom:9px;border-left:3px solid var(--border);background:var(--bg2)}
+.insight.good{border-left-color:var(--accent)}
+.insight.warn{border-left-color:#e67e22}
+.insight.critical{border-left-color:var(--warn)}
+.insight.info{border-left-color:var(--accent2)}
+.insight-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:3px}
+.insight-body{font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:5px}
+.insight-action{font-size:11px;color:var(--text3);font-style:italic}
+
+/* PROGRAM CARDS */
+.prog-group{border:0.5px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;background:white}
+.prog-group-title{font-size:12px;font-weight:500;color:var(--text);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.prog-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.prog-total{margin-left:auto;font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--text)}
+.prog-delta{font-size:11px;font-weight:500;margin-left:6px}
+
+/* PLACEHOLDER */
+.placeholder{border:1px dashed var(--border);border-radius:10px;padding:24px;text-align:center;color:var(--text3)}
+.placeholder-icon{font-size:24px;margin-bottom:10px}
+.placeholder-title{font-size:13px;font-weight:500;color:var(--text2);margin-bottom:6px}
+.placeholder-body{font-size:12px;line-height:1.6}
+
+/* CHAT */
+.chat-wrap{background:white;border:0.5px solid var(--border);border-radius:10px;padding:16px 18px}
+.chat-msgs{min-height:160px;max-height:340px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
+.msg{max-width:85%;padding:9px 12px;border-radius:10px;font-size:13px;line-height:1.6}
+.msg.ai{background:var(--bg2);color:var(--text);align-self:flex-start;border-radius:2px 10px 10px 10px}
+.msg.user{background:var(--text);color:var(--bg);align-self:flex-end;border-radius:10px 10px 2px 10px}
+.chat-input-row{display:flex;gap:8px;border-top:0.5px solid var(--border);padding-top:12px}
+.chat-input{flex:1;border:0.5px solid var(--border);border-radius:8px;padding:8px 12px;font-size:13px;background:var(--bg2);color:var(--text);font-family:'DM Sans',sans-serif}
+.chat-input:focus{outline:none}
+.chat-btn{border:none;border-radius:8px;padding:8px 14px;background:var(--text);color:var(--bg);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif}
+.sugg-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.sugg{border:0.5px solid var(--border);border-radius:20px;padding:4px 12px;font-size:11px;color:var(--text2);background:none;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s}
+.sugg:hover{background:var(--bg2)}
+
+/* AGENCY ONLY */
+.agency-section{display:none}
+.agency-section.show{display:block}
+
+/* UTIL */
+.spinner{width:12px;height:12px;border:2px solid var(--border);border-top-color:var(--text3);border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
+.loading-row{display:flex;align-items:center;gap:8px;color:var(--text3);font-size:12px;padding:14px 0}
+.no-data{font-size:12px;color:var(--text3);padding:10px 0;font-style:italic}
+.signal-badge{display:inline-flex;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:500}
+.signal-high{background:#dcfce7;color:#2d6a4f}
+.signal-low{background:#fce4ec;color:#c0392b}
+.signal-med{background:#fff8e1;color:#b5860b}
+
+/* ── FUNNEL ── */
+.funnel-wrap{padding:8px 0}
+.funnel-step{display:flex;align-items:center;gap:14px;margin-bottom:4px;position:relative}
+.funnel-bar-col{flex:1;display:flex;flex-direction:column;gap:3px}
+.funnel-label{font-size:12px;color:var(--text2);display:flex;justify-content:space-between;align-items:center}
+.funnel-label-name{font-weight:500;color:var(--text)}
+.funnel-label-val{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:400;color:var(--text)}
+.funnel-bar-track{height:28px;background:var(--bg2);border-radius:6px;overflow:hidden;position:relative}
+.funnel-bar-fill{height:100%;border-radius:6px;transition:width .6s cubic-bezier(.4,0,.2,1);display:flex;align-items:center;justify-content:flex-end;padding-right:10px}
+.funnel-bar-pct{font-size:11px;font-weight:600;color:white;opacity:.9}
+.funnel-drop{display:flex;align-items:center;gap:5px;padding:3px 0 6px 0;margin-left:2px}
+.funnel-drop-line{width:1px;height:18px;background:var(--border2);margin-left:13px}
+.funnel-drop-text{font-size:11px;color:var(--warn);font-weight:500}
+.funnel-insight{background:#fef0ed;border-radius:8px;padding:10px 13px;margin-top:10px;border-left:3px solid var(--warn)}
+.funnel-insight-text{font-size:12px;color:#7a2c1f;line-height:1.5}
+
+/* ── MINI FUNNEL (overview) ── */
+.mini-funnel{display:flex;align-items:flex-end;gap:4px;height:48px;padding:0 2px}
+.mf-bar{flex:1;border-radius:3px 3px 0 0;transition:height .5s ease;position:relative;min-width:0}
+.mf-label{font-size:9px;color:var(--text3);text-align:center;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mini-funnel-wrap{padding:10px 14px 6px}
+.mf-col{flex:1;display:flex;flex-direction:column;align-items:center}
+.mf-val{font-size:11px;font-weight:500;color:var(--text);text-align:center;margin-bottom:3px}
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="load-logo">Leadership Victoria</div>
+  <div class="load-bar"></div>
+  <div class="load-msg" id="loadMsg">Connecting to analytics...</div>
+</div>
+
+<div class="header">
+  <div style="display:flex;align-items:center">
+    <div>
+      <div class="logo">Leadership Victoria</div>
+      <div class="logo-sub">Marketing Intelligence Dashboard</div>
+    </div>
+    <span class="agency-badge" id="agencyBadge">HOP Agency View</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <div style="font-size:11px;color:var(--text3)" id="dataStatus">● Live · GA4 Data</div>
+    <a href="/report.html?days=30" target="_blank" style="font-size:11px;padding:4px 12px;border-radius:6px;background:var(--text);color:var(--bg);text-decoration:none;font-weight:500">⬇ Export Report</a>
+  </div>
+</div>
+
+<div class="date-bar">
+  <span class="date-label">Period</span>
+  <button class="pBtn active" onclick="setPreset(7,this)">7d</button>
+  <button class="pBtn" onclick="setPreset(30,this)">30d</button>
+  <button class="pBtn" onclick="setPreset(90,this)">90d</button>
+  <button class="pBtn" onclick="setPreset(120,this)">120d</button>
+  <span style="color:var(--border)">|</span>
+  <input type="date" class="date-input" id="startDate">
+  <span style="font-size:12px;color:var(--text3)">→</span>
+  <input type="date" class="date-input" id="endDate">
+  <button class="date-apply" onclick="applyCustomDate()">Apply</button>
+  <span style="color:var(--border)">|</span>
+  <span class="date-label">Compare</span>
+  <button class="pBtn active" id="cmp-prev" onclick="setCompare('prev',this)">Prev period</button>
+  <button class="pBtn" id="cmp-year" onclick="setCompare('year',this)">Prev year</button>
+  <button class="pBtn" id="cmp-none" onclick="setCompare('none',this)">None</button>
+  <span class="last-updated" id="lastUpdated"></span>
+  <span style="font-size:10px;color:var(--text3);margin-left:8px">v3.2.0</span>
+</div>
+
+<!-- MAIN NAV -->
+<div class="tabs" id="main-nav">
+  <button class="tab active" id="mnav-analytics" onclick="switchMain('analytics',this)">Analytics</button>
+  <button class="tab" id="mnav-meta" style="color:#1877f2" onclick="switchMain('meta',this)">Meta</button>
+  <button class="tab" id="mnav-linkedin" style="color:#0077b5" onclick="switchMain('linkedin',this)">LinkedIn</button>
+  <button class="tab agency-only" id="mnav-insights" onclick="switchMain('insights',this)">Internal</button>
+</div>
+
+<!-- ANALYTICS SUBTABS -->
+<div id="subnav-analytics" style="display:flex;padding:0 32px;border-bottom:0.5px solid var(--border);overflow-x:auto;background:var(--bg2)">
+  <button class="tab active" style="font-size:11px;padding:7px 12px 9px" onclick="switchSub('analytics','overview',this)">Overview</button>
+  <button class="tab" style="font-size:11px;padding:7px 12px 9px" onclick="switchSub('analytics','traffic',this)">Traffic</button>
+  <button class="tab" style="font-size:11px;padding:7px 12px 9px" onclick="switchSub('analytics','engagement',this)">Engagement</button>
+  <button class="tab" style="font-size:11px;padding:7px 12px 9px" onclick="switchSub('analytics','programs',this)">Programs</button>
+  <button class="tab" style="font-size:11px;padding:7px 12px 9px" onclick="switchSub('analytics','campaigns',this)">Campaigns</button>
+  <button class="tab" style="font-size:11px;padding:7px 12px 9px" onclick="switchSub('analytics','organic',this)">Organic</button>
+  <button class="tab" style="font-size:11px;padding:7px 12px 9px" onclick="switchSub('analytics','path',this)">Path</button>
+</div>
+
+<!-- META SUBTABS -->
+<div id="subnav-meta" style="display:none;padding:0 32px;border-bottom:0.5px solid var(--border);overflow-x:auto;background:var(--bg2)">
+  <button class="tab" style="font-size:11px;padding:7px 12px 9px;color:#1877f2" onclick="switchSub('meta','moverview',this)">Overview</button>
+  <button class="tab" style="font-size:11px;padding:7px 12px 9px;color:#1877f2" onclick="switchSub('meta','igniting',this)">Igniting</button>
+  <button class="tab" style="font-size:11px;padding:7px 12px 9px;color:#1877f2" onclick="switchSub('meta','evolution',this)">Evolution</button>
+  <button class="tab" style="font-size:11px;padding:7px 12px 9px;color:#1877f2" onclick="switchSub('meta','mfunnel',this)">Funnel</button>
+  <button class="tab" style="font-size:11px;padding:7px 12px 9px;color:#1877f2" onclick="switchSub('meta','mads',this)">Ad Creatives</button>
+  <button class="tab" style="font-size:11px;padding:7px 12px 9px;color:#1877f2" onclick="switchSub('meta','mhealth',this)">Tracking</button>
+</div>
+
+<!-- LINKEDIN SUBTABS -->
+<div id="subnav-linkedin" style="display:none;padding:0 32px;border-bottom:0.5px solid var(--border);overflow-x:auto;background:var(--bg2)">
+  <button class="tab" style="font-size:11px;padding:7px 12px 9px;color:#0077b5" onclick="switchSub('linkedin','loverview',this)">Overview</button>
+  <button class="tab" style="font-size:11px;padding:7px 12px 9px;color:#0077b5" onclick="switchSub('linkedin','lcampaigns',this)">Campaigns</button>
+  <button class="tab" style="font-size:11px;padding:7px 12px 9px;color:#0077b5" onclick="switchSub('linkedin','lfunnel',this)">Funnel</button>
+  <button class="tab" style="font-size:11px;padding:7px 12px 9px;color:#0077b5" onclick="switchSub('linkedin','lads',this)">Ad Creatives</button>
+  <button class="tab" style="font-size:11px;padding:7px 12px 9px;color:#0077b5" onclick="switchSub('linkedin','lhealth',this)">Tracking</button>
+</div>
+
+<div class="body">
+
+  <!-- WHAT'S HAPPENING -->
+  <div class="tab-content" id="tab-strategy">
+    <div id="strategy-content">
+      <div class="loading-row"><span class="spinner"></span> Analysing data...</div>
+    </div>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div class="tab-content active" id="tab-overview">
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="kpi-label">Sessions</div>
+        <div class="kpi-value" id="ov-sessions">—</div>
+        <div class="kpi-delta" id="ov-sessions-d"></div>
+        <div class="kpi-sub" id="ov-sessions-sub"></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Active Users</div>
+        <div class="kpi-value" id="ov-users">—</div>
+        <div class="kpi-delta" id="ov-users-d"></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Engaged Sessions</div>
+        <div class="kpi-value" id="ov-engaged">—</div>
+        <div class="kpi-delta" id="ov-engaged-d"></div>
+        <div class="kpi-sub" id="ov-eng-rate"></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Key Actions</div>
+        <div class="kpi-value" id="ov-actions">—</div>
+        <div class="kpi-delta" id="ov-actions-d"></div>
+        <div class="kpi-sub">forms + downloads + intent</div>
+      </div>
+    </div>
+    <div class="two-col">
+      <div class="panel">
+        <div class="panel-title">Top channels
+          <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">sessions</span>
+        </div>
+        <!-- FIX #1: header row for top channels table -->
+        <div class="table-header">
+          <span class="th-name">Source / Medium</span>
+          <span class="th-bar"></span>
+          <span class="th-val">Sessions</span>
+          <span class="th-sub">Engaged</span>
+        </div>
+        <div id="ov-channels"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">Top landing pages
+          <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">sessions</span>
+        </div>
+        <!-- FIX #1: header row for landing pages table -->
+        <div class="table-header">
+          <span class="th-name">Page</span>
+          <span class="th-bar"></span>
+          <span class="th-val">Sessions</span>
+          <span class="th-sub">Avg time</span>
+        </div>
+        <div id="ov-pages"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Device breakdown
+        <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">sessions · engagement · revenue & conversions by device available June 2026</span>
+      </div>
+      <div id="ov-devices"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+    </div>
+    <div id="ov-insights-wrap" class="agency-section">
+      <div class="panel">
+        <div class="panel-title">Signals this period</div>
+        <div id="ov-insights"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TRAFFIC -->
+  <div class="tab-content" id="tab-traffic">
+    <div class="kpi-grid-3">
+      <div class="kpi">
+        <div class="kpi-label">Organic</div>
+        <div class="kpi-value" id="tr-organic">—</div>
+        <div class="kpi-sub" id="tr-organic-sub"></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Direct</div>
+        <div class="kpi-value" id="tr-direct">—</div>
+        <div class="kpi-sub" id="tr-direct-sub"></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Paid / Other</div>
+        <div class="kpi-value" id="tr-paid">—</div>
+        <div class="kpi-sub" id="tr-paid-sub"></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">All sources · sessions + engagement quality</div>
+      <!-- FIX #1: header for traffic detail -->
+      <div class="table-header">
+        <span class="th-name">Source / Medium</span>
+        <span style="width:80px;flex-shrink:0"></span>
+        <span class="th-val">Sessions</span>
+        <span class="th-sub">Eng rate</span>
+      </div>
+      <div id="tr-detail"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+    </div>
+    <div class="panel agency-section">
+      <div class="panel-title">Traffic quality signals</div>
+      <div id="tr-signals"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+    </div>
+  </div>
+
+  <!-- ENGAGEMENT -->
+  <div class="tab-content" id="tab-engagement">
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="kpi-label">Engagement Rate</div>
+        <div class="kpi-value" id="eng-rate">—</div>
+        <div class="kpi-delta" id="eng-rate-d"></div>
+        <div class="kpi-sub">% of sessions with 10s+ activity, scroll, or click</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Avg Time on Site</div>
+        <div class="kpi-value" id="eng-dur">—</div>
+        <div class="kpi-delta" id="eng-dur-d"></div>
+        <div class="kpi-sub">average active time per session</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Interactions / Session</div>
+        <div class="kpi-value" id="eng-eps">—</div>
+        <div class="kpi-sub">clicks, scrolls, page views per visit</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Conversion Rate</div>
+        <div class="kpi-value" id="eng-ker">—</div>
+        <div class="kpi-sub">sessions that resulted in a form, download or purchase</div>
+      </div>
+    </div>
+    <div class="two-col">
+      <div class="panel">
+        <div class="panel-title">Engagement rate by channel
+          <!-- FIX #2: filter note -->
+          <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">30+ sessions only</span>
+        </div>
+        <!-- FIX #1: header for engagement by channel -->
+        <div class="table-header">
+          <span class="th-name">Source / Medium</span>
+          <span style="width:80px;flex-shrink:0"></span>
+          <span class="th-val">Eng rate</span>
+          <span class="th-sub">Sessions</span>
+        </div>
+        <div id="eng-by-channel"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">Landing pages · quality view</div>
+        <!-- FIX #1: header for pages quality -->
+        <div class="table-header">
+          <span class="th-name">Page</span>
+          <span style="width:80px;flex-shrink:0"></span>
+          <span class="th-val">Sessions</span>
+          <span class="th-sub">Avg time</span>
+        </div>
+        <div id="eng-pages"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROGRAMS -->
+  <div class="tab-content" id="tab-programs">
+    <div class="panel">
+      <div class="panel-title">Revenue trend by program <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">Humanitix · weekly · last 90 days</span>
+        <div style="display:flex;gap:12px">
+          <span style="display:flex;align-items:center;gap:4px;font-size:11px;color:#1d3557;font-weight:400;text-transform:none;letter-spacing:0"><span style="width:10px;height:3px;background:#1d3557;border-radius:2px;display:inline-block"></span>Igniting</span>
+          <span style="display:flex;align-items:center;gap:4px;font-size:11px;color:#2d6a4f;font-weight:400;text-transform:none;letter-spacing:0"><span style="width:10px;height:3px;background:#2d6a4f;border-radius:2px;display:inline-block"></span>Women's</span>
+          <span style="display:flex;align-items:center;gap:4px;font-size:11px;color:#b5860b;font-weight:400;text-transform:none;letter-spacing:0"><span style="width:10px;height:3px;background:#b5860b;border-radius:2px;display:inline-block"></span>Leader Ev.</span>
+        </div>
+      </div>
+      <canvas id="prog-trend-chart" style="width:100%;height:180px"></canvas>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Purchase count trend <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">tickets sold per week</span></div>
+      <canvas id="prog-purchases-chart" style="width:100%;height:130px"></canvas>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Program funnel <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">visit → tickets → Humanitix checkout</span></div>
+      <div id="prog-funnel"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Checkout funnel <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">all programs combined · last 90 days · breakdown by program available ~June 2026</span></div>
+      <div id="checkout-funnel"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+    </div>
+    <div id="prog-content"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+  </div>
+
+  <!-- CAMPAIGNS -->
+  <div class="tab-content" id="tab-campaigns">
+    <div id="camp-content"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+  </div>
+
+  <!-- ORGANIC -->
+  <div class="tab-content" id="tab-organic">
+    <div class="kpi-grid-3">
+      <div class="kpi">
+        <div class="kpi-label">Organic Sessions</div>
+        <div class="kpi-value" id="org-sessions">—</div>
+        <div class="kpi-delta" id="org-sessions-d"></div>
+        <div class="kpi-sub">google / organic · bing / organic</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Engagement Rate</div>
+        <div class="kpi-value" id="org-eng">—</div>
+        <div class="kpi-sub">% of organic sessions engaged</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Key Actions</div>
+        <div class="kpi-value" id="org-conv">—</div>
+        <div class="kpi-sub">forms · downloads · intent events</div>
+      </div>
+    </div>
+    <div class="panel" style="background:#f0f4ff;border-color:#c5d0e8">
+      <div style="font-size:12px;color:#1d3557;line-height:1.7">
+        <strong>No keyword data available yet.</strong> To see which search terms bring people to the site, connect Google Search Console to BigQuery — it's free and takes 5 minutes. Once connected, this tab will show keywords, impressions, click-through rates and position per landing page.
+        <span style="display:block;margin-top:6px;font-size:11px;color:#6b7fa3">Search Console → Settings → BigQuery export → select project <code>leadership-victoria-494806</code></span>
+      </div>
+    </div>
+    <div class="two-col">
+      <div class="panel">
+        <div class="panel-title">Top organic landing pages
+          <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">sessions · avg time · conv rate</span>
+        </div>
+        <div class="table-header">
+          <span class="th-name">Page</span>
+          <span style="width:80px;flex-shrink:0"></span>
+          <span class="th-val">Sessions</span>
+          <span class="th-sub">Avg time</span>
+        </div>
+        <div id="org-pages"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">Organic by program page
+          <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">program URLs only</span>
+        </div>
+        <div class="table-header">
+          <span class="th-name">Page</span>
+          <span style="width:80px;flex-shrink:0"></span>
+          <span class="th-val">Sessions</span>
+          <span class="th-sub">Conv rate</span>
+        </div>
+        <div id="org-programs"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">All organic landing pages · full list
+        <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">sorted by sessions</span>
+      </div>
+      <div class="table-header">
+        <span class="th-name">Page</span>
+        <span style="width:80px;flex-shrink:0"></span>
+        <span class="th-val">Sessions</span>
+        <span class="th-sub">Avg time</span>
+      </div>
+      <div id="org-all"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+    </div>
+  </div>
+
+  <!-- PATH EXPLORER -->
+  <div class="tab-content" id="tab-path">
+    <div class="panel">
+      <div class="panel-title">Channel touch points <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">last 90 days · key events by channel role</span></div>
+      <div id="path-touchpoints"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Channel attribution · purchases · downloads · forms <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">last 30 days · raw GA4 events</span></div>
+      <div id="path-attribution"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Purchase journey · Humanitix funnel <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none" id="path-funnel-period">last 30 days · raw GA4 events</span></div>
+      <div id="path-funnel"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Top entry pages for buyers <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">pages visited before purchasing</span></div>
+      <div id="path-entry"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+    </div>
+  </div>
+
+  <!-- INTERNAL INSIGHTS -->
+  <div class="tab-content" id="tab-insights">
+    <div class="panel">
+      <div class="panel-title">💰 API & BigQuery costs · live
+        <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">HOP agency only · updates on load</span>
+      </div>
+      <div id="cost-tracker"><div class="loading-row"><span class="spinner"></span> Loading cost data...</div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Automatic signals · based on real data</div>
+      <div id="agency-insights"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Notes for client meeting</div>
+      <textarea style="width:100%;min-height:120px;border:0.5px solid var(--border);border-radius:6px;padding:10px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:var(--bg2);resize:vertical" placeholder="Add internal notes here..."></textarea>
+    </div>
+  </div>
+
+  <!-- META: OVERVIEW -->
+  <div class="tab-content" id="tab-meta-moverview">
+    <div id="meta-overview-content"><div class="loading-row"><span class="spinner"></span> Loading Meta data...</div></div>
+  </div>
+
+  <!-- META: IGNITING -->
+  <div class="tab-content" id="tab-meta-igniting">
+    <div id="meta-igniting-content"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+  </div>
+
+  <!-- META: EVOLUTION -->
+  <div class="tab-content" id="tab-meta-evolution">
+    <div id="meta-evolution-content"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+  </div>
+
+  <!-- META: FUNNEL -->
+  <div class="tab-content" id="tab-meta-mfunnel">
+    <div id="meta-funnel-content"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+  </div>
+
+  <!-- META: ADS -->
+  <div class="tab-content" id="tab-meta-mads">
+    <div id="meta-ads-content"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+  </div>
+
+  <!-- META: TRACKING -->
+  <div class="tab-content" id="tab-meta-mhealth">
+    <div id="meta-health-content"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+  </div>
+
+  <!-- LINKEDIN PANES -->
+  <div class="tab-content" id="tab-linkedin-loverview">
+    <div id="linkedin-overview-content"><div class="loading-row"><span class="spinner"></span></div></div>
+  </div>
+  <div class="tab-content" id="tab-linkedin-lcampaigns">
+    <div id="linkedin-campaigns-content"><div class="loading-row"><span class="spinner"></span></div></div>
+  </div>
+  <div class="tab-content" id="tab-linkedin-lfunnel">
+    <div id="linkedin-funnel-content"><div class="loading-row"><span class="spinner"></span></div></div>
+  </div>
+  <div class="tab-content" id="tab-linkedin-lads">
+    <div id="linkedin-ads-content"><div class="loading-row"><span class="spinner"></span></div></div>
+  </div>
+  <div class="tab-content" id="tab-linkedin-lhealth">
+    <div id="linkedin-health-content"><div class="loading-row"><span class="spinner"></span></div></div>
+  </div>
+
+  <!-- AI STRATEGIST -->
+  <div class="tab-content" id="tab-ai">
+    <div class="chat-wrap">
+      <div class="panel-title" style="margin-bottom:8px">🤖 AI Marketing Strategist · Leadership Victoria</div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:12px">Loaded with real GA4 data — traffic, programs, revenue, funnel, campaigns</div>
+      <div class="sugg-row">
+        <button class="sugg" onclick="askSugg(this)">Which channel drives the most revenue?</button>
+        <button class="sugg" onclick="askSugg(this)">Write a monthly report for the client</button>
+        <button class="sugg" onclick="askSugg(this)">Where are we losing people in the funnel?</button>
+        <button class="sugg" onclick="askSugg(this)">Which program should we invest more in?</button>
+        <button class="sugg" onclick="askSugg(this)">What's working and what's not?</button>
+        <button class="sugg" onclick="askSugg(this)">Recommend 3 actions for next month</button>
+      </div>
+      <div class="chat-msgs" id="chatMsgs">
+        <div class="msg ai">Hi — I'm your marketing strategist for Leadership Victoria. I have real data loaded: traffic by channel, program revenue, purchase funnels, and campaign performance. Ask me anything — I'll give you specific, actionable answers based on the actual numbers.</div>
+      </div>
+      <div class="chat-input-row">
+        <input class="chat-input" id="chatInput" placeholder="Ask a strategic question..." onkeydown="if(event.key==='Enter')sendChat()">
+        <button class="chat-btn" onclick="sendChat()">Ask →</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── META CAMPAIGN ID → NAME MAPPING ──────────────────────────────────────────
+const META_CAMPAIGN_NAMES = {};
+function metaCampName(id){
+  return META_CAMPAIGN_NAMES[id] || id;
+}
+const TOKENS = {'HOP2024':'agency','LV2024':'client'};
+const token = new URLSearchParams(window.location.search).get('token') || 'LV2024';
+const isAgency = (TOKENS[token]||'client') === 'agency';
+const P = 'leadership-victoria-494806';
+const D = 'ga4_leadership_victoria_us';
+
+// ── PROGRAM CONSTANTS ────────────────────────────────────────────────────────
+const PROGRAMS = ['Igniting Leadership','Womens Leadership','Leader Evolution'];
+const PROG_COLORS = {'Igniting Leadership':'#1d3557','Womens Leadership':'#2d6a4f','Leader Evolution':'#b5860b'};
+const PROG_LABELS = {'Igniting Leadership':'Igniting Leadership','Womens Leadership':"Women's Leadership",'Leader Evolution':'Leader Evolution'};
+function buildProgMap(data){
+  const m = {};
+  (data || []).forEach(r=>{
+    if(!m[r.program]) m[r.program] = {program_page:{sessions:0,revenue:0},tickets:{sessions:0,revenue:0},purchase:{sessions:0,revenue:0}};
+    const stage = r.stage || 'program_page';
+    m[r.program][stage] = {sessions:parseFloat(r.sessions||0),revenue:parseFloat(r.revenue||0)};
+  });
+  return m;
+}
+
+if(isAgency){
+  document.getElementById('agencyBadge').classList.add('show');
+  document.querySelectorAll('.agency-only').forEach(e=>e.classList.add('show'));
+  document.querySelectorAll('.agency-section').forEach(e=>e.classList.add('show'));
+}
+
+// ── DATES ─────────────────────────────────────────────────────────────────────
+let activeDays = 30;
+let compareMode = 'prev';
+
+function setCompare(mode, btn){
+  compareMode = mode;
+  document.querySelectorAll('#cmp-prev,#cmp-year,#cmp-none').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  Object.keys(loaded).forEach(k=>delete loaded[k]);
+  loadAll();
+}
+
+function setPreset(days,btn){
+  document.querySelectorAll('.pBtn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  activeDays = days;
+  const e=new Date(), s=new Date(); s.setDate(s.getDate()-days);
+  document.getElementById('startDate').value=s.toISOString().split('T')[0];
+  document.getElementById('endDate').value=e.toISOString().split('T')[0];
+  Object.keys(loaded).forEach(k=>delete loaded[k]);
+  loadAll();
+}
+
+function applyCustomDate(){
+  document.querySelectorAll('.pBtn').forEach(b=>b.classList.remove('active'));
+  activeDays=null;
+  Object.keys(loaded).forEach(k=>delete loaded[k]);
+  loadAll();
+}
+
+function dateFilter(){
+  const s=document.getElementById('startDate').value;
+  const e=document.getElementById('endDate').value;
+  if(s&&e) return `_DATA_DATE BETWEEN DATE('${s}') AND DATE('${e}')`;
+  return `_DATA_DATE >= DATE_SUB(CURRENT_DATE(), INTERVAL ${activeDays||30} DAY)`;
+}
+
+function prevDateFilter(){
+  if(compareMode==='none') return `_DATA_DATE = DATE('1900-01-01')`;
+  const s=document.getElementById('startDate').value;
+  const e=document.getElementById('endDate').value;
+  if(compareMode==='year'){
+    if(s&&e) return `_DATA_DATE BETWEEN DATE_SUB(DATE('${s}'), INTERVAL 1 YEAR) AND DATE_SUB(DATE('${e}'), INTERVAL 1 YEAR)`;
+    const d=activeDays||30;
+    return `_DATA_DATE >= DATE_SUB(CURRENT_DATE(), INTERVAL ${d+365} DAY) AND _DATA_DATE < DATE_SUB(CURRENT_DATE(), INTERVAL 365 DAY)`;
+  }
+  if(s&&e){
+    const days=Math.round((new Date(e)-new Date(s))/(1000*60*60*24));
+    return `_DATA_DATE BETWEEN DATE_SUB(DATE('${s}'), INTERVAL ${days} DAY) AND DATE_SUB(DATE('${s}'), INTERVAL 1 DAY)`;
+  }
+  const d=activeDays||30;
+  return `_DATA_DATE >= DATE_SUB(CURRENT_DATE(), INTERVAL ${d*2} DAY) AND _DATA_DATE < DATE_SUB(CURRENT_DATE(), INTERVAL ${d} DAY)`;
+}
+
+// Init 30d
+const ie=new Date(), is=new Date(); is.setDate(is.getDate()-30);
+document.getElementById('startDate').value=is.toISOString().split('T')[0];
+document.getElementById('endDate').value=ie.toISOString().split('T')[0];
+
+// ── QUERY ─────────────────────────────────────────────────────────────────────
+async function bq(sql){
+  try{
+    const r=await fetch('/api/bigquery',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:sql})});
+    const j=await r.json();
+    if(!j.ok) throw new Error(j.error);
+    return j.rows||[];
+  }catch(e){console.error('BQ error:',e);return[];}
+}
+
+// ── FORMAT ────────────────────────────────────────────────────────────────────
+const fmt=n=>new Intl.NumberFormat('en-AU').format(Math.round(n||0));
+const fmtPct=n=>((n||0)*100).toFixed(1)+'%';
+const fmtDur=s=>{const m=Math.floor((s||0)/60);return `${m}m ${Math.round((s||0)%60)}s`};
+function delta(cur,prev){
+  if(!prev||prev===0) return null;
+  const p=((cur-prev)/prev*100);
+  return {val:p,str:(p>=0?'↑':'↓')+Math.abs(p).toFixed(1)+'%',cls:p>=0?'up':'down'};
+}
+function setDelta(id,d){
+  const el=document.getElementById(id);
+  if(!el||!d) return;
+  el.textContent=d.str; el.className='kpi-delta '+d.cls;
+}
+
+// ── RENDER ROWS ───────────────────────────────────────────────────────────────
+function renderRows(id,rows,nameKey,valKey,fmt2,color,subKey,subFmt){
+  const el=document.getElementById(id);
+  if(!el) return;
+  if(!rows||!rows.length){el.innerHTML='<div class="no-data">No data for this period</div>';return;}
+  const max=Math.max(...rows.map(r=>parseFloat(r[valKey]||0)))||1;
+  el.innerHTML=rows.map(r=>{
+    const val=parseFloat(r[valKey]||0);
+    const sub=subKey?`<span class="row-sub">${subFmt?subFmt(r[subKey]):fmt(r[subKey])}</span>`:'';
+    return `<div class="data-row">
+      <span class="row-name">${r[nameKey]||'Unknown'}</span>
+      <div class="bar-wrap"><div class="bar" style="width:${(val/max*100).toFixed(0)}%;background:${color}"></div></div>
+      <span class="row-val">${fmt2(val)}</span>${sub}
+    </div>`;
+  }).join('');
+}
+
+// ── GROUP CHANNEL ─────────────────────────────────────────────────────────────
+function groupChannel(src){
+  const s=(src||'').toLowerCase();
+  if(s.includes('organic')||s.includes('/ organic')) return 'organic';
+  if(s.includes('direct')||s==='(direct) / (none)') return 'direct';
+  if(s.includes('paid')||s.includes('cpc')||s.includes('ppc')||s.includes('ads')) return 'paid';
+  if(s.includes('email')) return 'email';
+  if(s.includes('social')) return 'social';
+  if(s.includes('referral')) return 'referral';
+  return 'other';
+}
+
+// ── LOAD ALL ──────────────────────────────────────────────────────────────────
+let globalData = {};
+let chatHistory = [];
+
+async function loadAll(){
+  Object.keys(loaded).forEach(k => delete loaded[k]);
+  Object.keys(globalData).forEach(k => delete globalData[k]);
+  chatHistory.length = 0;
+  document.getElementById('loading').classList.remove('hidden');
+  document.getElementById('loadMsg').textContent='Loading data...';
+
+  const df=dateFilter();
+  const pf=prevDateFilter();
+
+  document.getElementById('loadMsg').textContent='Loading analytics...';
+  const [traffic, prevTraffic, pages, prevPages, events, prevEvents] = await Promise.all([
+    bq(`SELECT sessionSourceMedium as source, SUM(sessions) as sessions, SUM(engagedSessions) as engaged, AVG(engagementRate) as engRate, AVG(eventsPerSession) as eps, AVG(sessionKeyEventRate) as ker, AVG(userEngagementDurationPerSession) as avgDur FROM \`${P}.${D}.ga4_TrafficAcquisition_317130094\` WHERE ${df} GROUP BY source ORDER BY sessions DESC LIMIT 30`),
+    bq(`SELECT SUM(sessions) as sessions, SUM(engagedSessions) as engaged, AVG(engagementRate) as engRate, AVG(userEngagementDurationPerSession) as avgDur FROM \`${P}.${D}.ga4_TrafficAcquisition_317130094\` WHERE ${pf}`),
+    bq(`SELECT landingPage as page, SUM(sessions) as sessions, SUM(activeUsers) as users, SUM(keyEvents) as keyEvents, AVG(sessionKeyEventRate) as ker, AVG(userEngagementDurationPerSession) as avgDur FROM \`${P}.${D}.ga4_LandingPage_317130094\` WHERE ${df} GROUP BY page ORDER BY sessions DESC LIMIT 20`),
+    bq(`SELECT SUM(sessions) as sessions FROM \`${P}.${D}.ga4_LandingPage_317130094\` WHERE ${pf}`),
+    bq(`SELECT eventName as event, SUM(eventCount) as count, SUM(totalUsers) as users, SUM(totalRevenue) as revenue FROM \`${P}.${D}.ga4_Events_317130094\` WHERE ${df} GROUP BY event ORDER BY count DESC`),
+    bq(`SELECT eventName as event, SUM(eventCount) as count FROM \`${P}.${D}.ga4_Events_317130094\` WHERE ${pf} GROUP BY event`),
+  ]);
+
+  globalData = { traffic, pages, events, progFunnelData:[], trendData:[], pathFunnel:[], pathEntry:[], campaignsData:[] };
+
+  // ── TOTALS ──
+  const totS=traffic.reduce((a,r)=>a+parseFloat(r.sessions||0),0);
+  const totE=traffic.reduce((a,r)=>a+parseFloat(r.engaged||0),0);
+  const avgEngRate=totS>0?traffic.reduce((a,r)=>a+parseFloat(r.engRate||0)*parseFloat(r.sessions||0),0)/totS:0;
+  const avgDur=totS>0?traffic.reduce((a,r)=>a+parseFloat(r.avgDur||0)*parseFloat(r.sessions||0),0)/totS:0;
+  const avgEps=totS>0?traffic.reduce((a,r)=>a+parseFloat(r.eps||0)*parseFloat(r.sessions||0),0)/totS:0;
+  const avgKer=totS>0?traffic.reduce((a,r)=>a+parseFloat(r.ker||0)*parseFloat(r.sessions||0),0)/totS:0;
+  const totU=pages.reduce((a,r)=>a+parseFloat(r.users||0),0);
+
+  const prevS=parseFloat(prevTraffic[0]?.sessions||0);
+  const prevE=parseFloat(prevTraffic[0]?.engaged||0);
+  const prevEngRate=parseFloat(prevTraffic[0]?.engRate||0);
+  const prevDur=parseFloat(prevTraffic[0]?.avgDur||0);
+  const prevPS=parseFloat(prevPages[0]?.sessions||0);
+
+  const formKeys=['igniting_leadership_form_submission','womens_leadership_form_submission','leader_evolution_form_submission','form_submission_id','form_submit','generate_lead'];
+  const downloadKeys=['file_download'];
+  const intentKeys=['donate_now_clicks','calltracking','begin_checkout','add_payment_info','purchase'];
+  const keyEvents=[...formKeys,...downloadKeys,...intentKeys];
+  const evMap={};
+  events.forEach(e=>{evMap[e.event]={count:parseFloat(e.count||0),users:parseFloat(e.users||0),revenue:parseFloat(e.revenue||0)};});
+  const prevEvMap={};
+  prevEvents.forEach(e=>{prevEvMap[e.event]=parseFloat(e.count||0);});
+  const totActions=keyEvents.reduce((a,k)=>a+(evMap[k]?.count||0),0);
+  const prevActions=keyEvents.reduce((a,k)=>a+(prevEvMap[k]||0),0);
+
+  // ── OVERVIEW ──
+  // FIX #4: Set ov-sessions (was missing!)
+  document.getElementById('ov-sessions').textContent=fmt(totS);
+  const compareLabel = compareMode==='year'?' vs last year':compareMode==='none'?'':' vs prev period';
+  document.getElementById('ov-sessions-sub').textContent = compareMode==='none'?'no comparison':compareLabel.trim();
+  document.getElementById('ov-users').textContent=fmt(totU);
+  document.getElementById('ov-engaged').textContent=fmt(totE);
+  document.getElementById('ov-eng-rate').textContent=fmtPct(avgEngRate)+' engagement rate';
+  document.getElementById('ov-actions').textContent=fmt(totActions);
+  setDelta('ov-sessions-d',delta(totS,prevS));
+  setDelta('ov-users-d',delta(totU,prevPS));
+  setDelta('ov-engaged-d',delta(totE,prevE));
+  setDelta('ov-actions-d',delta(totActions,prevActions));
+
+  renderRows('ov-channels',traffic.slice(0,6),'source','sessions',fmt,'#1a1814','engaged',fmt);
+  renderRows('ov-pages',pages.slice(0,6),'page','sessions',fmt,'#2d6a4f','avgDur',fmtDur);
+
+  // ── TRAFFIC ──
+  const grouped={organic:0,direct:0,paid:0,email:0,social:0,referral:0,other:0};
+  const groupedEng={organic:0,direct:0,paid:0,email:0,social:0,referral:0,other:0};
+  const groupedEngRate={organic:[],direct:[],paid:[],email:[],social:[],referral:[],other:[]};
+  traffic.forEach(r=>{
+    const g=groupChannel(r.source);
+    const s=parseFloat(r.sessions||0);
+    grouped[g]+=s;
+    groupedEng[g]+=parseFloat(r.engaged||0);
+    groupedEngRate[g].push({sessions:s,er:parseFloat(r.engRate||0)});
+  });
+
+  function weightedEr(arr){
+    const totSess=arr.reduce((a,x)=>a+x.sessions,0);
+    if(!totSess) return 0;
+    return arr.reduce((a,x)=>a+x.er*x.sessions,0)/totSess;
+  }
+
+  document.getElementById('tr-organic').textContent=fmt(grouped.organic);
+  document.getElementById('tr-organic-sub').textContent=grouped.organic>0?fmtPct(weightedEr(groupedEngRate.organic))+' engagement':'—';
+  document.getElementById('tr-direct').textContent=fmt(grouped.direct);
+  document.getElementById('tr-direct-sub').textContent=grouped.direct>0?fmtPct(weightedEr(groupedEngRate.direct))+' engagement':'—';
+  const paidOther=grouped.paid+grouped.other;
+  document.getElementById('tr-paid').textContent=fmt(paidOther);
+  document.getElementById('tr-paid-sub').textContent=paidOther>0?fmtPct(weightedEr([...groupedEngRate.paid,...groupedEngRate.other]))+' engagement':'—';
+
+  const trEl=document.getElementById('tr-detail');
+  if(traffic.length){
+    const maxS=Math.max(...traffic.map(x=>parseFloat(x.sessions||0)))||1;
+    trEl.innerHTML=traffic.map(r=>{
+      const er=parseFloat(r.engRate||0);
+      let sigClass='signal-low', sigLabel='low quality';
+      if(er>=0.6){sigClass='signal-high';sigLabel='high quality';}
+      else if(er>=0.35){sigClass='signal-med';sigLabel='medium';}
+      const sig=isAgency?`<span class="signal-badge ${sigClass}">${sigLabel}</span>`:'';
+      return `<div class="data-row">
+        <span class="row-name">${r.source||'Unknown'}</span>
+        ${sig}
+        <div class="bar-wrap"><div class="bar" style="width:${(parseFloat(r.sessions||0)/maxS*100).toFixed(0)}%;background:#1a1814"></div></div>
+        <span class="row-val">${fmt(r.sessions)}</span>
+        <span class="row-sub">${fmtPct(er)}</span>
+      </div>`;
+    }).join('');
+  }
+
+  if(isAgency){
+    const signals=[];
+    traffic.forEach(r=>{
+      const er=parseFloat(r.engRate||0);
+      const s=parseFloat(r.sessions||0);
+      if(s>100&&er<0.3) signals.push({type:'warn',title:`${r.source}: high traffic, low engagement`,body:`${fmt(s)} sessions but only ${fmtPct(er)} engagement rate.`,action:'→ Review landing page experience for this traffic source'});
+      if(s<50&&er>0.7) signals.push({type:'good',title:`${r.source}: small but highly engaged`,body:`Only ${fmt(s)} sessions but ${fmtPct(er)} engagement.`,action:'→ Consider scaling this channel'});
+    });
+    const sigEl=document.getElementById('tr-signals');
+    sigEl.innerHTML=signals.slice(0,4).map(s=>`<div class="insight ${s.type}"><div class="insight-title">${s.title}</div><div class="insight-body">${s.body}</div><div class="insight-action">${s.action}</div></div>`).join('')||'<div class="no-data">No significant signals detected for this period</div>';
+  }
+
+  // ── ENGAGEMENT ──
+  document.getElementById('eng-rate').textContent=fmtPct(avgEngRate);
+  document.getElementById('eng-dur').textContent=fmtDur(avgDur);
+  document.getElementById('eng-eps').textContent=avgEps.toFixed(1);
+  document.getElementById('eng-ker').textContent=fmtPct(avgKer);
+  setDelta('eng-rate-d',delta(avgEngRate,prevEngRate));
+  setDelta('eng-dur-d',delta(avgDur,prevDur));
+
+  // FIX #2: Filter out channels with < 30 sessions before rendering engagement rate
+  const engChEl=document.getElementById('eng-by-channel');
+  const filteredForEng=traffic.filter(r=>parseFloat(r.sessions||0)>=30);
+  const sortedByEng=[...filteredForEng].sort((a,b)=>parseFloat(b.engRate||0)-parseFloat(a.engRate||0));
+  if(sortedByEng.length===0){
+    engChEl.innerHTML='<div class="no-data">No channels with 30+ sessions this period</div>';
+  } else {
+    engChEl.innerHTML=sortedByEng.slice(0,8).map(r=>{
+      const er=parseFloat(r.engRate||0);
+      return `<div class="data-row">
+        <span class="row-name">${r.source}</span>
+        <div class="bar-wrap"><div class="bar" style="width:${(er*100).toFixed(0)}%;background:${er>=0.6?'#2d6a4f':er>=0.35?'#b5860b':'#c0392b'}"></div></div>
+        <span class="row-val">${fmtPct(er)}</span>
+        <span class="row-sub">${fmt(r.sessions)} sess</span>
+      </div>`;
+    }).join('');
+  }
+
+  const engPgEl=document.getElementById('eng-pages');
+  if(pages.length){
+    engPgEl.innerHTML=pages.slice(0,10).map(p=>{
+      return `<div class="data-row">
+        <span class="row-name" style="font-family:monospace;font-size:11px">${p.page}</span>
+        <div class="bar-wrap"><div class="bar" style="width:${Math.min(100,parseFloat(p.ker||0)*1000).toFixed(0)}%;background:#2d6a4f"></div></div>
+        <span class="row-val">${fmt(p.sessions)}</span>
+        <span class="row-sub">${fmtDur(p.avgDur)}</span>
+      </div>`;
+    }).join('');
+  }
+
+  // ── PROGRAMS (events section) ──
+  const groups=[
+    {id:'forms',label:'Form Submissions',color:'#1d3557',dot:'#1d3557',items:[
+      {name:'Igniting Leadership',key:'igniting_leadership_form_submission'},
+      {name:"Women's Leadership",key:'womens_leadership_form_submission'},
+      {name:'Leader Evolution',key:'leader_evolution_form_submission'},
+      {name:'General form',key:'form_submission_id'},
+      {name:'Generate lead',key:'generate_lead'},
+    ]},
+    {id:'downloads',label:'File Downloads',color:'#2d6a4f',dot:'#2d6a4f',items:[{name:'All file downloads',key:'file_download'}]},
+    {id:'intent',label:'Intent & Enquiry',color:'#b5860b',dot:'#b5860b',items:[
+      {name:'Donate now clicks',key:'donate_now_clicks'},
+      {name:'Call tracking',key:'calltracking'},
+    ]},
+    {id:'checkout',label:'High Intent / Checkout',color:'#c0392b',dot:'#c0392b',items:[
+      {name:'Begin checkout',key:'begin_checkout'},
+      {name:'Add payment info',key:'add_payment_info'},
+      {name:'Purchase',key:'purchase'},
+    ]},
+  ];
+
+  const progEl=document.getElementById('prog-content');
+  progEl.innerHTML=groups.map(g=>{
+    const total=g.items.reduce((a,i)=>a+(evMap[i.key]?.count||0),0);
+    const prevTotal=g.items.reduce((a,i)=>a+(prevEvMap[i.key]||0),0);
+    const d=delta(total,prevTotal);
+    const rows=g.items.map(i=>{
+      const v=evMap[i.key]?.count||0;
+      const u=evMap[i.key]?.users||0;
+      if(!v) return '';
+      const maxV=Math.max(...g.items.map(x=>evMap[x.key]?.count||0))||1;
+      return `<div class="data-row">
+        <span class="row-name">${i.name}</span>
+        <div class="bar-wrap"><div class="bar" style="width:${(v/maxV*100).toFixed(0)}%;background:${g.color}"></div></div>
+        <span class="row-val">${fmt(v)}</span>
+        <span class="row-sub">${fmt(u)} users</span>
+      </div>`;
+    }).join('');
+    if(!total&&!rows) return '';
+    return `<div class="prog-group">
+      <div class="prog-group-title">
+        <span class="prog-dot" style="background:${g.dot}"></span>
+        ${g.label}
+        <span class="prog-total">${fmt(total)}</span>
+        ${d?`<span class="prog-delta ${d.cls}">${d.str}</span>`:''}
+      </div>
+      ${rows||'<div class="no-data">No events recorded this period</div>'}
+    </div>`;
+  }).join('');
+
+  // ── TREND CHARTS ──
+  function drawTrendChart(canvasId, weeks, series, maxVal, height, showGrid){
+    const canvas = document.getElementById(canvasId);
+    if(!canvas||!weeks.length) return;
+    const dpr = window.devicePixelRatio||1;
+    canvas.width = canvas.offsetWidth * dpr;
+    canvas.height = height * dpr;
+    canvas.style.height = height+'px';
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    const W = canvas.offsetWidth, H = height;
+    const padL=36, padR=12, padT=12, padB=22;
+    const chartW=W-padL-padR, chartH=H-padT-padB;
+    if(showGrid){
+      ctx.strokeStyle='#f0ede8'; ctx.lineWidth=1;
+      [0,.25,.5,.75,1].forEach(f=>{
+        const y=padT+chartH*(1-f);
+        ctx.beginPath(); ctx.moveTo(padL,y); ctx.lineTo(W-padR,y); ctx.stroke();
+        ctx.fillStyle='#a09890'; ctx.font='9px DM Sans';
+        ctx.fillText('$'+(maxVal*f/1000).toFixed(0)+'K', 2, y+3);
+      });
+    }
+    ctx.fillStyle='#a09890'; ctx.font='9px DM Sans'; ctx.textAlign='center';
+    weeks.forEach((w,i)=>{
+      if(i%2===0){
+        const x=padL+i/(weeks.length-1||1)*chartW;
+        const d=new Date(w);
+        ctx.fillText(`${d.getDate()}/${d.getMonth()+1}`, x, H-4);
+      }
+    });
+    const COLORS={'Igniting Leadership':'#1d3557','Womens Leadership':'#2d6a4f','Leader Evolution':'#b5860b'};
+    series.forEach(({name, values})=>{
+      const color=COLORS[name]||'#888';
+      ctx.beginPath();
+      values.forEach((v,i)=>{
+        const x=padL+i/(weeks.length-1||1)*chartW;
+        const y=padT+chartH*(1-(maxVal>0?v/maxVal:0));
+        i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+      });
+      ctx.lineTo(padL+(values.length-1)/(weeks.length-1||1)*chartW, padT+chartH);
+      ctx.lineTo(padL, padT+chartH);
+      ctx.closePath();
+      ctx.fillStyle=color+'18';
+      ctx.fill();
+      ctx.beginPath();
+      ctx.strokeStyle=color; ctx.lineWidth=2; ctx.lineJoin='round';
+      values.forEach((v,i)=>{
+        const x=padL+i/(weeks.length-1||1)*chartW;
+        const y=padT+chartH*(1-(maxVal>0?v/maxVal:0));
+        i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+      });
+      ctx.stroke();
+      values.forEach((v,i)=>{
+        if(v>0){
+          const x=padL+i/(weeks.length-1||1)*chartW;
+          const y=padT+chartH*(1-(maxVal>0?v/maxVal:0));
+          ctx.beginPath(); ctx.arc(x,y,3,0,Math.PI*2);
+          ctx.fillStyle=color; ctx.fill();
+        }
+      });
+    });
+  }
+
+  // ── WHAT'S HAPPENING (Claude) ──────────────────────────────────────────────
+  const stratEl=document.getElementById('strategy-content');
+  if(stratEl){
+    const totRevenue2=events.reduce((a,e)=>a+parseFloat(e.revenue||0),0);
+    const totForms2=formKeys.reduce((a,k)=>a+(evMap[k]?.count||0),0);
+    const totDownloads2=evMap['file_download']?.count||0;
+    const organicSess=grouped?.organic||0;
+    const paidSess=grouped?.paid||0;
+    const dS=delta(totS,prevS);
+    const dE=delta(totE,prevE);
+    const badPages2=pages.filter(p=>parseFloat(p.sessions||0)>100&&parseFloat(p.ker||0)<0.01);
+
+    stratEl.innerHTML=`<div style="background:white;border:1px solid var(--border);border-radius:12px;padding:24px;text-align:center;color:var(--text3)"><span class="spinner"></span> <span style="font-size:13px;margin-left:8px">Generating insights...</span></div>`;
+
+    const dataContext = `
+Leadership Victoria — Marketing Analytics Summary
+Period: last ${activeDays||30} days vs previous same period
+
+TRAFFIC:
+- Total sessions: ${fmt(totS)} (${dS?dS.str+' vs prev':'no comparison'})
+- Engaged sessions: ${fmt(totE)} — ${fmtPct(avgEngRate)} engagement rate (${dE?dE.str+' vs prev':''})
+- Avg session duration: ${fmtDur(avgDur)}
+- Organic: ${fmt(organicSess)} sessions (${totS>0?(organicSess/totS*100).toFixed(0):0}% of total)
+- Paid (Google Ads): ${fmt(paidSess)} sessions
+- Top sources: ${traffic.slice(0,5).map(r=>`${r.source}: ${fmt(r.sessions)} sess, ${fmtPct(parseFloat(r.engRate||0))} engagement`).join(' | ')}
+
+CONVERSIONS:
+- Revenue: $${(totRevenue2/1000).toFixed(1)}K (via Humanitix cross-domain tracking)
+- Form submissions: ${fmt(totForms2)} (${totS>0?(totForms2/totS*100).toFixed(1):0}% conversion rate)
+- File downloads: ${fmt(totDownloads2)}
+- Key actions total: ${fmt(totActions)}${dS?' ('+delta(totActions,prevActions)?.str+' vs prev)':''}
+
+TOP PAGES:
+${pages.slice(0,6).map(p=>`- ${p.page}: ${fmt(p.sessions)} sessions, ${fmtDur(p.avgDur)} avg time`).join('\n')}
+
+PROBLEM AREAS:
+${badPages2.length>0?badPages2.slice(0,3).map(p=>`- ${p.page}: ${fmt(p.sessions)} sessions, very few conversions`).join('\n'):'- No major problem pages detected'}
+
+PROGRAMS:
+- Igniting Leadership, Women's Leadership, Leader Evolution are the 3 main programs
+- Tickets purchased via events.humanitix.com with GA4 cross-domain tracking`;
+
+    // FIX #6: Stricter What's Happening prompt
+    try {
+      const res = await fetch('/api/claude', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          system: `You are a marketing analyst writing a performance summary for a non-technical decision maker at Leadership Victoria, an Australian not-for-profit running leadership programs.
+
+OUTPUT FORMAT — return ONLY this JSON, no markdown, no backticks, no explanation:
+{
+  "story": "1-2 sentences. State what happened with real numbers. No jargon. Under 35 words.",
+  "signals": [
+    {
+      "type": "good|warn|critical|info",
+      "emoji": "single emoji",
+      "title": "4-5 plain words",
+      "what": "1 sentence — what happened, with numbers directly from the data",
+      "hypothesis": "1 sentence — most likely reason. If you have a direct number that explains it, state that number. If you do not have corroborating data, write: We need more data to confirm why.",
+      "action": "1-2 sentences — specific next step. Name actual pages, channels, or programs. No technical steps."
+    }
+  ]
+}
+
+STRICT RULES — violating these means the output is wrong:
+- Max 4 signals, min 2
+- DIRECT DATA RULE: If the data contains the number, state it directly. Never say "may indicate" when you have the actual figure.
+- HYPOTHESIS RULE: You may only offer a causal explanation if 2+ correlated data points support it. If only one signal, write "We need more data to confirm why."
+- ZERO DATA RULE: If a metric is 0 or missing, say exactly that. Never invent a reason why something is absent.
+- ABSENCE RULE: Absence of data ≠ failure. Do not say something "declined" or "dropped" if you simply have no data for it.
+- DIRECT TRAFFIC: Never label direct traffic as one thing. It includes bookmarks, apps, dark social, and more.
+- NON-CONVERTING PAGES: /contact-us, /our-people, /about, /team, /news are informational. Never flag them for low conversions.
+- NO JARGON: No GA4, UTM, cross-domain, server-side, tracking, tagging, attribution model
+- NO INVENTED NUMBERS: Only use numbers that appear in the data above
+- NO DRAMA: No "collapse", "crisis", "plummeting", "massive drop"
+- NO GENERIC PRAISE: No "strong performance", "great results", "excellent engagement"
+- BALANCE: At least 1 signal must identify a weakness or missed opportunity`,
+          messages: [{role:'user', content: dataContext}]
+        })
+      });
+      const data = await res.json();
+      const text = data.content?.find(b=>b.type==='text')?.text||'';
+      const parsed = JSON.parse(text.replace(/```json|```/g,'').trim());
+
+      const typeColor = t => t==='good'?'#1e6b47':t==='warn'?'#8a5e0a':t==='critical'?'#b02a1e':'#1a3a6b';
+      const typeBg = t => t==='good'?'#e8f5ee':t==='warn'?'#fef3dc':t==='critical'?'#fdecea':'#e8eef8';
+
+      stratEl.innerHTML=`
+        <div style="background:white;border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin-bottom:12px">
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:6px;font-weight:500">Period summary · AI · ${compareMode==='none'?'no comparison':compareMode==='year'?'vs last year':'vs prev period'}</div>
+          <div style="font-size:13px;color:var(--text2);line-height:1.6">${parsed.story}</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          ${(parsed.signals||[]).map(s=>`
+            <div style="background:white;border:1px solid var(--border);border-radius:10px;padding:16px 18px;border-top:3px solid ${typeColor(s.type)}">
+              <div style="font-size:12px;font-weight:600;color:${typeColor(s.type)};margin-bottom:10px">${s.emoji} ${s.title}</div>
+              <div style="font-size:12.5px;color:var(--text);margin-bottom:5px;line-height:1.5">${s.what}</div>
+              <div style="font-size:12px;color:var(--text3);margin-bottom:10px;line-height:1.5;font-style:italic">${s.hypothesis||s.why||''}</div>
+              <div style="font-size:11.5px;background:${typeBg(s.type)};color:${typeColor(s.type)};padding:7px 10px;border-radius:6px;line-height:1.5">→ ${s.action}</div>
+            </div>`).join('')}
+        </div>`;
+    } catch(e) {
+      const dS2=delta(totS,prevS);
+      stratEl.innerHTML=`
+        <div style="background:white;border:1px solid var(--border);border-radius:12px;padding:20px 22px;margin-bottom:14px">
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:8px;font-weight:500">Period summary</div>
+          <div style="font-size:14px;color:var(--text2);line-height:1.7;font-style:italic">"${fmt(totS)} sessions with ${fmtPct(avgEngRate)} engagement. ${totRevenue2>0?`$${(totRevenue2/1000).toFixed(0)}K revenue tracked.`:''} ${totForms2>0?`${fmt(totForms2)} form submissions.`:''} ${dS2&&dS2.val<-10?`Traffic down ${Math.abs(dS2.val).toFixed(0)}% vs previous period.`:dS2&&dS2.val>10?`Traffic up ${dS2.val.toFixed(0)}% vs previous period.`:'Traffic stable.'}"</div>
+        </div>
+        <div style="padding:10px;background:#fdecea;border-radius:8px;font-size:12px;color:#b02a1e">AI error: ${e.message}. Check ANTHROPIC_API_KEY in Vercel → Settings → Environment Variables.</div>`;
+    }
+  }
+
+  // ── AGENCY INSIGHTS ──
+  if(isAgency){
+    const insights=[];
+    const totForms=formKeys.reduce((a,k)=>a+(evMap[k]?.count||0),0);
+    const totDownloads=evMap['file_download']?.count||0;
+    const totRevenue=events.reduce((a,e)=>a+parseFloat(e.revenue||0),0);
+
+    if(totS>0){
+      const organicSess=grouped.organic;
+      insights.push({type:'info',title:`Organic drives ${fmtPct(totS>0?organicSess/totS:0)} of sessions`,body:`${fmt(organicSess)} sessions from organic search. Typically highest-quality traffic source.`,action:'→ Continue SEO investment'});
+    }
+    if(totForms>0&&totS>0) insights.push({type:totForms/totS>0.01?'good':'warn',title:`Form submissions: ${fmt(totForms)} this period`,body:`${fmtPct(totForms/totS)} of sessions result in a form submission.`,action:'→ Feature top programs prominently on high-traffic pages'});
+    if(totDownloads>0) insights.push({type:'info',title:`${fmt(totDownloads)} file downloads`,body:`Content is being consumed. Downloads indicate genuine interest in resources.`,action:'→ Add email capture to download flow to build the database'});
+    if(totRevenue>0) insights.push({type:'good',title:`$${totRevenue.toFixed(2)} revenue recorded`,body:`Direct revenue tracked in GA4. Review which channels drive highest-value transactions.`,action:'→ Connect Meta and LinkedIn for full paid attribution'});
+    const badPages=pages.filter(p=>parseFloat(p.sessions||0)>50&&parseFloat(p.ker||0)<0.02);
+    if(badPages.length) insights.push({type:'critical',title:`${badPages.length} high-traffic page${badPages.length>1?'s':''} with low key event rate`,body:`${badPages.slice(0,3).map(p=>p.page).join(', ')} — getting traffic but not converting.`,action:'→ Review content and CTA placement on these pages'});
+
+    document.getElementById('agency-insights').innerHTML=insights.map(i=>`<div class="insight ${i.type}"><div class="insight-title">${i.title}</div><div class="insight-body">${i.body}</div><div class="insight-action">${i.action}</div></div>`).join('')||'<div class="no-data">Not enough data to generate insights for this period</div>';
+    document.getElementById('ov-insights').innerHTML=insights.slice(0,2).map(i=>`<div class="insight ${i.type}"><div class="insight-title">${i.title}</div><div class="insight-action">${i.action}</div></div>`).join('');
+  }
+
+  // ── DEVICES (raw dataset — last 7 days rolling) ──
+  let deviceData = [];
+  try {
+    deviceData = await bq(`SELECT device.category as device, COUNT(DISTINCT user_pseudo_id) as users FROM \`${P}.ga4_leadership_victoria_us.events_*\` WHERE _TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY)) GROUP BY device ORDER BY users DESC`);
+  } catch(e) { console.log('Device data skipped:', e.message); }
+  renderDevices(deviceData);
+
+  document.getElementById('lastUpdated').textContent='Updated '+new Date().toLocaleTimeString('en-AU',{timeZone:'Australia/Sydney',hour:'2-digit',minute:'2-digit'});
+  document.getElementById('loading').classList.add('hidden');
+}
+
+// ── RENDER DEVICES ────────────────────────────────────────────────────────────
+function renderDevices(data){
+  const el = document.getElementById('ov-devices');
+  if(!el) return;
+  if(!data||!data.length){el.innerHTML='<div class="no-data">No device data yet — raw dataset started May 2026</div>';return;}
+
+  const ICONS = {desktop:'🖥️', mobile:'📱', tablet:'📟'};
+  const COLORS = {desktop:'#1d3557', mobile:'#2d6a4f', tablet:'#b5860b'};
+  const totUsers = data.reduce((a,r)=>a+parseInt(r.users||0),0)||1;
+  const totEng = data.reduce((a,r)=>a+parseInt(r.eng_sec||0),0)||1;
+
+  el.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(${data.length},1fr);gap:12px;margin-bottom:14px">
+      ${data.map(r=>{
+        const u=parseInt(r.users||0);
+        const pct=(u/totUsers*100).toFixed(0);
+        const avgEng=u>0?Math.round(parseInt(r.eng_sec||0)/u):0;
+        const color=COLORS[r.device]||'#888';
+        return `<div style="background:var(--bg2);border-radius:10px;padding:14px 16px;border-top:3px solid ${color}">
+          <div style="font-size:18px;margin-bottom:6px">${ICONS[r.device]||'💻'}</div>
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);margin-bottom:4px">${r.device}</div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:28px;color:var(--text);line-height:1">${fmt(u)}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px">${pct}% of users</div>
+          <div style="margin-top:10px">
+            <div style="font-size:10px;color:var(--text3);margin-bottom:3px">Share of traffic</div>
+            <div style="height:4px;background:var(--bg3);border-radius:2px">
+              <div style="height:4px;width:${pct}%;background:${color};border-radius:2px"></div>
+            </div>
+          </div>
+          <div style="margin-top:8px;font-size:11px;color:var(--text2)">Avg engagement: <strong>${fmtDur(avgEng)}</strong></div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div style="background:#e8eef8;border-radius:8px;padding:10px 14px;border-left:3px solid var(--accent2)">
+      <div style="font-size:11px;color:#1a3a6b;line-height:1.7">
+        <strong>Last 7 days · ${fmt(totUsers)} total users.</strong>
+        Desktop dominates at ${((parseInt(data.find(r=>r.device==='desktop')?.users||0)/totUsers)*100).toFixed(0)}% — typical for B2B leadership programs.
+        Revenue and conversions by device available ~June 2026 when tracking data matures.
+      </div>
+    </div>`;
+}
+
+// ── CHAT ──────────────────────────────────────────────────────────────────────
+function askSugg(btn){document.getElementById('chatInput').value=btn.textContent;sendChat();}
+
+async function sendChat(){
+  const input=document.getElementById('chatInput');
+  const msgs=document.getElementById('chatMsgs');
+  const text=input.value.trim();
+  if(!text) return;
+  input.value='';
+
+  const uDiv=document.createElement('div'); uDiv.className='msg user'; uDiv.textContent=text; msgs.appendChild(uDiv);
+  const lDiv=document.createElement('div'); lDiv.className='msg ai'; lDiv.innerHTML='<span class="spinner"></span>'; msgs.appendChild(lDiv);
+  msgs.scrollTop=msgs.scrollHeight;
+
+  chatHistory.push({role:'user',content:text});
+
+  // Ensure programs + campaigns + path are loaded before building context
+  await Promise.all([
+    loaded.programs ? Promise.resolve() : loadPrograms(),
+    loaded.campaigns ? Promise.resolve() : loadCampaigns(),
+    loaded.path ? Promise.resolve() : loadPath(),
+  ]);
+
+  const d=globalData;
+  const totS2=d.traffic?.reduce((a,r)=>a+parseFloat(r.sessions||0),0)||0;
+  const avgEr2=totS2>0?d.traffic?.reduce((a,r)=>a+parseFloat(r.engRate||0)*parseFloat(r.sessions||0),0)/totS2:0;
+  const evMap3={};
+  d.events?.forEach(e=>{evMap3[e.event]={count:parseFloat(e.count||0),revenue:parseFloat(e.revenue||0)};});
+  const totalRev3=d.events?.reduce((a,e)=>a+parseFloat(e.revenue||0),0)||0;
+
+  // Program funnel with real data
+  const pm=buildProgMap(d.progFunnelData||[]);
+  const progRevSummary=PROGRAMS.map(p=>{
+    const cur=pm[p]||{program_page:{sessions:0,revenue:0},tickets:{sessions:0,revenue:0},purchase:{sessions:0,revenue:0}};
+    const rev=cur.program_page.revenue+cur.tickets.revenue+(cur.purchase?.revenue||0);
+    const sess=cur.program_page.sessions;
+    const tick=cur.tickets.sessions;
+    const tickRate=sess>0?(tick/sess*100).toFixed(0):'0';
+    return `${PROG_LABELS[p]}: ${fmt(sess)} page views → ${fmt(tick)} reached tickets (${tickRate}% CTR) → $${(rev/1000).toFixed(1)}K revenue`;
+  }).join('\n');
+
+  // Humanitix purchase funnel stages
+  const pathMap={};
+  (d.pathFunnel||[]).forEach(r=>{pathMap[r.stage]=parseInt(r.users||0);});
+  const funnelSummary = pathMap['0_lv_site']
+    ? `LV Website: ${fmt(pathMap['0_lv_site']||0)} users → Humanitix landing: ${fmt(pathMap['1_humanitix']||0)} → Tickets page: ${fmt(pathMap['2_tickets']||0)} → Purchase: ${fmt(pathMap['3_purchase']||0)} → Confirmation: ${fmt(pathMap['4_complete']||0)}`
+    : 'Funnel data not available for this period (raw events start May 2026)';
+
+  // Top entry pages for buyers
+  const entryPages = (d.pathEntry||[]).slice(0,5).map(r=>`${(r.entry_page||'/').split('?')[0]}: ${r.buyers} buyers`).join(' | ') || 'No purchase entry page data';
+
+  // All campaigns including source-only rows
+  const allCamp = [...(d.campaignsData||[]), ...(d.sourceData||[])];
+  const campSummary = allCamp.slice(0,10).map(r=>{
+    const name = r._fromSource ? r.source : (r.campaign||r.source);
+    const kev = parseFloat(r.keyEvents||0);
+    const rev = parseFloat(r.revenue||0);
+    return `${name}: ${fmt(r.sessions)} sess, ${fmtPct(parseFloat(r.engRate||0))} eng${kev>0?', '+fmt(kev)+' conv':''}${rev>0?', $'+(rev/1000).toFixed(1)+'K':''}`;
+  }).join('\n') || 'No campaign data loaded';
+
+  // Full top pages list
+  const pagesSummary = (d.pages||[]).slice(0,10).map(p=>`${p.page}: ${fmt(p.sessions)} sess, ${fmtDur(p.avgDur)} avg time, ${fmtPct(parseFloat(p.ker||0))} conv rate`).join('\n');
+
+  // Organic KPIs
+  const organicRows = d.traffic?.filter(r=>(r.source||'').includes('organic'))||[];
+  const organicSess = organicRows.reduce((a,r)=>a+parseFloat(r.sessions||0),0);
+  const organicEngRate = organicSess>0 ? organicRows.reduce((a,r)=>a+parseFloat(r.engRate||0)*parseFloat(r.sessions||0),0)/organicSess : 0;
+  const organicConv = organicRows.reduce((a,r)=>a+parseFloat(r.keyEvents||0),0);
+
+  const sys=`You are an analytics strategist for Leadership Victoria, an Australian not-for-profit leadership development organisation. You have access to real GA4 + BigQuery data.
+
+ORGANISATION: Leadership Victoria runs 3 leadership programs — Igniting Leadership, Women's Leadership, Leader Evolution. Tickets sold via events.humanitix.com (cross-domain journey tracked in GA4).
+
+PURCHASE FUNNEL (step by step):
+leadershipvictoria.org program page → leadershipvictoria.org/tickets → events.humanitix.com → tickets selection → payment → purchase confirmation
+${funnelSummary}
+
+PROGRAM PERFORMANCE (page views → ticket page → revenue):
+${progRevSummary}
+
+TOP ENTRY PAGES FOR BUYERS:
+${entryPages}
+
+TRAFFIC:
+- Total sessions: ${fmt(totS2)} | Engagement rate: ${fmtPct(avgEr2)} | Revenue: $${(totalRev3/1000).toFixed(1)}K
+- Top channels: ${d.traffic?.slice(0,6).map(r=>`${r.source}: ${fmt(r.sessions)} sess, ${fmtPct(parseFloat(r.engRate||0))} eng`).join(' | ')||'—'}
+
+ORGANIC SEARCH:
+- Sessions: ${fmt(organicSess)} | Engagement: ${fmtPct(organicEngRate)} | Key events: ${fmt(organicConv)}
+- IMPORTANT: No keyword data available — Search Console not connected. You can only report which pages receive traffic, not why.
+- Top pages receiving traffic (all sources — cannot filter organic-only without Search Console):
+${pagesSummary}
+
+GOOGLE ADS CAMPAIGNS (use these exact names):
+- LV Performance Max: 260 sessions → 14 conversions → $5,849 revenue
+- Search · Women In Leadership: 103 sessions → 7 conversions → $6,575 revenue
+- Search · General Leadership: 76 sessions → 4 conversions → $0 revenue
+- Brand: 5 sessions → 1 conversion → $0 revenue
+
+LINKEDIN: 159 sessions, 5 key events — organic referral only, no paid campaigns
+
+KEY EVENTS:
+- Form submissions: ${fmt(Object.entries(evMap3).filter(([k])=>k.includes('form')||k==='generate_lead').reduce((a,[,v])=>a+v.count,0))}
+- File downloads: ${fmt(evMap3['file_download']?.count||0)}
+- Begin checkout: ${fmt(evMap3['begin_checkout']?.count||0)}
+- Purchases: ${fmt(evMap3['purchase']?.count||0)}
+
+CAMPAIGNS:
+${campSummary}
+
+RESPONSE RULES — must follow every single one:
+- Maximum 120 words total. Count carefully. Stop at 120.
+- No markdown: no ##, no **, no bullet dashes, no numbered lists
+- Short plain sentences. Line break between thoughts.
+- Every claim must reference a number from the data above. No invented figures.
+- If data is 0 or missing: say exactly that — never invent a reason why
+- Only suggest a cause if 2+ correlated data points support it. Otherwise say "unclear without more data"
+- ORGANIC RULE: You have NO keyword data. Never say "publish more content", "write blog posts", "target keywords", or any SEO content recommendation. You can only say which pages get sessions and their engagement rate. If asked about keywords or SEO content, say: "Search Console isn't connected yet — I can see which pages get traffic but not what people searched for."
+- GOOGLE ADS RULE: Use exact campaign names — LV Performance Max, Search · Women In Leadership, Search · General Leadership, Brand. Never say "paid search campaigns" generically.
+- The funnel: program page → tickets page → Humanitix → purchase
+- Direct traffic = many possible sources, never one thing
+- /contact-us, /our-people, /about, /news = informational, not expected to convert
+- No technical jargon: no GA4, UTM, cross-domain, server-side, tracking
+- No: "strong performance", "great results", "investigate", "consider leveraging"
+- Direct verbs only: scale, fix, test, cut, pause, add
+- Match the language of the user — respond in Spanish if asked in Spanish`;
+
+
+  try{
+    const res=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system:sys,messages:chatHistory})});
+    const data=await res.json();
+    const raw=data.content?.find(b=>b.type==='text')?.text||'Could not get response.';
+
+    // Clean any markdown that slipped through
+    const clean = raw
+      .replace(/#{1,3}\s*/g,'')
+      .replace(/\*\*([^*]+)\*\*/g,'$1')
+      .replace(/\*([^*]+)\*/g,'$1')
+      .replace(/^\s*[-•]\s*/gm,'')
+      .trim();
+
+    const paras = clean.split(/\n\n+/).filter(p=>p.trim()).slice(0,4);
+    lDiv.style.cssText='font-size:13px;line-height:1.7;color:var(--text2)';
+    lDiv.innerHTML = paras.map((p,i)=>
+      `<div style="margin-bottom:${i<paras.length-1?'10px':'0'}">${p.trim()}</div>`
+    ).join('');
+
+    chatHistory.push({role:'assistant',content:raw});
+    if(chatHistory.length>20) chatHistory=chatHistory.slice(-20);
+  }catch(e){
+    lDiv.textContent='Connection error — check ANTHROPIC_API_KEY in Vercel settings.';
+  }
+  msgs.scrollTop=msgs.scrollHeight;
+}
+
+// ── RENDER PROGRAMS ────────────────────────────────────────────────────────────
+function renderPrograms(progFunnelData, progFunnelPrev, trendData){
+  const progMap=buildProgMap(progFunnelData);
+  const progPrevMap=buildProgMap(progFunnelPrev||[]);
+
+  const allWeeks=[...new Set(trendData.map(r=>r.week))].sort();
+  const PROG_NAMES=['Igniting Leadership','Womens Leadership','Leader Evolution'];
+  const revSeries=PROG_NAMES.map(name=>({name,values:allWeeks.map(w=>{const row=trendData.find(r=>r.program===name&&r.week===w);return parseFloat(row?.revenue||0);})}));
+  const purchSeries=PROG_NAMES.map(name=>({name,values:allWeeks.map(w=>{const row=trendData.find(r=>r.program===name&&r.week===w);return parseFloat(row?.purchases||0);})}));
+  const maxRev=Math.max(...revSeries.flatMap(s=>s.values))||1;
+  const maxPurch=Math.max(...purchSeries.flatMap(s=>s.values))||1;
+
+  function drawTrendChart(canvasId, weeks, series, maxVal, height, showGrid){
+    const canvas = document.getElementById(canvasId);
+    if(!canvas||!weeks.length) return;
+    const dpr = window.devicePixelRatio||1;
+    canvas.width = canvas.offsetWidth * dpr;
+    canvas.height = height * dpr;
+    canvas.style.height = height+'px';
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    const W = canvas.offsetWidth, H = height;
+    const padL=36, padR=12, padT=12, padB=22;
+    const chartW=W-padL-padR, chartH=H-padT-padB;
+    if(showGrid){
+      ctx.strokeStyle='#f0ede8'; ctx.lineWidth=1;
+      [0,.25,.5,.75,1].forEach(f=>{
+        const y=padT+chartH*(1-f);
+        ctx.beginPath(); ctx.moveTo(padL,y); ctx.lineTo(W-padR,y); ctx.stroke();
+        ctx.fillStyle='#a09890'; ctx.font='9px DM Sans';
+        ctx.fillText('$'+(maxVal*f/1000).toFixed(0)+'K', 2, y+3);
+      });
+    }
+    ctx.fillStyle='#a09890'; ctx.font='9px DM Sans'; ctx.textAlign='center';
+    weeks.forEach((w,i)=>{
+      if(i%2===0){
+        const x=padL+i/(weeks.length-1||1)*chartW;
+        const d=new Date(w);
+        ctx.fillText(`${d.getDate()}/${d.getMonth()+1}`, x, H-4);
+      }
+    });
+    const COLORS={'Igniting Leadership':'#1d3557','Womens Leadership':'#2d6a4f','Leader Evolution':'#b5860b'};
+    series.forEach(({name, values})=>{
+      const color=COLORS[name]||'#888';
+      ctx.beginPath();
+      values.forEach((v,i)=>{
+        const x=padL+i/(weeks.length-1||1)*chartW;
+        const y=padT+chartH*(1-(maxVal>0?v/maxVal:0));
+        i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+      });
+      ctx.lineTo(padL+(values.length-1)/(weeks.length-1||1)*chartW, padT+chartH);
+      ctx.lineTo(padL, padT+chartH);
+      ctx.closePath();
+      ctx.fillStyle=color+'18';
+      ctx.fill();
+      ctx.beginPath();
+      ctx.strokeStyle=color; ctx.lineWidth=2; ctx.lineJoin='round';
+      values.forEach((v,i)=>{
+        const x=padL+i/(weeks.length-1||1)*chartW;
+        const y=padT+chartH*(1-(maxVal>0?v/maxVal:0));
+        i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+      });
+      ctx.stroke();
+      values.forEach((v,i)=>{
+        if(v>0){
+          const x=padL+i/(weeks.length-1||1)*chartW;
+          const y=padT+chartH*(1-(maxVal>0?v/maxVal:0));
+          ctx.beginPath(); ctx.arc(x,y,3,0,Math.PI*2);
+          ctx.fillStyle=color; ctx.fill();
+        }
+      });
+    });
+  }
+
+  setTimeout(()=>{
+    drawTrendChart('prog-trend-chart',allWeeks,revSeries,maxRev,180,true);
+    drawTrendChart('prog-purchases-chart',allWeeks,purchSeries,maxPurch,130,false);
+  },100);
+
+  const progFunnelEl=document.getElementById('prog-funnel');
+  if(progFunnelEl){
+    let html='';
+    PROGRAMS.forEach(prog=>{
+      const cur=progMap[prog]||{program_page:{sessions:0,revenue:0},tickets:{sessions:0,revenue:0},purchase:{sessions:0,revenue:0}};
+      const prv=progPrevMap[prog]||{program_page:{sessions:0,revenue:0},tickets:{sessions:0,revenue:0},purchase:{sessions:0,revenue:0}};
+      const pageS=cur.program_page.sessions,tickS=cur.tickets.sessions;
+      const totRev=cur.program_page.revenue+cur.tickets.revenue+cur.purchase.revenue;
+      const prevRev=prv.program_page.revenue+prv.tickets.revenue+prv.purchase.revenue;
+      const prevPageS=prv.program_page.sessions;
+      const ticketRate=pageS>0?(tickS/pageS*100):0;
+      const color=PROG_COLORS[prog];
+      const revDelta=prevRev>0?((totRev-prevRev)/prevRev*100):null;
+      const sessDelta=prevPageS>0?((pageS-prevPageS)/prevPageS*100):null;
+      const revDeltaStr=revDelta!==null?`<span style="font-size:11px;font-weight:500;color:${revDelta>=0?'var(--accent)':'var(--warn)'}"> ${revDelta>=0?'↑':'↓'}${Math.abs(revDelta).toFixed(0)}%</span>`:'';
+      const sessDeltaStr=sessDelta!==null?`<span style="font-size:11px;color:${sessDelta>=0?'var(--accent)':'var(--warn)'}"> ${sessDelta>=0?'↑':'↓'}${Math.abs(sessDelta).toFixed(0)}%</span>`:'';
+      html+=`<div style="background:white;border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin-bottom:10px;border-top:3px solid ${color}">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div style="font-size:13px;font-weight:500;color:var(--text)">${PROG_LABELS[prog]}</div>
+          <div style="text-align:right"><div style="font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--text)">$${(totRev/1000).toFixed(0)}K</div><div style="font-size:10px;color:var(--text3)">revenue${revDeltaStr}</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div style="flex:3"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">Program page</div><div style="height:32px;background:${color};border-radius:6px;display:flex;align-items:center;padding:0 10px;opacity:.85"><span style="font-size:13px;font-weight:500;color:white">${fmt(pageS)}</span><span style="font-size:10px;color:rgba(255,255,255,.7);margin-left:5px">visits${sessDeltaStr}</span></div></div>
+          <div style="flex:0 0 auto;text-align:center;padding:0 4px"><div style="font-size:10px;color:var(--text3)">${ticketRate.toFixed(1)}%</div><div style="font-size:14px;color:var(--text3)">→</div></div>
+          <div style="flex:${Math.max(0.3,ticketRate/100*2.5)}"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">Tickets page</div><div style="height:32px;background:${color};border-radius:6px;display:flex;align-items:center;padding:0 10px;opacity:.6"><span style="font-size:13px;font-weight:500;color:white">${fmt(tickS)}</span></div></div>
+          <div style="flex:0 0 auto;padding:0 4px;margin-top:14px"><div style="font-size:14px;color:var(--text3)">→</div></div>
+          <div style="flex:1;text-align:center"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">Humanitix checkout</div><div style="height:32px;background:${color};border-radius:6px;display:flex;align-items:center;justify-content:center;opacity:.35"><span style="font-size:11px;font-weight:500;color:white">$${(totRev/1000).toFixed(0)}K</span></div></div>
+        </div>
+        ${tickS>0&&pageS>0?`<div style="margin-top:10px;font-size:11px;color:var(--text3);font-style:italic">${fmt(pageS-tickS)} visitors (${(100-ticketRate).toFixed(0)}%) left before reaching the tickets page</div>`:''}`+`</div>`;
+    });
+    progFunnelEl.innerHTML=html||'<div class="no-data">No program data for this period</div>';
+  }
+}
+
+function renderPath(pathFunnel, pathEntry){
+  const stageLabels={'0_lv_site':'LV Website','1_humanitix':'Humanitix landing','2_tickets':'Tickets page','3_purchase':'Purchase ✓','4_complete':'Confirmation'};
+  const stageColors={'0_lv_site':'#1d3557','1_humanitix':'#2d6a4f','2_tickets':'#b5860b','3_purchase':'#c0392b','4_complete':'#22c55e'};
+  const pathMap={};
+  pathFunnel.forEach(r=>{pathMap[r.stage]=parseInt(r.users||0);});
+  const maxPathUsers=pathMap['0_lv_site']||pathMap['1_humanitix']||1;
+  const pathBuyers=pathMap['3_purchase']||0;
+  const pathTicketUsers=pathMap['2_tickets']||0;
+  const pathConv=pathTicketUsers>0?(pathBuyers/pathTicketUsers*100).toFixed(0)+'%':'—';
+  const eid=id=>document.getElementById(id);
+  const pathFunnelEl=eid('path-funnel');
+  if(pathFunnelEl){
+    const stages=['0_lv_site','1_humanitix','2_tickets','3_purchase','4_complete'];
+    let html='';
+    stages.forEach((s,i)=>{
+      const v=pathMap[s]||0,pct=maxPathUsers>0?(v/maxPathUsers*100):0,color=stageColors[s];
+      const drop=i>0&&pathMap[stages[i-1]]>0?((pathMap[stages[i-1]]-v)/pathMap[stages[i-1]]*100).toFixed(0):null;
+      html+=`<div style="margin-bottom:6px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px"><span style="font-size:12px;font-weight:500;color:var(--text)">${stageLabels[s]}</span><div style="display:flex;align-items:center;gap:10px">${drop!==null&&parseInt(drop)>0?`<span style="font-size:11px;color:var(--warn)">▼ ${drop}% drop</span>`:''}<span style="font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--text)">${fmt(v)}</span></div></div><div style="height:24px;background:var(--bg2);border-radius:5px;overflow:hidden"><div style="height:100%;width:${pct.toFixed(1)}%;background:${color};border-radius:5px;transition:width .5s ease;display:flex;align-items:center;justify-content:flex-end;padding-right:8px">${pct>8?`<span style="font-size:10px;color:white;font-weight:500">${pct.toFixed(0)}%</span>`:''}</div></div></div>`;
+    });
+    pathFunnelEl.innerHTML=html||'<div class="no-data">No path data available</div>';
+  }
+  const pathEntryEl=eid('path-entry');
+  if(pathEntryEl&&pathEntry.length){const maxB=Math.max(...pathEntry.map(r=>parseInt(r.buyers||0)))||1;pathEntryEl.innerHTML=pathEntry.map(r=>{const b=parseInt(r.buyers||0),pg=(r.entry_page||'/').split('?')[0]||'/';return `<div class="data-row"><span class="row-name" style="font-family:monospace;font-size:11px">${pg}</span><div class="bar-wrap"><div class="bar" style="width:${(b/maxB*100).toFixed(0)}%;background:#1d3557"></div></div><span class="row-val">${b}</span><span class="row-sub">buyers</span></div>`;}).join('');}
+  else if(pathEntryEl){pathEntryEl.innerHTML='<div class="no-data">No purchases recorded in this period — try a wider date range</div>';}
+  const periodEl=document.getElementById('path-funnel-period');
+  if(periodEl) periodEl.textContent=`last ${activeDays||30} days · raw GA4 events (from May 2026)`;
+}
+
+// FIX #3: Campaigns — keyEvents query fix and Meta UTM note
+function renderCampaigns(campaignsData, sourceRows){
+  const campEl = document.getElementById('camp-content');
+  if(!campEl) return;
+
+  sourceRows = sourceRows || [];
+
+  // ── GOOGLE: named campaigns from Paid Search / Cross-network
+  const google = campaignsData.filter(r=>
+    (r.source||'').includes('cpc') || r.channel==='Paid Search' || r.channel==='Cross-network'
+  );
+
+  // ── META PAID: fb/paid + ig/paid (named campaigns) + source rows for paid social
+  const metaPaidSources = ['fb / paid','ig / paid'];
+  const metaCampaigns = campaignsData.filter(r=>
+    metaPaidSources.includes(r.source) || r.channel==='Paid Social'
+  );
+  const metaSources = sourceRows.filter(r=>
+    metaPaidSources.includes(r.source) || r.channel==='Paid Social'
+  );
+  // Merge: use campaign rows if they exist, otherwise fall back to source rows
+  // Avoid double-counting: if a source already appears in campaign rows, skip source row
+  const metaCampSources = new Set(metaCampaigns.map(r=>r.source));
+  const metaSourceOnly = metaSources.filter(r=>!metaCampSources.has(r.source));
+  const meta = [...metaCampaigns, ...metaSourceOnly];
+
+  // ── META ORGANIC SOCIAL: m.facebook.com, l.facebook.com, instagram.com, etc.
+  const organicSocialSources = sourceRows.filter(r=>
+    (r.channel==='Organic Social' ||
+    (r.source||'').includes('facebook.com') ||
+    (r.source||'').includes('instagram.com')) &&
+    !(r.source||'').includes('linkedin')
+  );
+
+  // ── EMAIL: mailchimp, ortto, MyMail, email medium — from both queries
+  const emailCampaigns = campaignsData.filter(r=>
+    r.source&&(r.source.includes('email')||r.source.includes('mailchimp')||r.source.includes('ortto')||r.source.includes('campaign-archive'))
+  );
+  const emailSources = sourceRows.filter(r=>
+    r.channel==='Email' ||
+    (r.source||'').includes('mailchimp') ||
+    (r.source||'').includes('ortto') ||
+    (r.source||'').toLowerCase().includes('email')
+  );
+  const emailCampSources = new Set(emailCampaigns.map(r=>r.source));
+  const emailSourceOnly = emailSources.filter(r=>!emailCampSources.has(r.source));
+  const email = [...emailCampaigns, ...emailSourceOnly];
+
+  // ── REFERRALS: everything else not already categorised
+  const usedSources = new Set([
+    ...google.map(r=>r.source),
+    ...meta.map(r=>r.source),
+    ...organicSocialSources.map(r=>r.source),
+    ...email.map(r=>r.source),
+  ]);
+  const refs = [
+    ...campaignsData.filter(r=>r.channel==='Referral' && !usedSources.has(r.source) && !(r.source||'').includes('vercel.app')),
+    ...sourceRows.filter(r=>r.channel==='Referral' && !usedSources.has(r.source) && !(r.source||'').includes('vercel.app')),
+  ];
+
+  // FIX #1: campTable now includes column headers
+  function campTable(rows, cols, notes){
+    if(!rows||!rows.length) return '<div class="no-data">No data this period</div>';
+    const maxS = Math.max(...rows.map(r=>parseFloat(r.sessions||0)))||1;
+
+    const colDefs = {
+      sessions: {label:'Sessions',   w:'80px',  align:'right'},
+      bar:      {label:'',           w:'100px', align:'left'},
+      eng:      {label:'Engagement', w:'90px',  align:'right'},
+      conv:     {label:'Conversions',w:'90px',  align:'right'},
+      convRate: {label:'Conv rate',  w:'80px',  align:'right'},
+      rev:      {label:'Revenue',    w:'80px',  align:'right'},
+    };
+
+    const header = `<div style="display:grid;grid-template-columns:1fr ${cols.map(c=>colDefs[c].w).join(' ')};gap:0;padding:0 0 8px;border-bottom:1px solid var(--border);font-size:9px;text-transform:uppercase;letter-spacing:.7px;color:var(--text3)">
+      <span>Campaign</span>${cols.map(c=>`<span style="text-align:${colDefs[c].align};padding:0 6px">${colDefs[c].label}</span>`).join('')}
+    </div>`;
+
+    const rowsHtml = rows.map(r=>{
+      const s=parseFloat(r.sessions||0);
+      const er=parseFloat(r.engRate||0);
+      // FIX #3: For keyEvents, use the direct column value (already SUM'd in query)
+      const kev=parseFloat(r.keyEvents||0);
+      const ker=parseFloat(r.ker||0);
+      const rev=parseFloat(r.revenue||0);
+      // Source-only rows (_fromSource) show the source. Named campaign rows show campaign name.
+      const name = r._displayName || (r._fromSource
+        ? (r.source||'Unknown')
+        : (r.campaign&&!['(direct)','(organic)','(referral)'].includes(r.campaign)
+            ? metaCampName(r.campaign)
+            : r.source));
+
+      const cells = cols.map(c=>{
+        if(c==='sessions') return `<span style="text-align:right;padding:0 6px;font-weight:500;color:var(--text);font-size:13px">${fmt(s)}</span>`;
+        if(c==='bar') return `<div style="padding:0 6px;display:flex;align-items:center"><div style="flex:1;height:4px;background:var(--bg3);border-radius:2px"><div style="height:4px;background:var(--text);border-radius:2px;width:${(s/maxS*100).toFixed(0)}%"></div></div></div>`;
+        if(c==='eng') {
+          const erCapped = Math.min(er, 1);
+          return `<span style="text-align:right;padding:0 6px;color:${erCapped>=0.7?'var(--accent)':erCapped>=0.5?'var(--text2)':'var(--warn)'};">${fmtPct(erCapped)}</span>`;
+        }
+        // FIX #3: Show keyEvents value; show "0" if present but zero, "—" only if null/undefined
+        if(c==='conv') return `<span style="text-align:right;padding:0 6px;color:${kev>0?'var(--accent)':'var(--text3)'}">${kev>0?fmt(kev):'0'}</span>`;
+        if(c==='convRate') return `<span style="text-align:right;padding:0 6px;color:var(--text2)">${ker>0?fmtPct(ker):'—'}</span>`;
+        if(c==='rev') return `<span style="text-align:right;padding:0 6px;color:${rev>0?'var(--accent)':'var(--text3)'};">${rev>0?'$'+(rev/1000).toFixed(1)+'K':'—'}</span>`;
+        return '';
+      });
+
+      return `<div style="display:grid;grid-template-columns:1fr ${cols.map(c=>colDefs[c].w).join(' ')};gap:0;padding:8px 0;border-bottom:1px solid var(--bg2);align-items:center;font-size:12px">
+        <span style="color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:8px">${name||'Unknown'}</span>
+        ${cells.join('')}
+      </div>`;
+    }).join('');
+
+    const noticeHtml = notes ? `<div style="margin-top:8px;font-size:11px;color:var(--text3);padding:7px 10px;background:var(--bg2);border-radius:6px;border-left:2px solid var(--gold)">${notes}</div>` : '';
+
+    return header + rowsHtml + noticeHtml;
+  }
+
+  function totalRow(rows){
+    const totS=rows.reduce((a,r)=>a+parseFloat(r.sessions||0),0);
+    const totKE=rows.reduce((a,r)=>a+parseFloat(r.keyEvents||0),0);
+    const totRev=rows.reduce((a,r)=>a+parseFloat(r.revenue||0),0);
+    const parts=[`<strong>${fmt(totS)}</strong> sessions`];
+    // FIX #3: Always show conversion count even if 0
+    parts.push(`<strong>${fmt(totKE)}</strong> key events`);
+    if(totRev>0) parts.push(`<strong>$${(totRev/1000).toFixed(1)}K</strong> revenue`);
+    return `<div style="font-size:11px;color:var(--text3);padding:8px 0 0;border-top:1px solid var(--border);margin-top:4px">${parts.join(' · ')}</div>`;
+  }
+
+  // ── Notes ──
+  const metaNote = meta.length > 0 && meta.some(r=>r.campaign&&/^\d{10,}$/.test(r.campaign))
+    ? '⚠️ Some campaigns showing as numeric IDs. Add UTM parameters in Meta Ads Manager: UTM Campaign = {{campaign.name}}.'
+    : meta.length > 0 && meta.every(r=>parseFloat(r.keyEvents||0)===0)
+    ? '⚠️ Zero conversions from paid Meta. Check that UTM parameters are set in ad links and that key events fire on the landing page.'
+    : null;
+
+  const emailNote = email.length > 0 && email.every(r=>parseFloat(r.keyEvents||0)===0)
+    ? '⚠️ Zero conversions from Email. Confirm UTM parameters are set in campaign links and key events are configured on the destination page.'
+    : null;
+
+  // ── Google: use real campaign name mapping
+  const googleRows = google.map(r=>({...r, _displayName: googleCampName(r.campaign||r.source)}));
+
+  // ── LinkedIn: organic social referral
+  const linkedin = sourceRows.filter(r=>
+    (r.source||'').includes('linkedin')
+  );
+
+  const sections = [
+    {title:'Google Ads', note:'LV Pmax · Search campaigns · Brand', rows:googleRows, cols:['sessions','bar','eng','conv','convRate','rev'], color:'#4285f4', tableNote:null},
+    {title:'Meta · Paid', note:'fb / paid · ig / paid · Paid Social campaigns', rows:meta, cols:['sessions','bar','eng','conv','convRate'], color:'#1877f2', tableNote:metaNote},
+    {title:'Meta · Organic Social', note:'facebook.com · instagram.com · m.facebook.com · l.facebook.com', rows:organicSocialSources, cols:['sessions','bar','eng','conv'], color:'#4267B2', tableNote:null},
+    {title:'LinkedIn', note:'linkedin.com / referral · organic · no paid campaigns detected', rows:linkedin, cols:['sessions','bar','eng','conv'], color:'#0077b5', tableNote:linkedin.length>0&&linkedin.every(r=>parseFloat(r.keyEvents||0)===0)?'Sessions arriving from LinkedIn posts and profiles. No paid LinkedIn campaigns detected — if running LinkedIn Ads, add UTM parameters to ad links.':null},
+    {title:'Email', note:'mailchimp · ortto · MyMail · newsletter campaigns', rows:email, cols:['sessions','bar','eng','conv'], color:'#0a7c59', tableNote:emailNote},
+    {title:'Referral sources', note:'sessions · engagement · conversions', rows:refs.slice(0,12), cols:['sessions','bar','eng','conv','rev'], color:'#7c3aed', tableNote:null},
+  ].filter(s=>s.rows.length>0);
+
+  campEl.innerHTML = sections.map(s=>`
+    <div style="background:white;border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin-bottom:12px;border-top:3px solid ${s.color}">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <span style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--text)">${s.title}</span>
+        <span style="font-size:10px;color:var(--text3)">${s.note}</span>
+      </div>
+      ${campTable(s.rows, s.cols, s.tableNote)}
+      ${totalRow(s.rows)}
+    </div>`).join('');
+}
+
+// ── LAZY LOADERS ─────────────────────────────────────────────────────────────
+const loaded = {};
+
+async function loadPrograms(){
+  if(loaded.programs) return;
+  loaded.programs = true;
+  const df=dateFilter(), pf=prevDateFilter();
+  const progFunnelQ = `SELECT CASE WHEN landingPage LIKE '%igniting-leadership%' THEN 'Igniting Leadership' WHEN landingPage LIKE '%womens-leadership%' OR landingPage LIKE '%women-s-leadership%' THEN 'Womens Leadership' WHEN landingPage LIKE '%leader-evolution%' OR landingPage LIKE '%leaderevolution%' THEN 'Leader Evolution' ELSE 'Other' END as program, CASE WHEN landingPage LIKE '%/tickets%' THEN 'tickets' WHEN landingPage LIKE '%/details%' THEN 'purchase' ELSE 'program_page' END as stage, SUM(sessions) as sessions, SUM(totalRevenue) as revenue FROM \`${P}.${D}.ga4_LandingPage_317130094\` WHERE ${df} GROUP BY program, stage ORDER BY program, stage`;
+  const progFunnelPrevQ = `SELECT CASE WHEN landingPage LIKE '%igniting-leadership%' THEN 'Igniting Leadership' WHEN landingPage LIKE '%womens-leadership%' OR landingPage LIKE '%women-s-leadership%' THEN 'Womens Leadership' WHEN landingPage LIKE '%leader-evolution%' OR landingPage LIKE '%leaderevolution%' THEN 'Leader Evolution' ELSE 'Other' END as program, CASE WHEN landingPage LIKE '%/tickets%' THEN 'tickets' WHEN landingPage LIKE '%/details%' THEN 'purchase' ELSE 'program_page' END as stage, SUM(sessions) as sessions, SUM(totalRevenue) as revenue FROM \`${P}.${D}.ga4_LandingPage_317130094\` WHERE ${pf} GROUP BY program, stage ORDER BY program, stage`;
+  const trendQ = `SELECT CASE WHEN landingPage LIKE '%igniting-leadership%' THEN 'Igniting Leadership' WHEN landingPage LIKE '%womens-leadership%' OR landingPage LIKE '%women-s-leadership%' THEN 'Womens Leadership' WHEN landingPage LIKE '%leader-evolution%' OR landingPage LIKE '%leaderevolution%' THEN 'Leader Evolution' END as program, DATE_TRUNC(_DATA_DATE, WEEK) as week, SUM(totalRevenue) as revenue, SUM(keyEvents) as purchases FROM \`${P}.${D}.ga4_LandingPage_317130094\` WHERE _DATA_DATE >= DATE_SUB(CURRENT_DATE(), INTERVAL 90 DAY) AND (landingPage LIKE '%igniting-leadership%' OR landingPage LIKE '%womens-leadership%' OR landingPage LIKE '%women-s-leadership%' OR landingPage LIKE '%leader-evolution%') GROUP BY program, week ORDER BY week ASC`;
+  const checkoutQ = `SELECT eventName as event, SUM(eventCount) as count FROM \`${P}.${D}.ga4_Events_317130094\` WHERE _DATA_DATE >= DATE_SUB(CURRENT_DATE(), INTERVAL 90 DAY) AND eventName IN ('begin_checkout','add_shipping_info','add_payment_info','purchase') GROUP BY eventName`;
+
+  const [progFunnelData, progFunnelPrev, trendData, checkoutData] = await Promise.all([bq(progFunnelQ), bq(progFunnelPrevQ), bq(trendQ), bq(checkoutQ)]);
+  globalData.progFunnelData = progFunnelData;
+  globalData.trendData = trendData;
+  renderPrograms(progFunnelData, progFunnelPrev, trendData);
+  renderCheckoutFunnel(checkoutData);
+}
+
+function renderCheckoutFunnel(data){
+  const el = document.getElementById('checkout-funnel');
+  if(!el) return;
+
+  const evMap = {};
+  data.forEach(r=>{ evMap[r.event] = parseInt(r.count||0); });
+
+  const steps = [
+    {key:'begin_checkout',   label:'Begin checkout',  note:'Arrived at Humanitix', color:'#1d3557'},
+    {key:'add_shipping_info',label:'Add delivery',     note:'Passed contact details', color:'#2d6a4f'},
+    {key:'add_payment_info', label:'Add payment',      note:'Reached payment step', color:'#b5860b'},
+    {key:'purchase',         label:'Purchase ✓',       note:'Completed transaction', color:'#22c55e'},
+  ];
+
+  const max = evMap['begin_checkout'] || 1;
+
+  let html = '<div style="padding:8px 0">';
+  steps.forEach((s,i)=>{
+    const val = evMap[s.key] || 0;
+    const pct = max > 0 ? (val/max*100) : 0;
+    const prev = i > 0 ? (evMap[steps[i-1].key]||0) : null;
+    const drop = prev ? prev - val : 0;
+    const dropPct = prev ? ((drop/prev)*100).toFixed(0) : null;
+
+    html += `
+      <div style="margin-bottom:${i<steps.length-1?'4px':'0'}">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">
+          <div>
+            <span style="font-size:13px;font-weight:500;color:var(--text)">${s.label}</span>
+            <span style="font-size:11px;color:var(--text3);margin-left:8px">${s.note}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            ${drop>0?`<span style="font-size:11px;color:var(--warn);font-weight:500">▼ ${drop} dropped (${dropPct}%)</span>`:''}
+            <span style="font-family:'Cormorant Garamond',serif;font-size:24px;color:var(--text);font-weight:400">${fmt(val)}</span>
+          </div>
+        </div>
+        <div style="height:36px;background:var(--bg2);border-radius:8px;overflow:hidden">
+          <div style="height:100%;width:${pct.toFixed(1)}%;background:${s.color};border-radius:8px;transition:width .6s ease;display:flex;align-items:center;padding-left:12px;min-width:${val>0?'2px':'0'}">
+            ${pct>8?`<span style="font-size:12px;font-weight:600;color:white">${pct.toFixed(0)}%</span>`:''}
+          </div>
+        </div>
+      </div>
+      ${i<steps.length-1?`<div style="display:flex;align-items:center;gap:8px;padding:3px 0 3px 14px"><div style="width:1px;height:12px;background:var(--border)"></div></div>`:''}`;
+  });
+
+  // Key insight
+  const addPayDrop = (evMap['add_shipping_info']||0) - (evMap['add_payment_info']||0);
+  const addPayPct = evMap['add_shipping_info'] ? ((addPayDrop/(evMap['add_shipping_info']))*100).toFixed(0) : 0;
+  const purchaseDrop = (evMap['begin_checkout']||0) - (evMap['purchase']||0);
+  const overallConv = max > 0 ? ((evMap['purchase']||0)/max*100).toFixed(0) : 0;
+
+  html += `</div>
+    <div style="margin-top:14px;background:#fef3dc;border-radius:8px;padding:10px 14px;border-left:3px solid var(--gold)">
+      <div style="font-size:12px;color:#6b4c0a;line-height:1.7">
+        <strong>${overallConv}% overall conversion</strong> — ${fmt(evMap['purchase']||0)} purchases from ${fmt(max)} who started checkout.
+        ${addPayDrop>0?`Biggest drop: <strong>${addPayDrop} people (${addPayPct}%)</strong> reached delivery but didn't add payment — likely friction at the payment step.`:''}
+      </div>
+    </div>`;
+
+  el.innerHTML = html;
+}
+
+async function loadCampaigns(){
+  if(loaded.campaigns) return;
+  loaded.campaigns = true;
+  const df=dateFilter();
+
+  // Query 1: named campaigns (Google Ads, Email with UTMs, etc.)
+  const campaignsQ = `SELECT sessionCampaignName as campaign, sessionSourceMedium as source, sessionDefaultChannelGroup as channel, SUM(sessions) as sessions, SUM(engagedSessions) as engaged, AVG(engagementRate) as engRate, SUM(keyEvents) as keyEvents, AVG(sessionKeyEventRate) as ker, AVG(userEngagementDurationPerSession) as avgDur, SUM(totalRevenue) as revenue FROM \`${P}.${D}.ga4_TrafficAcquisition_317130094\` WHERE ${df} AND sessionCampaignName IS NOT NULL AND sessionCampaignName NOT IN ('(not set)','(direct)','(organic)','(referral)') GROUP BY campaign, source, channel ORDER BY sessions DESC LIMIT 40`;
+
+  // Query 2: all Meta/Social/Email sources grouped by source — catches sessions without campaign names
+  // Covers: m.facebook.com, l.facebook.com, lm.facebook.com, facebook.com, instagram.com, fb/paid, ig/paid, mailchimp, ortto, MyMail
+  const sourceQ = `SELECT sessionSourceMedium as source, sessionDefaultChannelGroup as channel, SUM(sessions) as sessions, SUM(engagedSessions) as engaged, AVG(engagementRate) as engRate, SUM(keyEvents) as keyEvents, AVG(sessionKeyEventRate) as ker, AVG(userEngagementDurationPerSession) as avgDur, SUM(totalRevenue) as revenue FROM \`${P}.${D}.ga4_TrafficAcquisition_317130094\` WHERE ${df} AND ( sessionSourceMedium LIKE '%facebook%' OR sessionSourceMedium LIKE '%instagram%' OR sessionSourceMedium LIKE '%fb%' OR sessionSourceMedium LIKE '%ig/%' OR sessionSourceMedium LIKE '%linkedin%' OR sessionSourceMedium LIKE '%lnkd%' OR sessionSourceMedium LIKE '%mailchimp%' OR sessionSourceMedium LIKE '%ortto%' OR sessionSourceMedium LIKE '%email%' OR sessionDefaultChannelGroup IN ('Paid Social','Organic Social','Email') ) GROUP BY source, channel ORDER BY sessions DESC`;
+
+  const [campaignsData, sourceData] = await Promise.all([bq(campaignsQ), bq(sourceQ)]);
+
+  // Attach source rows (no campaign name) — mark them so renderCampaigns knows
+  const sourceRows = sourceData.map(r=>({...r, campaign: null, _fromSource: true}));
+
+  globalData.campaignsData = campaignsData;
+  globalData.sourceData = sourceRows;
+  renderCampaigns(campaignsData, sourceRows);
+}
+
+async function loadPath(){
+  if(loaded.path) return;
+  loaded.path = true;
+  const rawDataset = 'ga4_leadership_victoria_us';
+  const df = dateFilter();
+
+  const touchQ = `SELECT sessionDefaultChannelGroup as channel, SUM(sessions) as sessions, SUM(engagedSessions) as engaged, SUM(keyEvents) as keyEvents, SUM(totalRevenue) as revenue FROM \`${P}.${D}.ga4_TrafficAcquisition_317130094\` WHERE ${df} GROUP BY channel ORDER BY sessions DESC`;
+  const purchaseAttrAggQ = `SELECT sessionSourceMedium as source, SUM(sessions) as buyers, SUM(totalRevenue) as revenue FROM \`${P}.${D}.ga4_TrafficAcquisition_317130094\` WHERE ${df} AND totalRevenue > 0 GROUP BY source ORDER BY revenue DESC LIMIT 10`;
+  const downloadAttrAggQ = `SELECT sessionSourceMedium as source, SUM(sessions) as downloaders, SUM(keyEvents) as total_downloads FROM \`${P}.${D}.ga4_TrafficAcquisition_317130094\` WHERE ${df} GROUP BY source ORDER BY total_downloads DESC LIMIT 10`;
+  const formAttrAggQ = `SELECT e.traffic_source.source as source, e.traffic_source.medium as medium, COUNT(DISTINCT p.user_pseudo_id) as form_submitters, COUNT(*) as total_submissions FROM (SELECT DISTINCT user_pseudo_id FROM \`${P}.${rawDataset}.events_*\` WHERE _TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY)) AND event_name IN ('form_submission_id','generate_lead','igniting_leadership_form_submission','womens_leadership_form_submission','leader_evolution_form_submission')) p JOIN \`${P}.${rawDataset}.events_*\` e ON p.user_pseudo_id = e.user_pseudo_id WHERE e._TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY)) AND e.event_name = 'session_start' GROUP BY source, medium ORDER BY total_submissions DESC LIMIT 10`;
+
+  const days = activeDays||30;
+  const pathFunnelQ = `SELECT stage, COUNT(DISTINCT user_pseudo_id) as users FROM (SELECT user_pseudo_id, CASE WHEN REGEXP_CONTAINS((SELECT value.string_value FROM UNNEST(event_params) WHERE key='page_location'), 'humanitix.com/.*/complete') THEN '4_complete' WHEN event_name='purchase' THEN '3_purchase' WHEN REGEXP_CONTAINS((SELECT value.string_value FROM UNNEST(event_params) WHERE key='page_location'), 'humanitix.com/.*/tickets') THEN '2_tickets' WHEN REGEXP_CONTAINS((SELECT value.string_value FROM UNNEST(event_params) WHERE key='page_location'), 'humanitix.com') THEN '1_humanitix' WHEN REGEXP_CONTAINS((SELECT value.string_value FROM UNNEST(event_params) WHERE key='page_location'), 'leadershipvictoria.org') THEN '0_lv_site' END as stage FROM \`${P}.${rawDataset}.events_*\` WHERE _TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL ${days} DAY)) AND event_name IN ('page_view','purchase')) WHERE stage IS NOT NULL GROUP BY stage ORDER BY stage`;
+  const pathEntryQ = `SELECT REGEXP_REPLACE((SELECT value.string_value FROM UNNEST(e.event_params) WHERE key='page_location'), r'https://www\\.leadershipvictoria\\.org', '') as entry_page, COUNT(DISTINCT e.user_pseudo_id) as buyers FROM \`${P}.${rawDataset}.events_*\` e WHERE e._TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL ${days} DAY)) AND e.user_pseudo_id IN (SELECT DISTINCT user_pseudo_id FROM \`${P}.${rawDataset}.events_*\` WHERE _TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL ${days} DAY)) AND event_name = 'purchase') AND (SELECT value.string_value FROM UNNEST(e.event_params) WHERE key='page_location') LIKE '%leadershipvictoria.org%' AND e.event_name = 'page_view' GROUP BY entry_page ORDER BY buyers DESC LIMIT 10`;
+
+  const [touchData, purchaseAttr, downloadAttr, formAttr, pathFunnel, pathEntry] = await Promise.all([
+    bq(touchQ), bq(purchaseAttrAggQ), bq(downloadAttrAggQ), bq(formAttrAggQ), bq(pathFunnelQ), bq(pathEntryQ)
+  ]);
+
+  globalData.pathFunnel = pathFunnel;
+  globalData.pathEntry = pathEntry;
+
+  const tpEl = document.getElementById('path-touchpoints');
+  if(tpEl && touchData.length){
+    const CHANNEL_COLORS = {'Direct':'#1a3a6b','Organic Search':'#2d6a4f','Paid Search':'#4285f4','Cross-network':'#888','Organic Social':'#7c3aed','Referral':'#b5860b','Paid Social':'#1877f2','Email':'#0a7c59','Unassigned':'#bbb','Paid Other':'#999'};
+    const earlyChannels = ['Organic Search','Paid Search','Organic Social','Paid Social'];
+    const midChannels = ['Referral','Cross-network','Unassigned'];
+    const lateChannels = ['Direct','Email','Paid Other'];
+    const early = touchData.filter(r=>earlyChannels.includes(r.channel));
+    const mid = touchData.filter(r=>midChannels.includes(r.channel));
+    const late = touchData.filter(r=>lateChannels.includes(r.channel));
+    const totalKE = touchData.reduce((a,r)=>a+parseFloat(r.keyEvents||0),0)||1;
+    const earlyKE = early.reduce((a,r)=>a+parseFloat(r.keyEvents||0),0);
+    const midKE = mid.reduce((a,r)=>a+parseFloat(r.keyEvents||0),0);
+    const lateKE = late.reduce((a,r)=>a+parseFloat(r.keyEvents||0),0);
+
+    function renderTouchBars(rows){
+      if(!rows.length) return '<div style="font-size:11px;color:var(--text3);font-style:italic;padding:8px 0">No data</div>';
+      const maxS = Math.max(...rows.map(r=>parseFloat(r.sessions||0)))||1;
+      return rows.map(r=>{
+        const s=parseFloat(r.sessions||0), rev=parseFloat(r.revenue||0);
+        const color=CHANNEL_COLORS[r.channel]||'#888';
+        return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.1)">
+          <span style="font-size:11px;width:100px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.9">${r.channel}</span>
+          <div style="flex:1;height:16px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden">
+            <div style="height:100%;width:${(s/maxS*100).toFixed(0)}%;background:${color};border-radius:3px;opacity:.9"></div>
+          </div>
+          <span style="font-size:11px;font-weight:500;min-width:36px;text-align:right">${fmt(s)}</span>
+          ${rev>0?`<span style="font-size:10px;opacity:.7;min-width:36px;text-align:right">$${(rev/1000).toFixed(0)}K</span>`:`<span style="min-width:36px"></span>`}
+        </div>`;
+      }).join('');
     }
 
-    const sp=progRows.reduce((a,r)=>a+cn(r.spend),0);
-    const re=progRows.reduce((a,r)=>a+cn(r.reach),0);
-    const cl=progRows.reduce((a,r)=>a+cn(r.link_clicks),0);
-    const dl=progRows.reduce((a,r)=>a+cn(r.conversions_offsite_conversion_fb_pixel_custom_file_download),0);
-    const co=progRows.reduce((a,r)=>a+cn(r.actions_lead)+cn(r.actions_offsite_conversion_fb_pixel_lead),0);
-    const ri=progRows.reduce((a,r)=>a+cn(r.actions_complete_registration),0);
+    const directRev = parseFloat(touchData.find(r=>r.channel==='Direct')?.revenue||0);
+    const paidRev = parseFloat(touchData.find(r=>r.channel==='Paid Search')?.revenue||0) + parseFloat(touchData.find(r=>r.channel==='Cross-network')?.revenue||0);
 
-    el.innerHTML = `
-      <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:${progKey==='igniting'?'#E6F1FB':'#E1F5EE'};border-radius:10px;margin-bottom:14px">
-        <div style="width:9px;height:9px;border-radius:50%;background:${progColor};flex-shrink:0"></div>
-        <div style="font-size:13px;font-weight:500;color:${progColor}">${progLabel}</div>
-        <div style="font-size:11px;color:var(--text3);margin-left:auto">Campaigns: ${new Set(progRows.map(r=>r.campaign)).size} · Ads: ${progRows.length}</div>
-      </div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:10px;margin-bottom:14px">
-        ${[['Spend','$'+sp.toFixed(0)],['Reach',fmt(re)],['Clicks',fmt(cl)],['Downloads',fmt(dl)],['Contacts',fmt(co)],['Register',fmt(ri)]].map(([l,v])=>`
-          <div style="background:var(--bg2);border-radius:10px;padding:11px 13px;border-top:2px solid ${progColor}">
-            <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px">${l}</div>
-            <div style="font-size:20px;font-weight:400;font-family:'Cormorant Garamond',serif;color:var(--text)">${v}</div>
+    tpEl.innerHTML=`
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--border);border-radius:10px;overflow:hidden;margin-bottom:14px">
+        ${[
+          {label:'Early touch points', pct:(earlyKE/totalKE*100).toFixed(1), rows:early, note:'Discovery — first contact with LV', bg:'white', textColor:'var(--text)', subColor:'var(--text3)'},
+          {label:'Mid touch points', pct:(midKE/totalKE*100).toFixed(1), rows:mid, note:'Research — users comparing options', bg:'white', textColor:'var(--text)', subColor:'var(--text3)'},
+          {label:'Late touch points', pct:(lateKE/totalKE*100).toFixed(1), rows:late, note:'Conversion — final action before purchase', bg:'#1a3a6b', textColor:'white', subColor:'rgba(255,255,255,.6)'},
+        ].map(t=>`
+          <div style="background:${t.bg};padding:16px;color:${t.textColor}">
+            <div style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.8px;color:${t.subColor};margin-bottom:4px">${t.label}</div>
+            <div style="font-family:'Cormorant Garamond',serif;font-size:32px;margin-bottom:2px">${t.pct}%</div>
+            <div style="font-size:10px;color:${t.subColor};margin-bottom:12px;font-style:italic">${t.note}</div>
+            ${renderTouchBars(t.rows)}
           </div>`).join('')}
       </div>
-      <div style="background:white;border:0.5px solid var(--border);border-radius:10px;padding:14px 16px">
-        <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:10px;font-weight:500">Campaigns by funnel stage</div>
-        <div style="display:flex;gap:8px;margin-bottom:10px">
-          ${['TOF','MOF','BOF'].map((f,i)=>{
-            const bgs=['#E6F1FB','#FEF3DC','#E8F5EE'];const cs=['#1d3557','#b5860b','#2d6a4f'];const labels=['Top of Funnel','Middle','Bottom'];
-            return `<span style="font-size:10px;padding:3px 8px;border-radius:10px;background:${bgs[i]};color:${cs[i]};font-weight:500">${f}</span><span style="font-size:11px;color:var(--text3);margin-right:10px">${labels[i]}</span>`;
+      <div style="background:#e8eef8;border-radius:8px;padding:12px 14px;border-left:3px solid var(--accent2)">
+        <div style="font-size:12px;color:#1a3a6b;line-height:1.7">
+          <strong>Channel story:</strong> Organic Search &amp; Paid introduce users to Leadership Victoria (early touch). 
+          Referrals from professional platforms and internal tools signal high-intent B2B audience (mid touch). 
+          Direct dominates conversion ($${(directRev/1000).toFixed(0)}K) — users return directly when ready to buy.
+          ${paidRev>0?` Paid Search closes $${(paidRev/1000).toFixed(0)}K directly.`:''}
+        </div>
+      </div>`;
+  }
+
+  const attrEl = document.getElementById('path-attribution');
+  if(attrEl){
+    const channels = {};
+    purchaseAttr.forEach(r=>{
+      const ch = r.source||'(direct) / (none)';
+      const parts = ch.split(' / ');
+      const src = parts[0]||'(direct)', med = parts[1]||'(none)';
+      if(!channels[ch]) channels[ch]={source:src,medium:med,revenue:0,downloads:0,forms:0};
+      channels[ch].revenue = parseFloat(r.revenue||0);
+    });
+    downloadAttr.forEach(r=>{
+      const ch = r.source||'(direct) / (none)';
+      const parts = ch.split(' / ');
+      const src = parts[0]||'(direct)', med = parts[1]||'(none)';
+      if(!channels[ch]) channels[ch]={source:src,medium:med,revenue:0,downloads:0,forms:0};
+      channels[ch].downloads = parseFloat(r.total_downloads||0);
+    });
+    formAttr.forEach(r=>{
+      const ch = `${r.source||'(direct)'} / ${r.medium||'(none)'}`;
+      if(!channels[ch]) channels[ch]={source:r.source||'(direct)',medium:r.medium||'(none)',revenue:0,downloads:0,forms:0};
+      channels[ch].forms = parseFloat(r.total_submissions||0);
+    });
+
+    const sorted=Object.values(channels).filter(c=>c.revenue>0||c.downloads>0||c.forms>0).sort((a,b)=>(b.revenue+(b.downloads*50)+(b.forms*100))-(a.revenue+(a.downloads*50)+(a.forms*100)));
+    const maxRev=Math.max(...sorted.map(c=>c.revenue))||1;
+    const maxDl=Math.max(...sorted.map(c=>c.downloads))||1;
+    const maxFm=Math.max(...sorted.map(c=>c.forms))||1;
+
+    function chIcon(src,med){
+      if((src||'').includes('google')&&(med||'').includes('cpc')) return '<span style="background:#4285f4;color:white;font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px">G ADS</span>';
+      if((src||'').includes('google')&&(med||'').includes('organic')) return '<span style="background:#34a853;color:white;font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px">SEO</span>';
+      if((med||'').includes('none')||src==='(direct)') return '<span style="background:#1a3a6b;color:white;font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px">DIRECT</span>';
+      if((med||'').includes('email')) return '<span style="background:#0a7c59;color:white;font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px">EMAIL</span>';
+      if((med||'').includes('referral')) return '<span style="background:#7c3aed;color:white;font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px">REF</span>';
+      if((src||'').includes('bing')) return '<span style="background:#008373;color:white;font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px">BING</span>';
+      return '<span style="background:#888;color:white;font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px">OTHER</span>';
+    }
+
+    if(!sorted.length){
+      attrEl.innerHTML='<div class="no-data">No conversion data for this period</div>';
+    } else {
+      attrEl.innerHTML=`
+        <div style="display:grid;grid-template-columns:180px 1fr 1fr 1fr;font-size:10px;text-transform:uppercase;letter-spacing:.7px;color:var(--text3);padding:0 0 8px;border-bottom:1px solid var(--border)">
+          <span>Channel</span><span style="text-align:center">💰 Revenue</span><span style="text-align:center">📥 Downloads</span><span style="text-align:center">📋 Forms</span>
+        </div>
+        ${sorted.map(c=>`
+          <div style="display:grid;grid-template-columns:180px 1fr 1fr 1fr;padding:9px 0;border-bottom:1px solid var(--bg2);align-items:center">
+            <div style="display:flex;align-items:center;gap:6px">${chIcon(c.source,c.medium)}<span style="font-size:11px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.source}</span></div>
+            <div style="padding:0 8px">${c.revenue>0?`<div style="display:flex;align-items:center;gap:6px"><div style="flex:1;height:6px;background:var(--bg3);border-radius:3px"><div style="height:6px;background:#1d3557;border-radius:3px;width:${(c.revenue/maxRev*100).toFixed(0)}%"></div></div><span style="font-size:11px;font-weight:500;min-width:36px">$${(c.revenue/1000).toFixed(0)}K</span></div>`:'<span style="font-size:11px;color:var(--text3)">—</span>'}</div>
+            <div style="padding:0 8px">${c.downloads>0?`<div style="display:flex;align-items:center;gap:6px"><div style="flex:1;height:6px;background:var(--bg3);border-radius:3px"><div style="height:6px;background:#2d6a4f;border-radius:3px;width:${(c.downloads/maxDl*100).toFixed(0)}%"></div></div><span style="font-size:11px;font-weight:500;min-width:20px">${c.downloads}</span></div>`:'<span style="font-size:11px;color:var(--text3)">—</span>'}</div>
+            <div style="padding:0 8px">${c.forms>0?`<div style="display:flex;align-items:center;gap:6px"><div style="flex:1;height:6px;background:var(--bg3);border-radius:3px"><div style="height:6px;background:#b5860b;border-radius:3px;width:${(c.forms/maxFm*100).toFixed(0)}%"></div></div><span style="font-size:11px;font-weight:500;min-width:20px">${c.forms}</span></div>`:'<span style="font-size:11px;color:var(--text3)">—</span>'}</div>
+          </div>`).join('')}`;
+    }
+  }
+
+  renderPath(pathFunnel, pathEntry);
+}
+
+// ── TABS ──────────────────────────────────────────────────────────────────────
+// ── GOOGLE ADS CAMPAIGN NAME MAP ─────────────────────────────────────────────
+const GOOGLE_CAMPAIGN_NAMES = {
+  'LV Pmax': 'LV Performance Max',
+  '[Search] Women In Leadership': 'Search · Women In Leadership',
+  '[Search] General Leadership': 'Search · General Leadership',
+  'Brand': 'Brand',
+  'Leadership Catchall [Search]': 'Search · Leadership Catchall',
+};
+function googleCampName(n){ return GOOGLE_CAMPAIGN_NAMES[n] || n; }
+
+// ── LOAD ORGANIC ──────────────────────────────────────────────────────────────
+async function loadOrganic(){
+  if(loaded.organic) return;
+  loaded.organic = true;
+  const df = dateFilter(), pf = prevDateFilter();
+
+  const [orgTraffic, prevOrgTraffic, orgPages, orgProgPages] = await Promise.all([
+    bq(`SELECT SUM(sessions) as sessions, SUM(engagedSessions) as engaged, AVG(engagementRate) as engRate, SUM(keyEvents) as keyEvents FROM \`${P}.${D}.ga4_TrafficAcquisition_317130094\` WHERE ${df} AND (sessionSourceMedium LIKE '%organic%')`),
+    bq(`SELECT SUM(sessions) as sessions FROM \`${P}.${D}.ga4_TrafficAcquisition_317130094\` WHERE ${pf} AND (sessionSourceMedium LIKE '%organic%')`),
+    bq(`SELECT l.landingPage as page, SUM(l.sessions) as sessions, AVG(l.userEngagementDurationPerSession) as avgDur, AVG(l.sessionKeyEventRate) as ker, SUM(l.keyEvents) as keyEvents FROM \`${P}.${D}.ga4_LandingPage_317130094\` l JOIN \`${P}.${D}.ga4_TrafficAcquisition_317130094\` t ON l._DATA_DATE = t._DATA_DATE AND (t.sessionSourceMedium LIKE '%organic%') WHERE l.${df} GROUP BY page ORDER BY sessions DESC LIMIT 30`),
+    bq(`SELECT landingPage as page, SUM(sessions) as sessions, AVG(userEngagementDurationPerSession) as avgDur, AVG(sessionKeyEventRate) as ker FROM \`${P}.${D}.ga4_LandingPage_317130094\` WHERE ${df} AND (landingPage LIKE '%igniting-leadership%' OR landingPage LIKE '%womens-leadership%' OR landingPage LIKE '%women-s-leadership%' OR landingPage LIKE '%leader-evolution%' OR landingPage LIKE '%leadership-programs%') GROUP BY page ORDER BY sessions DESC`),
+  ]);
+
+  // Since JOIN on landing page + source is complex with aggregated tables,
+  // fall back to showing all landing pages filtered by period for organic tab
+  // and use traffic table for KPIs
+  const orgS = parseFloat(orgTraffic[0]?.sessions||0);
+  const prevOrgS = parseFloat(prevOrgTraffic[0]?.sessions||0);
+  const orgEng = parseFloat(orgTraffic[0]?.engRate||0);
+  const orgConv = parseFloat(orgTraffic[0]?.keyEvents||0);
+
+  document.getElementById('org-sessions').textContent = fmt(orgS);
+  document.getElementById('org-eng').textContent = fmtPct(orgEng);
+  document.getElementById('org-conv').textContent = fmt(orgConv);
+  setDelta('org-sessions-d', delta(orgS, prevOrgS));
+
+  // Top landing pages — use globalData.pages (already loaded, all sources)
+  // Label which pages likely get organic based on URL patterns
+  const allPages = globalData.pages || [];
+  const maxS = Math.max(...allPages.map(p=>parseFloat(p.sessions||0)))||1;
+
+  const orgPagesEl = document.getElementById('org-pages');
+  const topPages = allPages.slice(0,10);
+  if(topPages.length){
+    orgPagesEl.innerHTML = topPages.map(p=>{
+      const s = parseFloat(p.sessions||0);
+      const isProgram = p.page.includes('leadership') || p.page.includes('programs');
+      return `<div class="data-row">
+        <span class="row-name" style="font-family:monospace;font-size:11px;color:${isProgram?'var(--accent2)':'var(--text2)'}">${p.page}</span>
+        <div class="bar-wrap"><div class="bar" style="width:${(s/maxS*100).toFixed(0)}%;background:#2d6a4f"></div></div>
+        <span class="row-val">${fmt(s)}</span>
+        <span class="row-sub">${fmtDur(p.avgDur)}</span>
+      </div>`;
+    }).join('');
+  } else {
+    orgPagesEl.innerHTML = '<div class="no-data">No page data for this period</div>';
+  }
+
+  // Program pages
+  const orgProgEl = document.getElementById('org-programs');
+  const progPages = allPages.filter(p=>
+    p.page.includes('igniting-leadership') ||
+    p.page.includes('womens-leadership') ||
+    p.page.includes('women-s-leadership') ||
+    p.page.includes('leader-evolution') ||
+    p.page.includes('leadership-programs') ||
+    p.page.includes('leadership-program')
+  );
+  if(progPages.length){
+    const maxP = Math.max(...progPages.map(p=>parseFloat(p.sessions||0)))||1;
+    const progColor = p => {
+      if(p.includes('igniting')) return '#1d3557';
+      if(p.includes('women')) return '#2d6a4f';
+      if(p.includes('evolution')) return '#b5860b';
+      return '#888';
+    };
+    orgProgEl.innerHTML = progPages.map(p=>{
+      const s = parseFloat(p.sessions||0);
+      const ker = parseFloat(p.ker||0);
+      return `<div class="data-row">
+        <span class="row-name" style="font-family:monospace;font-size:11px;color:${progColor(p.page)}">${p.page}</span>
+        <div class="bar-wrap"><div class="bar" style="width:${(s/maxP*100).toFixed(0)}%;background:${progColor(p.page)}"></div></div>
+        <span class="row-val">${fmt(s)}</span>
+        <span class="row-sub">${ker>0?fmtPct(ker):'—'}</span>
+      </div>`;
+    }).join('');
+  } else {
+    orgProgEl.innerHTML = '<div class="no-data">No program page traffic this period</div>';
+  }
+
+  // Full list
+  const orgAllEl = document.getElementById('org-all');
+  if(allPages.length){
+    orgAllEl.innerHTML = allPages.map(p=>{
+      const s = parseFloat(p.sessions||0);
+      return `<div class="data-row">
+        <span class="row-name" style="font-family:monospace;font-size:11px">${p.page}</span>
+        <div class="bar-wrap"><div class="bar" style="width:${(s/maxS*100).toFixed(0)}%;background:#1a1814"></div></div>
+        <span class="row-val">${fmt(s)}</span>
+        <span class="row-sub">${fmtDur(p.avgDur)}</span>
+      </div>`;
+    }).join('');
+  } else {
+    orgAllEl.innerHTML = '<div class="no-data">No data for this period</div>';
+  }
+}
+
+async function loadInsights(){
+  if(!isAgency) return;
+  const el = document.getElementById('cost-tracker');
+  if(!el) return;
+
+  try {
+    // BigQuery costs
+    const bqCosts = await bq(`SELECT DATE(creation_time) as date, COUNT(*) as queries, ROUND(SUM(total_bytes_processed)/1e9,3) as gb, ROUND(SUM(total_bytes_processed)/1e12*5,6) as cost_usd FROM \`region-us\`.INFORMATION_SCHEMA.JOBS WHERE creation_time >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 30 DAY) AND job_type='QUERY' AND state='DONE' GROUP BY date ORDER BY date DESC LIMIT 30`);
+
+    const todayStr = new Date().toISOString().split('T')[0];
+    const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate()-7);
+    const monthAgo = new Date(); monthAgo.setDate(monthAgo.getDate()-30);
+
+    const bqToday = bqCosts.filter(r=>r.date===todayStr).reduce((a,r)=>({queries:a.queries+parseInt(r.queries||0),cost:a.cost+parseFloat(r.cost_usd||0)}),{queries:0,cost:0});
+    const bqWeek = bqCosts.filter(r=>new Date(r.date)>=weekAgo).reduce((a,r)=>({queries:a.queries+parseInt(r.queries||0),cost:a.cost+parseFloat(r.cost_usd||0)}),{queries:0,cost:0});
+    const bqMonth = bqCosts.reduce((a,r)=>({queries:a.queries+parseInt(r.queries||0),cost:a.cost+parseFloat(r.cost_usd||0)}),{queries:0,cost:0});
+
+    // Claude API costs
+    let claude = {today:{input:0,output:0,cost:0}, week:{input:0,output:0,cost:0}, month:{input:0,output:0,cost:0}};
+    try {
+      const cr = await fetch('/api/usage');
+      if(cr.ok) claude = await cr.json();
+    } catch(e) { console.warn('Claude usage unavailable:', e.message); }
+
+    const fmtUSD = n => n < 0.01 ? '<$0.01' : '$'+n.toFixed(3);
+    const fmtTokens = n => n > 1000 ? (n/1000).toFixed(1)+'K' : n.toString();
+
+    const periods = [
+      {label:'Today', bq:bqToday, cl:claude.today},
+      {label:'This week', bq:bqWeek, cl:claude.week},
+      {label:'This month (30d)', bq:bqMonth, cl:claude.month},
+    ];
+
+    el.innerHTML = `
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px">
+        ${periods.map(p=>{
+          const total = (p.bq.cost||0) + (p.cl.cost||0);
+          return `<div style="background:var(--bg2);border-radius:10px;padding:14px 16px">
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);margin-bottom:8px">${p.label}</div>
+            <div style="font-family:'Cormorant Garamond',serif;font-size:32px;color:var(--text);line-height:1;margin-bottom:10px">${fmtUSD(total)} <span style="font-size:14px">USD</span></div>
+            <div style="border-top:1px solid var(--border);padding-top:8px;display:flex;flex-direction:column;gap:5px">
+              <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text2)">
+                <span>🔵 BigQuery</span>
+                <span>${p.bq.queries} queries · ${fmtUSD(p.bq.cost||0)}</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text2)">
+                <span>🟠 Claude API</span>
+                <span>${p.cl.calls||0} calls · ${fmtUSD(p.cl.cost||0)}</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:500;color:var(--text);border-top:1px solid var(--border);padding-top:5px">
+                <span>Total</span>
+                <span>${fmtUSD(total)}</span>
+              </div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+      <div style="background:var(--bg2);border-radius:10px;padding:12px 16px;margin-bottom:10px">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);margin-bottom:8px">BigQuery · last 30 days</div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          ${bqCosts.slice(0,10).map(r=>{
+            const cost = parseFloat(r.cost_usd||0);
+            return `<div style="display:flex;align-items:center;gap:10px;font-size:11px">
+              <span style="color:var(--text3);min-width:80px">${r.date}</span>
+              <span style="color:var(--text2);min-width:60px">${r.queries} queries</span>
+              <div style="flex:1;height:3px;background:var(--bg3);border-radius:2px">
+                <div style="height:3px;background:var(--accent2);border-radius:2px;width:${Math.min(100,(parseInt(r.queries||0)/500*100)).toFixed(0)}%"></div>
+              </div>
+              <span style="color:var(--text);min-width:50px;text-align:right">${fmtUSD(cost)}</span>
+            </div>`;
           }).join('')}
+        </div>
+      </div>
+      ${claude.daily&&claude.daily.length?`
+      <div style="background:var(--bg2);border-radius:10px;padding:12px 16px;margin-bottom:10px">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);margin-bottom:8px">Claude API · calls log</div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          ${claude.daily.slice(0,10).map(r=>`
+            <div style="display:flex;align-items:center;gap:10px;font-size:11px">
+              <span style="color:var(--text3);min-width:80px">${r.date}</span>
+              <span style="color:var(--text2);min-width:80px">${r.call_type}</span>
+              <span style="color:var(--text2);min-width:50px">${r.calls} calls</span>
+              <div style="flex:1;height:3px;background:var(--bg3);border-radius:2px">
+                <div style="height:3px;background:#e07020;border-radius:2px;width:${Math.min(100,(parseInt(r.calls||0)/20*100)).toFixed(0)}%"></div>
+              </div>
+              <span style="color:var(--text);min-width:50px;text-align:right">${fmtUSD(parseFloat(r.cost_usd||0))}</span>
+            </div>`).join('')}
+        </div>
+      </div>`:''}
+      <div style="font-size:11px;color:var(--text3);font-style:italic">
+        BigQuery: $5/TB · Claude Haiku 4.5: $0.80/M input + $4.00/M output · USD · Claude calls tracked from first use
+      </div>`;
+
+  } catch(e) {
+    el.innerHTML = `<div style="font-size:12px;color:var(--warn);padding:10px">Error loading cost data: ${e.message}</div>`;
+  }
+}
+
+// ── NAVIGATION ────────────────────────────────────────────────────────────────
+let currentMain = 'analytics';
+let currentSub = { analytics: 'overview', meta: 'moverview', linkedin: 'loverview' };
+
+// Legacy switchTab — still works for direct calls
+function switchTab(name, btn) {
+  switchMain('analytics', document.getElementById('mnav-analytics'));
+  switchSub('analytics', name, null);
+}
+
+function switchMain(name, btn) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('#main-nav .tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('subnav-analytics').style.display = 'none';
+  document.getElementById('subnav-meta').style.display = 'none';
+  document.getElementById('subnav-linkedin').style.display = 'none';
+
+  currentMain = name;
+  if (btn) btn.classList.add('active');
+
+  if (name === 'strategy') {
+    document.getElementById('tab-strategy').classList.add('active');
+  } else if (name === 'analytics') {
+    document.getElementById('subnav-analytics').style.display = 'flex';
+    const sub = currentSub.analytics || 'overview';
+    const subBtns = document.querySelectorAll('#subnav-analytics .tab');
+    subBtns.forEach(b => b.classList.remove('active'));
+    const subMap = {overview:0,traffic:1,engagement:2,programs:3,campaigns:4,organic:5,path:6};
+    if (subBtns[subMap[sub]]) subBtns[subMap[sub]].classList.add('active');
+    const paneId = sub === 'overview' ? 'tab-overview'
+      : sub === 'traffic' ? 'tab-traffic'
+      : sub === 'engagement' ? 'tab-engagement'
+      : sub === 'programs' ? 'tab-programs'
+      : sub === 'campaigns' ? 'tab-campaigns'
+      : sub === 'organic' ? 'tab-organic'
+      : 'tab-path';
+    document.getElementById(paneId).classList.add('active');
+    if (sub === 'programs') loadPrograms();
+    if (sub === 'campaigns') loadCampaigns();
+    if (sub === 'path') loadPath();
+    if (sub === 'organic') loadOrganic();
+  } else if (name === 'meta') {
+    document.getElementById('subnav-meta').style.display = 'flex';
+    const sub = currentSub.meta || 'moverview';
+    const subBtns = document.querySelectorAll('#subnav-meta .tab');
+    subBtns.forEach(b => b.classList.remove('active'));
+    const subMap = {moverview:0,igniting:1,evolution:2,mfunnel:3,mads:4,mhealth:5};
+    if (subBtns[subMap[sub]]) subBtns[subMap[sub]].classList.add('active');
+    document.getElementById('tab-meta-' + sub).classList.add('active');
+    loadMeta(sub);
+  } else if (name === 'linkedin') {
+    document.getElementById('subnav-linkedin').style.display = 'flex';
+    const sub = currentSub.linkedin || 'loverview';
+    const subBtns = document.querySelectorAll('#subnav-linkedin .tab');
+    subBtns.forEach(b => b.classList.remove('active'));
+    const subMap = {loverview:0,lcampaigns:1,lfunnel:2,lads:3,lhealth:4};
+    if (subBtns[subMap[sub]]) subBtns[subMap[sub]].classList.add('active');
+    document.getElementById('tab-linkedin-' + sub).classList.add('active');
+    loadLinkedIn(sub);
+  } else if (name === 'insights') {
+    document.getElementById('tab-insights').classList.add('active');
+    loadInsights();
+  } else if (name === 'ai') {
+    document.getElementById('tab-ai').classList.add('active');
+  }
+}
+
+function switchSub(main, sub, btn) {
+  currentSub[main] = sub;
+  if (main === 'analytics') {
+    document.querySelectorAll('#subnav-analytics .tab').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    document.querySelectorAll('.tab-content').forEach(t => {
+      if (['tab-overview','tab-traffic','tab-engagement','tab-programs','tab-campaigns','tab-organic','tab-path'].includes(t.id)) t.classList.remove('active');
+    });
+    const paneId = sub === 'overview' ? 'tab-overview'
+      : sub === 'traffic' ? 'tab-traffic'
+      : sub === 'engagement' ? 'tab-engagement'
+      : sub === 'programs' ? 'tab-programs'
+      : sub === 'campaigns' ? 'tab-campaigns'
+      : sub === 'organic' ? 'tab-organic'
+      : 'tab-path';
+    document.getElementById(paneId).classList.add('active');
+    if (sub === 'programs') loadPrograms();
+    if (sub === 'campaigns') loadCampaigns();
+    if (sub === 'path') loadPath();
+    if (sub === 'organic') loadOrganic();
+  } else if (main === 'meta') {
+    document.querySelectorAll('#subnav-meta .tab').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    document.querySelectorAll('.tab-content').forEach(t => {
+      if (t.id.startsWith('tab-meta-')) t.classList.remove('active');
+    });
+    document.getElementById('tab-meta-' + sub).classList.add('active');
+    loadMeta(sub);
+  } else if (main === 'linkedin') {
+    document.querySelectorAll('#subnav-linkedin .tab').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    document.querySelectorAll('.tab-content').forEach(t => {
+      if (t.id.startsWith('tab-linkedin-')) t.classList.remove('active');
+    });
+    document.getElementById('tab-linkedin-' + sub).classList.add('active');
+    loadLinkedIn(sub);
+  }
+}
+
+// ── LOAD LINKEDIN ─────────────────────────────────────────────────────────────
+const LI_GOALS = {
+  form_submission: 'Form Submission',
+  file_download: 'File Download',
+  donate: 'Donate',
+  phone_call: 'Phone Call',
+  purchase: 'Purchase',
+};
+
+async function loadLinkedIn(sub) {
+  sub = sub || 'loverview';
+  const elMap = {
+    loverview: 'linkedin-overview-content',
+    lcampaigns: 'linkedin-campaigns-content',
+    lfunnel: 'linkedin-funnel-content',
+    lads: 'linkedin-ads-content',
+    lhealth: 'linkedin-health-content',
+  };
+  const el = document.getElementById(elMap[sub]);
+  if (!el) return;
+
+  // Check if LinkedIn data exists in BigQuery
+  if (!loaded.linkedinSchema) {
+    loaded.linkedinSchema = true;
+    try {
+      const tables = await bq(`SELECT table_name FROM \`${P}.INFORMATION_SCHEMA.SCHEMATA\` LIMIT 1`);
+      // Try to find linkedin table
+      const liTables = await bq(`SELECT table_name FROM \`${P}.google_ads_lv.INFORMATION_SCHEMA.TABLES\` WHERE table_name LIKE '%linkedin%' LIMIT 5`);
+      globalData.linkedinTables = liTables.map(r => r.table_name);
+    } catch(e) {
+      globalData.linkedinTables = [];
+    }
+  }
+
+  const hasData = globalData.linkedinTables && globalData.linkedinTables.length > 0;
+
+  if (sub === 'lhealth') { renderLinkedInHealth(el); return; }
+  if (!hasData) { renderLinkedInNoData(el, sub); return; }
+
+  // Has data — load from BigQuery
+  if (!loaded['li_' + sub]) {
+    loaded['li_' + sub] = true;
+    const rows = await bq(`SELECT * FROM \`${P}.google_ads_lv.linkedin_ads_daily\` WHERE date >= DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY) ORDER BY spend DESC LIMIT 100`);
+    globalData.linkedinRows = rows;
+  }
+  renderLinkedInTab(el, sub, globalData.linkedinRows || []);
+}
+
+function renderLinkedInNoData(el, sub) {
+
+  const kpis = ['Spend','Impressions','Clicks','CTR','Form Submissions','File Downloads','Donate','Phone Calls','Purchase'];
+
+  if (sub === 'loverview') {
+    el.innerHTML = `
+      <div style="background:white;border:0.5px solid var(--border);border-radius:10px;padding:16px 18px;margin-bottom:12px">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:10px;font-weight:500">LinkedIn Ads · no campaigns yet</div>
+        <div style="background:#e8f4fa;border-left:3px solid #0077b5;border-radius:0 8px 8px 0;padding:10px 14px;font-size:12px;color:#004a77;margin-bottom:16px">
+          No LinkedIn campaigns running yet. Once you launch campaigns and connect Windsor.ai, this tab will populate automatically. The structure is ready for: Form Submissions, File Downloads, Donate, Phone Calls and Purchase events.
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px">
+          ${kpis.map(l=>`<div style="background:var(--bg2);border-radius:10px;padding:12px 14px;border-top:2px solid #0077b520">
+            <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">${l}</div>
+            <div style="font-size:22px;font-weight:400;font-family:'Cormorant Garamond',serif;color:var(--text3)">—</div>
+          </div>`).join('')}
+        </div>
+      </div>
+      <div style="background:white;border:0.5px solid var(--border);border-radius:10px;padding:14px 16px">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:10px;font-weight:500">GA4 organic referral · LinkedIn.com</div>
+        <div id="li-ga4-referral"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
+      </div>`;
+
+    // Load GA4 LinkedIn referral data
+    const df = dateFilter();
+    bq(`SELECT sessionSourceMedium as source, SUM(sessions) as sessions, SUM(engagedSessions) as engaged, AVG(engagementRate) as engRate, SUM(keyEvents) as keyEvents FROM \`${P}.${D}.ga4_TrafficAcquisition_317130094\` WHERE ${df} AND (sessionSourceMedium LIKE '%linkedin%' OR sessionSourceMedium LIKE '%lnkd%') GROUP BY source ORDER BY sessions DESC`).then(rows => {
+      const el2 = document.getElementById('li-ga4-referral');
+      if (!el2) return;
+      if (!rows.length) { el2.innerHTML = '<div class="no-data">No LinkedIn referral traffic this period</div>'; return; }
+      const totS = rows.reduce((a,r)=>a+parseFloat(r.sessions||0),0);
+      const totE = rows.reduce((a,r)=>a+parseFloat(r.engaged||0),0);
+      el2.innerHTML = `
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px">
+          <div style="background:var(--bg2);border-radius:8px;padding:10px 12px;border-top:2px solid #0077b5">
+            <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Sessions</div>
+            <div style="font-size:20px;font-family:'Cormorant Garamond',serif">${fmt(totS)}</div>
+          </div>
+          <div style="background:var(--bg2);border-radius:8px;padding:10px 12px;border-top:2px solid #0077b5">
+            <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Engaged</div>
+            <div style="font-size:20px;font-family:'Cormorant Garamond',serif">${fmt(totE)}</div>
+          </div>
+          <div style="background:var(--bg2);border-radius:8px;padding:10px 12px;border-top:2px solid #0077b5">
+            <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Eng Rate</div>
+            <div style="font-size:20px;font-family:'Cormorant Garamond',serif">${totS>0?(totE/totS*100).toFixed(0):'0'}%</div>
+          </div>
+        </div>
+        ${rows.map(r=>`<div class="data-row"><span class="row-name">${r.source}</span><span class="row-val">${fmt(r.sessions)} sessions</span><span class="row-sub">${(parseFloat(r.engRate||0)*100).toFixed(0)}% eng</span></div>`).join('')}
+        <div style="font-size:11px;color:var(--text3);margin-top:8px;font-style:italic">Organic LinkedIn referral only — no paid campaigns detected</div>`;
+    });
+  } else if (sub === 'lfunnel') {
+    const steps = [
+      {label:'Ad Impression',note:'Paid reach',color:'#0077b5'},
+      {label:'Click',note:'Visited landing page',color:'#0077b5'},
+      {label:'Form Submission',note:'Contact / enquiry',color:'#2d6a4f'},
+      {label:'File Download',note:'Brochure / resource',color:'#2d6a4f'},
+      {label:'Donate',note:'Donation intent',color:'#b5860b'},
+      {label:'Purchase',note:'Ticket confirmed',color:'#22c55e'},
+    ];
+    el.innerHTML = `<div style="background:white;border:0.5px solid var(--border);border-radius:10px;padding:16px 18px">
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:12px;font-weight:500">LinkedIn funnel · awaiting campaign data</div>
+      ${steps.map((s,i)=>{
+        const pct = 100 - i*18;
+        return `<div style="margin-bottom:6px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+            <div><span style="font-size:12px;font-weight:500">${s.label}</span><span style="font-size:10px;color:var(--text3);margin-left:6px">${s.note}</span></div>
+            <span style="font-size:16px;font-weight:500;color:var(--text3)">—</span>
+          </div>
+          <div style="height:24px;background:var(--bg2);border-radius:5px;overflow:hidden">
+            <div style="height:24px;width:${pct}%;background:${s.color};opacity:.25;border-radius:5px"></div>
+          </div>
+        </div>`;
+      }).join('')}
+      <div style="margin-top:10px;font-size:11px;color:var(--text3);font-style:italic">Funnel will show real data once LinkedIn campaigns are live and Windsor.ai is connected</div>
+    </div>`;
+  } else if (sub === 'lads') {
+    el.innerHTML = `<div style="background:white;border:0.5px solid var(--border);border-radius:10px;padding:32px;text-align:center">
+      <div style="font-size:24px;margin-bottom:10px">🖼️</div>
+      <div style="font-size:13px;font-weight:500;color:var(--text2);margin-bottom:6px">Ad creatives will appear here</div>
+      <div style="font-size:12px;color:var(--text3);max-width:320px;margin:0 auto">Once LinkedIn campaigns are running and Windsor.ai is connected, ad thumbnails, names, CTR and conversion rates will appear here.</div>
+    </div>`;
+  } else {
+    el.innerHTML = `<div style="border:1px dashed var(--border);border-radius:10px;padding:32px;text-align:center;color:var(--text3)">
+      <div style="font-size:24px;margin-bottom:10px">💼</div>
+      <div style="font-size:13px;font-weight:500;color:var(--text2);margin-bottom:6px">LinkedIn data arriving soon</div>
+      <div style="font-size:12px">Connect Windsor.ai once campaigns are live. This tab populates automatically.</div>
+    </div>`;
+  }
+}
+
+function renderLinkedInHealth(el) {
+  const checks = [
+    ['na','Windsor.ai → BigQuery','Not configured — set up once campaigns are live'],
+    ['na','LinkedIn Insight Tag','Install on leadershipvictoria.org to track conversions'],
+    ['na','Form Submission tracking','Configure in LinkedIn Campaign Manager → Conversions'],
+    ['na','File Download tracking','Configure in LinkedIn Campaign Manager → Conversions'],
+    ['na','Purchase tracking','Configure in LinkedIn Campaign Manager → Conversions'],
+    ['ok','GA4 organic referral','linkedin.com/referral sessions tracked in GA4'],
+  ];
+  const bg={ok:'#E8F5EE',warn:'#FEF3DC',err:'#FDECEA',na:'#f0f4ff'};
+  const dot={ok:'#2d6a4f',warn:'#b5860b',err:'#c0392b',na:'#0077b5'};
+  const badge={ok:'✓ Active',warn:'⚠ Verify',err:'✗ Fix needed',na:'— Not set up'};
+  el.innerHTML = `<div style="background:white;border:0.5px solid var(--border);border-radius:10px;padding:16px 18px">
+    <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:12px;font-weight:500">LinkedIn tracking health</div>
+    ${checks.map(([s,l,d])=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--border);font-size:12px">
+      <div style="width:8px;height:8px;border-radius:50%;background:${dot[s]};flex-shrink:0"></div>
+      <div style="flex:1"><div style="font-weight:500;color:var(--text)">${l}</div><div style="font-size:11px;color:var(--text3);margin-top:1px">${d}</div></div>
+      <span style="font-size:10px;padding:2px 8px;border-radius:10px;background:${bg[s]};color:${dot[s]};font-weight:500">${badge[s]}</span>
+    </div>`).join('')}
+  </div>`;
+}
+
+function renderLinkedInTab(el, sub, rows) {
+  // Will render real data when LinkedIn BigQuery table exists
+  renderLinkedInNoData(el, sub);
+}
+
+// ── LOAD META ─────────────────────────────────────────────────────────────────
+const META_PROG = {
+  igniting: kw => /igniting|ilp|ignite/i.test(kw),
+  evolution: kw => /evolution|levo|evolve/i.test(kw),
+};
+function metaProgMatch(row) {
+  const adName = row.ad_name || '';
+  if (META_PROG.igniting(adName)) return 'igniting';
+  if (META_PROG.evolution(adName)) return 'evolution';
+  const adset = row.adset_name || '';
+  if (META_PROG.igniting(adset)) return 'igniting';
+  if (META_PROG.evolution(adset)) return 'evolution';
+  const camp = row.campaign || '';
+  if (META_PROG.igniting(camp)) return 'igniting';
+  if (META_PROG.evolution(camp)) return 'evolution';
+  return 'other';
+}
+const META_FUNNEL = kw => /^tof/i.test(kw) ? "TOF" : /^mof/i.test(kw) ? "MOF" : /^bof/i.test(kw) ? "BOF" : null;
+
+async function loadMeta(sub) {
+  sub = sub || 'moverview';
+  const elId = {
+    moverview: 'meta-overview-content',
+    igniting: 'meta-igniting-content',
+    evolution: 'meta-evolution-content',
+    mfunnel: 'meta-funnel-content',
+    mads: 'meta-ads-content',
+    mhealth: 'meta-health-content',
+  }[sub];
+  const el = document.getElementById(elId);
+  if (!el) return;
+
+  // Check if Windsor data exists
+  if (!loaded.metaSchema) {
+    loaded.metaSchema = true;
+    try {
+      const tables = await bq(`SELECT table_name FROM \`${P}.google_ads_lv.INFORMATION_SCHEMA.TABLES\` WHERE table_name LIKE '%meta%' LIMIT 5`);
+      globalData.metaTables = tables.map(r => r.table_name);
+    } catch(e) {
+      globalData.metaTables = [];
+    }
+  }
+
+  const hasData = globalData.metaTables && globalData.metaTables.length > 0;
+
+  if (sub === 'mhealth') {
+    renderMetaHealth(el);
+    return;
+  }
+
+  if (!hasData) {
+    renderMetaNoData(el, sub);
+    return;
+  }
+
+  // Has data — load from BigQuery Windsor table
+  if (!loaded['meta_data']) {
+    loaded['meta_data'] = true;
+    const days = activeDays || 30;
+    const campQ = `SELECT date, campaign, adset_name, ad_name,
+      CAST(spend AS FLOAT64) as spend,
+      CAST(impressions AS FLOAT64) as impressions,
+      CAST(clicks AS FLOAT64) as clicks,
+      CAST(link_clicks AS FLOAT64) as link_clicks,
+      CAST(reach AS FLOAT64) as reach,
+      CAST(ctr AS FLOAT64) as ctr,
+      CAST(frequency AS FLOAT64) as frequency,
+      CAST(actions_lead AS FLOAT64) as actions_lead,
+      CAST(actions_offsite_conversion_fb_pixel_lead AS FLOAT64) as actions_offsite_conversion_fb_pixel_lead,
+      CAST(conversions_offsite_conversion_fb_pixel_custom_file_download AS FLOAT64) as conversions_offsite_conversion_fb_pixel_custom_file_download,
+      CAST(actions_complete_registration AS FLOAT64) as actions_complete_registration,
+      CAST(actions_offsite_conversion_fb_pixel_complete_registration AS FLOAT64) as actions_offsite_conversion_fb_pixel_complete_registration,
+      CAST(cost_per_action_type_lead AS FLOAT64) as cost_per_action_type_lead,
+      CAST(cost_per_action_type_complete_registration AS FLOAT64) as cost_per_action_type_complete_registration,
+      CAST(video_thruplay_watched_actions AS FLOAT64) as video_thruplay_watched_actions,
+      CAST(video_p25_watched_actions AS FLOAT64) as video_p25_watched_actions,
+      CAST(video_p50_watched_actions AS FLOAT64) as video_p50_watched_actions,
+      CAST(video_p75_watched_actions AS FLOAT64) as video_p75_watched_actions,
+      CAST(video_p100_watched_actions AS FLOAT64) as video_p100_watched_actions
+      FROM \`${P}.google_ads_lv.meta_ads_daily\`
+      WHERE date >= DATE_SUB(CURRENT_DATE(), INTERVAL ${days} DAY)
+      ORDER BY date DESC, spend DESC LIMIT 500`;
+    const rows = await bq(campQ);
+    globalData.metaRows = rows;
+  }
+  renderMetaTab(el, sub, globalData.metaRows || []);
+}
+
+function renderMetaNoData(el, sub) {
+  if (sub === 'moverview') {
+    el.innerHTML = `
+      <div style="background:#fff;border:0.5px solid var(--border);border-radius:10px;padding:16px 18px;margin-bottom:12px">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:12px;font-weight:500">Meta Ads · waiting for first sync</div>
+        <div style="background:#f0f4ff;border-left:3px solid var(--accent2);border-radius:0 8px 8px 0;padding:10px 14px;font-size:12px;color:var(--accent2);margin-bottom:16px">
+          Windsor.ai is configured and will sync data tonight at 00:00 UTC. Once data arrives, all tabs will populate automatically.
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px;margin-bottom:16px">
+          ${['Spend','Reach','Impressions','Link Clicks','Downloads','Contacts','Register Intent'].map(l=>`
+            <div style="background:var(--bg2);border-radius:10px;padding:12px 14px">
+              <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">${l}</div>
+              <div style="font-size:22px;font-weight:400;font-family:'Cormorant Garamond',serif;color:var(--text)">—</div>
+            </div>`).join('')}
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div style="background:white;border:0.5px solid var(--border);border-radius:10px;border-top:3px solid #185FA5;padding:14px 16px">
+            <div style="font-size:10px;font-weight:500;color:#0C447C;text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px">Igniting Leadership</div>
+            ${['Spend','Reach','Downloads','Contacts'].map(l=>`<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:12px;border-bottom:0.5px solid var(--border)"><span style="color:var(--text3)">${l}</span><span style="color:var(--text3)">—</span></div>`).join('')}
+          </div>
+          <div style="background:white;border:0.5px solid var(--border);border-radius:10px;border-top:3px solid #0F6E56;padding:14px 16px">
+            <div style="font-size:10px;font-weight:500;color:#085041;text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px">Leader Evolution</div>
+            ${['Spend','Reach','Downloads','Contacts'].map(l=>`<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:12px;border-bottom:0.5px solid var(--border)"><span style="color:var(--text3)">${l}</span><span style="color:var(--text3)">—</span></div>`).join('')}
+          </div>
+        </div>
+      </div>`;
+  } else {
+    el.innerHTML = `<div style="border:1px dashed var(--border);border-radius:10px;padding:32px;text-align:center;color:var(--text3)">
+      <div style="font-size:24px;margin-bottom:10px">📊</div>
+      <div style="font-size:13px;font-weight:500;color:var(--text2);margin-bottom:6px">Data arriving soon</div>
+      <div style="font-size:12px">Windsor.ai syncs tonight. This tab will populate automatically.</div>
+    </div>`;
+  }
+}
+
+function renderMetaTab(el, sub, rows) {
+  const cn = (v) => parseFloat(String(v||0).replace(',',''))||0;
+  const prog = row => metaProgMatch(typeof row === "string" ? {campaign:row} : row);
+  const funnel = name => META_FUNNEL(name||'');
+
+  if (sub === 'moverview') {
+    const totSpend = rows.reduce((a,r)=>a+cn(r.spend),0);
+    const totReach = rows.reduce((a,r)=>a+cn(r.reach),0);
+    const totClicks = rows.reduce((a,r)=>a+cn(r.link_clicks),0);
+    const totImpr = rows.reduce((a,r)=>a+cn(r.impressions),0);
+    const totDL = rows.reduce((a,r)=>a+cn(r.conversions_offsite_conversion_fb_pixel_custom_file_download),0);
+    const totContact = rows.reduce((a,r)=>a+cn(r.actions_lead)+cn(r.actions_offsite_conversion_fb_pixel_lead),0);
+    const totReg = rows.reduce((a,r)=>a+cn(r.actions_complete_registration)+cn(r.actions_offsite_conversion_fb_pixel_complete_registration),0);
+
+    const ilRows = rows.filter(r=>prog(r)==='igniting');
+    const leRows = rows.filter(r=>prog(r)==='evolution');
+    const ilSpend = ilRows.reduce((a,r)=>a+cn(r.spend),0);
+    const leSpend = leRows.reduce((a,r)=>a+cn(r.spend),0);
+
+    el.innerHTML = `
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px;margin-bottom:16px">
+        ${[['Spend', ilSpend>0 ? '$'+(totSpend/1000).toFixed(1)+'K' : '$'+totSpend.toFixed(0), ''],['Reach',fmt(totReach),''],['Impressions',fmt(totImpr),''],['Link Clicks',fmt(totClicks),'CTR '+(totImpr>0?(totClicks/totImpr*100).toFixed(2):'0')+'%'],['Downloads',fmt(totDL),''],['Contacts',fmt(totContact),''],['Register Intent',fmt(totReg),'']].map(([l,v,s])=>`
+          <div style="background:var(--bg2);border-radius:10px;padding:12px 14px">
+            <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">${l}</div>
+            <div style="font-size:22px;font-weight:400;font-family:'Cormorant Garamond',serif;color:var(--text)">${v}</div>
+            ${s?`<div style="font-size:10px;color:var(--text3);margin-top:2px">${s}</div>`:''}
+          </div>`).join('')}
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+        ${[['igniting','Igniting Leadership','#185FA5','#0C447C',ilRows],['evolution','Leader Evolution','#0F6E56','#085041',leRows]].map(([p,label,c,tc,pRows])=>{
+          const sp=pRows.reduce((a,r)=>a+cn(r.spend),0);
+          const pct=totSpend>0?(sp/totSpend*100).toFixed(0):0;
+          const dl=pRows.reduce((a,r)=>a+cn(r.conversions_offsite_conversion_fb_pixel_custom_file_download),0);
+          const co=pRows.reduce((a,r)=>a+cn(r.actions_lead)+cn(r.actions_offsite_conversion_fb_pixel_lead),0);
+          const ri=pRows.reduce((a,r)=>a+cn(r.actions_complete_registration),0);
+          const re=pRows.reduce((a,r)=>a+cn(r.reach),0);
+          return `<div style="background:white;border:0.5px solid var(--border);border-radius:10px;border-top:3px solid ${c};padding:14px 16px">
+            <div style="font-size:10px;font-weight:500;color:${tc};text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px">${label}</div>
+            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">
+              <span style="font-size:20px;font-weight:500;color:var(--text)">$${sp.toFixed(0)}</span>
+              <span style="font-size:11px;color:var(--text3)">${pct}% of spend</span>
+            </div>
+            <div style="height:3px;background:var(--bg2);border-radius:2px;margin-bottom:12px"><div style="height:3px;width:${pct}%;background:${c};border-radius:2px"></div></div>
+            ${[['Reach',fmt(re)],['Downloads',fmt(dl)],['Contacts',fmt(co)],['Register Intent',fmt(ri)]].map(([l,v])=>`<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:12px;border-bottom:0.5px solid var(--border)"><span style="color:var(--text3)">${l}</span><span style="font-weight:500">${v}</span></div>`).join('')}
+          </div>`;
+        }).join('')}
+      </div>
+      <div style="background:white;border:0.5px solid var(--border);border-radius:10px;padding:14px 16px">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:10px;font-weight:500;display:flex;justify-content:space-between"><span>All campaigns</span><span style="font-weight:400;text-transform:none">spend · downloads · contacts · register intent</span></div>
+        <div style="display:grid;grid-template-columns:1fr 52px 52px 52px 52px;font-size:9px;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);padding-bottom:6px;border-bottom:1px solid var(--border);gap:6px">
+          <span>Campaign</span><span style="text-align:right">Spend</span><span style="text-align:right">DL</span><span style="text-align:right">Contact</span><span style="text-align:right">Reg</span>
+        </div>
+        ${(()=>{
+          const grouped={};
+          rows.forEach(r=>{
+            const k=r.campaign||'Unknown';
+            if(!grouped[k]) grouped[k]={campaign:k,spend:0,reach:0,link_clicks:0,dl:0,co:0,ri:0,prog:prog(r)};
+            grouped[k].spend+=cn(r.spend);
+            grouped[k].reach+=cn(r.reach);
+            grouped[k].link_clicks+=cn(r.link_clicks);
+            grouped[k].dl+=cn(r.conversions_offsite_conversion_fb_pixel_custom_file_download);
+            grouped[k].co+=cn(r.actions_lead)+cn(r.actions_offsite_conversion_fb_pixel_lead);
+            grouped[k].ri+=cn(r.actions_complete_registration);
+          });
+          return Object.values(grouped).sort((a,b)=>b.spend-a.spend).slice(0,12).map(r=>{
+            const f=funnel(r.campaign);
+            const fBg=f==='TOF'?'#E6F1FB':f==='MOF'?'#FEF3DC':f==='BOF'?'#E8F5EE':'var(--bg2)';
+            const fCl=f==='TOF'?'#1d3557':f==='MOF'?'#b5860b':f==='BOF'?'#2d6a4f':'var(--text3)';
+            const pBadge=r.prog==='igniting'?'<span style="font-size:9px;padding:2px 5px;border-radius:8px;font-weight:500;background:#E6F1FB;color:#185FA5;flex-shrink:0">ILP</span>':r.prog==='evolution'?'<span style="font-size:9px;padding:2px 5px;border-radius:8px;font-weight:500;background:#E1F5EE;color:#0F6E56;flex-shrink:0">EVO</span>':'';
+            const fBadge=f?'<span style="font-size:9px;padding:2px 5px;border-radius:8px;font-weight:500;background:'+fBg+';color:'+fCl+';flex-shrink:0">'+f+'</span>':'';
+            const dlC=r.dl>0?'var(--accent)':'var(--text3)';
+            const coC=r.co>0?'var(--accent)':'var(--text3)';
+            const riC=r.ri>0?'var(--accent)':'var(--text3)';
+            return '<div style="display:grid;grid-template-columns:1fr 52px 52px 52px 52px;padding:7px 0;border-bottom:0.5px solid var(--bg2);align-items:center;font-size:12px;gap:6px">'
+              +'<div style="display:flex;align-items:center;gap:4px;min-width:0">'+fBadge+pBadge+'<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+r.campaign+'</span></div>'
+              +'<span style="text-align:right;font-weight:500">$'+r.spend.toFixed(0)+'</span>'
+              +'<span style="text-align:right;color:'+dlC+'">'+(r.dl>0?fmt(r.dl):'—')+'</span>'
+              +'<span style="text-align:right;color:'+coC+'">'+(r.co>0?fmt(r.co):'—')+'</span>'
+              +'<span style="text-align:right;color:'+riC+'">'+(r.ri>0?fmt(r.ri):'—')+'</span>'
+              +'</div>';
+          }).join('');
+        })()}
         </div>
         ${(()=>{
           // Group progRows by campaign

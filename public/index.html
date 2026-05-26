@@ -179,7 +179,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
   </div>
   <div style="display:flex;align-items:center;gap:10px">
     <div style="font-size:11px;color:var(--text3)" id="dataStatus">● Live · GA4 Data</div>
-    <a href="/report.html?days=30" target="_blank" style="font-size:11px;padding:4px 12px;border-radius:6px;background:var(--text);color:var(--bg);text-decoration:none;font-weight:500">⬇ Export Report</a>
+    
   </div>
 </div>
 
@@ -2747,7 +2747,7 @@ function renderMetaTab(el, sub, rows) {
       }
     });
     const totSpend=rows.reduce((a,r)=>a+cn(r.spend),0);
-    const stageCfg={TOF:{label:'Top of Funnel',desc:'Awareness — new audiences',bg:'#E6F1FB',c:'#1d3557',tc:'#0C447C'},MOF:{label:'Middle of Funnel',desc:'Consideration — retargeting',bg:'#FEF3DC',c:'#b5860b',tc:'#7a5c00'},BOF:{label:'Bottom of Funnel',desc:'Conversion — warm leads',bg:'#E8F5EE',c:'#2d6a4f',tc:'#1a4532'}};
+    const stageCfg={TOF:{label:'Top of Funnel',desc:'Awareness · Optimised for file downloads',bg:'#E6F1FB',c:'#1d3557',tc:'#0C447C'},MOF:{label:'Middle of Funnel',desc:'Retargeting · Optimised for register clicks → Humanitix',bg:'#FEF3DC',c:'#b5860b',tc:'#7a5c00'},BOF:{label:'Bottom of Funnel',desc:'Conversion — warm leads',bg:'#E8F5EE',c:'#2d6a4f',tc:'#1a4532'}};
     el.innerHTML = `
       <div style="margin-bottom:14px">
         ${stages.map(s=>{

@@ -236,7 +236,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
   <button class="tab" style="font-size:11px;padding:7px 12px 9px;color:#0077b5" onclick="switchSub('linkedin','lcampaigns',this)">Campaigns</button>
   <button class="tab" style="font-size:11px;padding:7px 12px 9px;color:#0077b5" onclick="switchSub('linkedin','lfunnel',this)">Funnel</button>
   <button class="tab" style="font-size:11px;padding:7px 12px 9px;color:#0077b5" onclick="switchSub('linkedin','lads',this)">Ad Creatives</button>
-  <button class="tab" style="font-size:11px;padding:7px 12px 9px;color:#0077b5" onclick="switchSub('linkedin','lhealth',this)">Tracking</button>
+
 </div>
 
 <div class="body">
@@ -509,11 +509,11 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
   <!-- PATH EXPLORER -->
   <div class="tab-content" id="tab-path">
     <div class="panel">
-      <div class="panel-title">Channel touch points <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">last 90 days · key events by channel role</span></div>
+      <div class="panel-title">Channel touch points <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none" class="panel-subtitle-touch">last 90 days · key events by channel role</span></div>
       <div id="path-touchpoints"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
     </div>
     <div class="panel">
-      <div class="panel-title">Channel attribution · purchases · downloads · forms <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">last 30 days · raw GA4 events</span></div>
+      <div class="panel-title">Channel attribution · purchases · downloads · forms <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none" class="panel-subtitle-attr">last 30 days · raw GA4 events</span></div>
       <div id="path-attribution"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
     </div>
     <div class="panel">
@@ -1529,6 +1529,12 @@ function renderPath(pathFunnel, pathEntry){
   else if(pathEntryEl){pathEntryEl.innerHTML='<div class="no-data">No purchases recorded in this period — try a wider date range</div>';}
   const periodEl=document.getElementById('path-funnel-period');
   if(periodEl) periodEl.textContent=`last ${activeDays||30} days · raw GA4 events (from May 2026)`;
+  // Update touch points period label
+  const touchEl=document.querySelector('#tab-path .panel-subtitle-touch');
+  if(touchEl) touchEl.textContent=`last ${activeDays||30} days · key events by channel role`;
+  // Update attribution period label
+  const attrEl=document.querySelector('#tab-path .panel-subtitle-attr');
+  if(attrEl) attrEl.textContent=`last ${activeDays||30} days · raw GA4 events`;
 }
 
 // FIX #3: Campaigns — keyEvents query fix and Meta UTM note

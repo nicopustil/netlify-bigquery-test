@@ -2564,7 +2564,7 @@ function renderMetaTab(el, sub, rows) {
     const leRows = rows.filter(r=>prog(r)==='evolution');
     el.innerHTML = `
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:10px;margin-bottom:16px">
-        ${[['Spend', totSpend>=1000 ? '$'+(totSpend/1000).toFixed(1)+'K' : '$'+totSpend.toFixed(0), ''],['Reach',fmt(totReach),''],['Impressions',fmt(totImpr),''],['Link Clicks',fmt(totClicks),''],['CTR',totCTR+'%',''],['Downloads',fmt(totDL),''],['Contacts',fmt(totCo),''],['Register Intent',fmt(totReg),'']].map(([l,v,s])=>`
+        ${[['Spend', totSpend>=1000 ? '$'+(totSpend/1000).toFixed(1)+'K' : '$'+totSpend.toFixed(0), ''],['Reach',fmt(totReach),''],['Impressions',fmt(totImpr),''],['Link Clicks',fmt(totClicks),''],['CTR',totCTR+'%',''],['Conv Rate',totClicks>0&&totDL>0?(totDL/totClicks*100).toFixed(1)+'%':'—',''],['Downloads',fmt(totDL),''],['Cost/Download',totDL>0?'$'+(totSpend/totDL).toFixed(2):'—',''],['Contacts',fmt(totCo),''],['Register Intent',fmt(totReg),'']].map(([l,v,s])=>`
           <div style="background:var(--bg2);border-radius:10px;padding:12px 14px">
             <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">${l}</div>
             <div style="font-size:22px;font-weight:400;font-family:'Cormorant Garamond',serif;color:var(--text)">${v}</div>
@@ -2645,14 +2645,50 @@ function renderMetaTab(el, sub, rows) {
       <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:${progKey==='igniting'?'#E6F1FB':'#E1F5EE'};border-radius:10px;margin-bottom:14px">
         <div style="width:9px;height:9px;border-radius:50%;background:${progColor};flex-shrink:0"></div>
         <div style="font-size:13px;font-weight:500;color:${progColor}">${progLabel}</div>
-        <div style="font-size:11px;color:var(--text3);margin-left:auto">Campaigns: ${uniqueCamps} · Ads: ${progRows.length}</div>
+        <div style="font-size:11px;color:var(--text3);margin-left:auto">Campaigns: ${uniqueCamps} · Creatives: ${new Set(progRows.map(r=>r.ad_name)).size}</div>
       </div>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:10px;margin-bottom:14px">
-        ${[['Spend','$'+sp.toFixed(0)],['Reach',fmt(re)],['Impressions',fmt(im)],['Link Clicks',fmt(cl)],['CTR',ctrVal+'%'],['Conv Rate',cvRate>0?cvRate+'%':'—'],['Downloads',fmt(dl)],['Contacts',fmt(co)],['Register',fmt(ri)]].map(([l,v])=>`
+        ${[['Spend','$'+sp.toFixed(0)],['Reach',fmt(re)],['Impressions',fmt(im)],['Link Clicks',fmt(cl)],['CTR',ctrVal+'%'],['Conv Rate',cvRate>0?cvRate+'%':'—'],['Downloads',fmt(dl)],['Cost/Download',dl>0?'$'+(sp/dl).toFixed(2):'—'],['Contacts',fmt(co)],['Register',fmt(ri)]].map(([l,v])=>`
           <div style="background:var(--bg2);border-radius:10px;padding:11px 13px;border-top:2px solid ${progColor}">
             <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px">${l}</div>
             <div style="font-size:20px;font-weight:400;font-family:'Cormorant Garamond',serif;color:var(--text)">${v}</div>
           </div>`).join('')}
+      </div>
+      <div style="background:white;border:0.5px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:12px">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:10px;font-weight:500">Audience performance</div>
+        ${(()=>{
+          const adsetGrp={};
+          progRows.forEach(r=>{
+            const k=(r.adset_name||'Unknown').replace('_FileDownload','').replace('_',' ');
+            if(!adsetGrp[k]) adsetGrp[k]={adset:k,spend:0,impressions:0,clicks:0,reach:0,dl:0};
+            adsetGrp[k].spend+=cn(r.spend);
+            adsetGrp[k].impressions+=cn(r.impressions);
+            adsetGrp[k].clicks+=cn(r.link_clicks);
+            adsetGrp[k].reach+=cn(r.reach);
+            adsetGrp[k].dl+=cn(r.conversions_offsite_conversion_fb_pixel_custom_file_download);
+          });
+          const adsets=Object.values(adsetGrp).sort((a,b)=>b.spend-a.spend);
+          const maxSpend=adsets[0]?.spend||1;
+          return adsets.map(a=>{
+            const ctr=a.impressions>0?(a.clicks/a.impressions*100).toFixed(2):0;
+            const cpd=a.dl>0?'$'+(a.spend/a.dl).toFixed(2):'—';
+            const barW=(a.spend/maxSpend*100).toFixed(0);
+            return '<div style="padding:8px 0;border-bottom:0.5px solid var(--border)">'
+              +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'
+              +'<span style="font-size:12px;font-weight:500">'+a.adset+'</span>'
+              +'<span style="font-size:12px;font-weight:500">$'+a.spend.toFixed(0)+'</span>'
+              +'</div>'
+              +'<div style="height:4px;background:var(--bg2);border-radius:2px;margin-bottom:6px">'
+              +'<div style="height:4px;width:'+barW+'%;background:'+progColor+';border-radius:2px"></div></div>'
+              +'<div style="display:flex;gap:12px;font-size:11px;color:var(--text3)">'
+              +'<span>Reach: '+fmt(a.reach)+'</span>'
+              +'<span>CTR: '+ctr+'%</span>'
+              +'<span>Downloads: '+fmt(a.dl)+'</span>'
+              +'<span>Cost/DL: '+cpd+'</span>'
+              +'</div>'
+              +'</div>';
+          }).join('');
+        })()}
       </div>
       <div style="background:white;border:0.5px solid var(--border);border-radius:10px;padding:14px 16px">
         <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:10px;font-weight:500">Campaigns by funnel stage</div>

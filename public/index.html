@@ -2278,7 +2278,7 @@ async function loadLinkedIn(sub) {
   if (!loaded.linkedinSchema) {
     loaded.linkedinSchema = true;
     try {
-      const tables = await bq(`SELECT table_name FROM \`${P}.INFORMATION_SCHEMA.SCHEMATA\` LIMIT 1`);
+      const tables = await bq(`SELECT schema_name FROM \`${P}.INFORMATION_SCHEMA.SCHEMATA\` LIMIT 1`);
       // Try to find linkedin table
       const liTables = await bq(`SELECT table_name FROM \`${P}.google_ads_lv.INFORMATION_SCHEMA.TABLES\` WHERE table_name LIKE '%linkedin%' LIMIT 5`);
       globalData.linkedinTables = liTables.map(r => r.table_name);

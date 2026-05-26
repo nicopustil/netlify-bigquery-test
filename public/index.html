@@ -24,14 +24,14 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 .load-msg{font-size:11px;color:var(--text3);margin-top:16px;letter-spacing:1px;text-transform:uppercase}
 
 /* HEADER */
-.header{padding:14px 32px;border-bottom:0.5px solid var(--border);background:var(--bg);position:sticky;top:0;z-index:100}.header-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between}
+.header{padding:14px 32px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg);position:sticky;top:0;z-index:100}
 .logo{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400}
 .logo-sub{font-size:10px;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;margin-top:1px}
 .agency-badge{font-size:10px;padding:3px 10px;border-radius:20px;background:var(--accent2);color:white;font-weight:500;display:none;margin-left:14px}
 .agency-badge.show{display:inline-flex}
 
 /* DATE BAR */
-.date-bar-outer{border-bottom:0.5px solid var(--border);background:var(--bg)}.date-bar{max-width:1200px;margin:0 auto;padding:9px 32px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.date-bar{padding:9px 32px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--bg)}
 .date-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px}
 .date-btn{border:0.5px solid var(--border);border-radius:6px;padding:4px 12px;font-size:12px;color:var(--text2);background:none;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s}
 .date-btn:hover,.date-btn.active{background:var(--text);color:var(--bg);border-color:var(--text)}
@@ -48,7 +48,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 .tab.agency-only.show{display:block}
 
 /* BODY */
-.body{padding:22px 32px;max-width:1200px;margin:0 auto}
+.body{padding:22px 32px;max-width:1200px}
 .tab-content{display:none}
 .tab-content.active{display:block}
 
@@ -169,7 +169,6 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 </div>
 
 <div class="header">
-  <div class="header-inner">
   <div style="display:flex;align-items:center">
     <div>
       <div class="logo">Leadership Victoria</div>
@@ -183,7 +182,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
   </div>
 </div>
 
-<div class="date-bar-outer"><div class="date-bar">
+<div class="date-bar">
   <span class="date-label">Period</span>
   <button class="pBtn active" onclick="setPreset(7,this)">7d</button>
   <button class="pBtn" onclick="setPreset(30,this)">30d</button>
@@ -202,7 +201,6 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
   <span class="last-updated" id="lastUpdated"></span>
   <span style="font-size:10px;color:var(--text3);margin-left:8px">v3.2.0</span>
 </div>
-</div>
 
 <!-- MAIN NAV -->
 <div class="tabs" id="main-nav">
@@ -213,7 +211,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 </div>
 
 <!-- ANALYTICS SUBTABS -->
-<div id="subnav-analytics" style="border-bottom:0.5px solid var(--border);background:var(--bg2)"><div style="max-width:1200px;margin:0 auto;display:flex;padding:0 32px;overflow-x:auto">
+<div id="subnav-analytics" style="display:flex;padding:0 32px;border-bottom:0.5px solid var(--border);overflow-x:auto;background:var(--bg2)">
   <button class="tab active" style="font-size:11px;padding:7px 12px 9px" onclick="switchSub('analytics','overview',this)">Overview</button>
   <button class="tab" style="font-size:11px;padding:7px 12px 9px" onclick="switchSub('analytics','traffic',this)">Traffic</button>
   <button class="tab" style="font-size:11px;padding:7px 12px 9px" onclick="switchSub('analytics','engagement',this)">Engagement</button>
@@ -224,7 +222,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 </div>
 
 <!-- META SUBTABS -->
-<div id="subnav-meta" style="display:none;border-bottom:0.5px solid var(--border);background:var(--bg2)"><div style="max-width:1200px;margin:0 auto;display:flex;padding:0 32px;overflow-x:auto">
+<div id="subnav-meta" style="display:none;padding:0 32px;border-bottom:0.5px solid var(--border);overflow-x:auto;background:var(--bg2)">
   <button class="tab" style="font-size:11px;padding:7px 12px 9px;color:#1877f2" onclick="switchSub('meta','moverview',this)">Overview</button>
   <button class="tab" style="font-size:11px;padding:7px 12px 9px;color:#1877f2" onclick="switchSub('meta','igniting',this)">Igniting</button>
   <button class="tab" style="font-size:11px;padding:7px 12px 9px;color:#1877f2" onclick="switchSub('meta','evolution',this)">Evolution</button>
@@ -234,13 +232,13 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 </div>
 
 <!-- LINKEDIN SUBTABS -->
-<div id="subnav-linkedin" style="display:none;border-bottom:0.5px solid var(--border);background:var(--bg2)"><div style="max-width:1200px;margin:0 auto;display:flex;padding:0 32px;overflow-x:auto">
+<div id="subnav-linkedin" style="display:none;padding:0 32px;border-bottom:0.5px solid var(--border);overflow-x:auto;background:var(--bg2)">
   <button class="tab" style="font-size:11px;padding:7px 12px 9px;color:#0077b5" onclick="switchSub('linkedin','loverview',this)">Overview</button>
   <button class="tab" style="font-size:11px;padding:7px 12px 9px;color:#0077b5" onclick="switchSub('linkedin','lcampaigns',this)">Campaigns</button>
   <button class="tab" style="font-size:11px;padding:7px 12px 9px;color:#0077b5" onclick="switchSub('linkedin','lfunnel',this)">Funnel</button>
   <button class="tab" style="font-size:11px;padding:7px 12px 9px;color:#0077b5" onclick="switchSub('linkedin','lads',this)">Ad Creatives</button>
   <button class="tab" style="font-size:11px;padding:7px 12px 9px;color:#0077b5" onclick="switchSub('linkedin','lhealth',this)">Tracking</button>
-</div></div>
+</div>
 
 <div class="body">
 
@@ -1820,7 +1818,7 @@ async function loadPath(){
   const pathEntryQ = `SELECT REGEXP_REPLACE((SELECT value.string_value FROM UNNEST(e.event_params) WHERE key='page_location'), r'https://www\\.leadershipvictoria\\.org', '') as entry_page, COUNT(DISTINCT e.user_pseudo_id) as buyers FROM \`${P}.${rawDataset}.events_*\` e WHERE e._TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL ${days} DAY)) AND e.user_pseudo_id IN (SELECT DISTINCT user_pseudo_id FROM \`${P}.${rawDataset}.events_*\` WHERE _TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL ${days} DAY)) AND event_name = 'purchase') AND (SELECT value.string_value FROM UNNEST(e.event_params) WHERE key='page_location') LIKE '%leadershipvictoria.org%' AND e.event_name = 'page_view' GROUP BY entry_page ORDER BY buyers DESC LIMIT 10`;
 
   const [touchData, purchaseAttr, downloadAttr, formAttr, pathFunnel, pathEntry] = await Promise.all([
-    bq(touchQ), bq(purchaseAttrAggQ), bq(downloadAttrAggQ), bq(formAttrAggQ), bq(pathFunnelQ), bq(pathEntryQ)
+    bq(touchQ).catch(()=>[]), bq(purchaseAttrAggQ).catch(()=>[]), bq(downloadAttrAggQ).catch(()=>[]), bq(formAttrAggQ).catch(()=>[]), bq(pathFunnelQ).catch(()=>[]), bq(pathEntryQ).catch(()=>[])
   ]);
 
   globalData.pathFunnel = pathFunnel;

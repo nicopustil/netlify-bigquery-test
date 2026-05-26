@@ -520,101 +520,6 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
       <div class="panel-title">Purchase journey · Humanitix funnel <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">available June 2026 · raw GA4 events</span></div>
       <div style="font-size:12px;color:var(--text3);padding:16px 0">Purchase journey tracking requires raw GA4 events data which starts June 2026. Check back next month.</div>
     </div>
-    <div class="panel">
-      <div class="panel-title">Top entry pages for buyers <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">pages visited before purchasing</span></div>
-      <div id="path-entry"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
-    </div>
-  </div>
-
-  <!-- INTERNAL INSIGHTS -->
-  <div class="tab-content" id="tab-insights">
-    <div class="panel">
-      <div class="panel-title">💰 API & BigQuery costs · live
-        <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">HOP agency only · updates on load</span>
-      </div>
-      <div id="cost-tracker"><div class="loading-row"><span class="spinner"></span> Loading cost data...</div></div>
-    </div>
-    <div class="panel">
-      <div class="panel-title">Automatic signals · based on real data</div>
-      <div id="agency-insights"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
-    </div>
-    <div class="panel">
-      <div class="panel-title">Notes for client meeting</div>
-      <textarea style="width:100%;min-height:120px;border:0.5px solid var(--border);border-radius:6px;padding:10px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:var(--bg2);resize:vertical" placeholder="Add internal notes here..."></textarea>
-    </div>
-  </div>
-
-  <!-- META: OVERVIEW -->
-  <div class="tab-content" id="tab-meta-moverview">
-    <div id="meta-overview-content"><div class="loading-row"><span class="spinner"></span> Loading Meta data...</div></div>
-  </div>
-
-  <!-- META: IGNITING -->
-  <div class="tab-content" id="tab-meta-igniting">
-    <div id="meta-igniting-content"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
-  </div>
-
-  <!-- META: EVOLUTION -->
-  <div class="tab-content" id="tab-meta-evolution">
-    <div id="meta-evolution-content"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
-  </div>
-
-  <!-- META: FUNNEL -->
-  <div class="tab-content" id="tab-meta-mfunnel">
-    <div id="meta-funnel-content"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
-  </div>
-
-  <!-- META: ADS -->
-    <div class="tab-content" id="tab-meta-maudiences">
-    <div id="meta-audiences-content"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
-  </div>
-
-<div class="tab-content" id="tab-meta-mads">
-    <div id="meta-ads-content"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
-  </div>
-
-  <!-- META: TRACKING -->
-  <div class="tab-content" id="tab-meta-mhealth">
-    <div id="meta-health-content"><div class="loading-row"><span class="spinner"></span> Loading...</div></div>
-  </div>
-
-  <!-- LINKEDIN PANES -->
-  <div class="tab-content" id="tab-linkedin-loverview">
-    <div id="linkedin-overview-content"><div class="loading-row"><span class="spinner"></span></div></div>
-  </div>
-  <div class="tab-content" id="tab-linkedin-lcampaigns">
-    <div id="linkedin-campaigns-content"><div class="loading-row"><span class="spinner"></span></div></div>
-  </div>
-  <div class="tab-content" id="tab-linkedin-lfunnel">
-    <div id="linkedin-funnel-content"><div class="loading-row"><span class="spinner"></span></div></div>
-  </div>
-  <div class="tab-content" id="tab-linkedin-lads">
-    <div id="linkedin-ads-content"><div class="loading-row"><span class="spinner"></span></div></div>
-  </div>
-  <div class="tab-content" id="tab-linkedin-lhealth">
-    <div id="linkedin-health-content"><div class="loading-row"><span class="spinner"></span></div></div>
-  </div>
-
-  <!-- AI STRATEGIST -->
-  <div class="tab-content" id="tab-ai">
-    <div class="chat-wrap">
-      <div class="panel-title" style="margin-bottom:8px">🤖 AI Marketing Strategist · Leadership Victoria</div>
-      <div style="font-size:11px;color:var(--text3);margin-bottom:12px">Loaded with real GA4 data — traffic, programs, revenue, funnel, campaigns</div>
-      <div class="sugg-row">
-        <button class="sugg" onclick="askSugg(this)">Which channel drives the most revenue?</button>
-        <button class="sugg" onclick="askSugg(this)">Write a monthly report for the client</button>
-        <button class="sugg" onclick="askSugg(this)">Where are we losing people in the funnel?</button>
-        <button class="sugg" onclick="askSugg(this)">Which program should we invest more in?</button>
-        <button class="sugg" onclick="askSugg(this)">What's working and what's not?</button>
-        <button class="sugg" onclick="askSugg(this)">Recommend 3 actions for next month</button>
-      </div>
-      <div class="chat-msgs" id="chatMsgs">
-        <div class="msg ai">Hi — I'm your marketing strategist for Leadership Victoria. I have real data loaded: traffic by channel, program revenue, purchase funnels, and campaign performance. Ask me anything — I'll give you specific, actionable answers based on the actual numbers.</div>
-      </div>
-      <div class="chat-input-row">
-        <input class="chat-input" id="chatInput" placeholder="Ask a strategic question..." onkeydown="if(event.key==='Enter')sendChat()">
-        <button class="chat-btn" onclick="sendChat()">Ask →</button>
-      </div>
     </div>
   </div>
 
@@ -1668,11 +1573,7 @@ function renderCampaigns(campaignsData, sourceRows){
   }
 
   // ── Notes ──
-  const metaNote = meta.length > 0 && meta.some(r=>r.campaign&&/^\d{10,}$/.test(r.campaign))
-    ? '⚠️ Some campaigns showing as numeric IDs. Add UTM parameters in Meta Ads Manager: UTM Campaign = {{campaign.name}}.'
-    : meta.length > 0 && meta.every(r=>parseFloat(r.keyEvents||0)===0)
-    ? '⚠️ Zero conversions from paid Meta. Check that UTM parameters are set in ad links and that key events fire on the landing page.'
-    : null;
+  const metaNote = null;
 
   const emailNote = email.length > 0 && email.every(r=>parseFloat(r.keyEvents||0)===0)
     ? '⚠️ Zero conversions from Email. Confirm UTM parameters are set in campaign links and key events are configured on the destination page.'
@@ -1689,7 +1590,7 @@ function renderCampaigns(campaignsData, sourceRows){
   const sections = [
     {title:'Google Ads', note:'LV Pmax · Search campaigns · Brand', rows:googleRows, cols:['sessions','bar','eng','conv','convRate','rev'], color:'#4285f4', tableNote:null},
     {title:'Meta · Paid', note:'fb / paid · ig / paid · Paid Social campaigns', rows:meta, cols:['sessions','bar','eng','conv','convRate'], color:'#1877f2', tableNote:metaNote},
-    {title:'Meta · Organic Social', note:'facebook.com · instagram.com · m.facebook.com · l.facebook.com', rows:organicSocialSources, cols:['sessions','bar','eng','conv'], color:'#4267B2', tableNote:null},
+    {title:'Facebook Referral & Organic', note:'facebook.com · instagram.com · m.facebook.com · shared links', rows:organicSocialSources, cols:['sessions','bar','eng','conv'], color:'#4267B2', tableNote:null},
     {title:'LinkedIn', note:'linkedin.com / referral · organic · no paid campaigns detected', rows:linkedin, cols:['sessions','bar','eng','conv'], color:'#0077b5', tableNote:linkedin.length>0&&linkedin.every(r=>parseFloat(r.keyEvents||0)===0)?'Sessions arriving from LinkedIn posts and profiles. No paid LinkedIn campaigns detected — if running LinkedIn Ads, add UTM parameters to ad links.':null},
     {title:'Email', note:'mailchimp · ortto · MyMail · newsletter campaigns', rows:email, cols:['sessions','bar','eng','conv'], color:'#0a7c59', tableNote:emailNote},
     {title:'Referral sources', note:'sessions · engagement · conversions', rows:refs.slice(0,12), cols:['sessions','bar','eng','conv','rev'], color:'#7c3aed', tableNote:null},

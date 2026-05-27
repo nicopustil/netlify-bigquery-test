@@ -199,7 +199,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
   <button class="pBtn" id="cmp-year" onclick="setCompare('year',this)">Prev year</button>
   <button class="pBtn" id="cmp-none" onclick="setCompare('none',this)">None</button>
   <span class="last-updated" id="lastUpdated"></span>
-  <span style="font-size:10px;color:var(--text3);margin-left:8px">v3.2.0</span>
+  <span style="font-size:10px;color:var(--text3);margin-left:8px">v3.3.0</span>
 </div>
 
 <!-- MAIN NAV -->
@@ -2440,13 +2440,11 @@ async function loadMeta(sub) {
       CAST(reach AS FLOAT64) as reach,
       CAST(ctr AS FLOAT64) as ctr,
       CAST(frequency AS FLOAT64) as frequency,
-      CAST(actions_lead AS FLOAT64) as actions_lead,
-      CAST(actions_offsite_conversion_fb_pixel_lead AS FLOAT64) as actions_offsite_conversion_fb_pixel_lead,
-      CAST(conversions_offsite_conversion_fb_pixel_custom_file_download AS FLOAT64) as conversions_offsite_conversion_fb_pixel_custom_file_download,
-      CAST(actions_complete_registration AS FLOAT64) as actions_complete_registration,
-      CAST(actions_offsite_conversion_fb_pixel_complete_registration AS FLOAT64) as actions_offsite_conversion_fb_pixel_complete_registration,
-      CAST(cost_per_action_type_lead AS FLOAT64) as cost_per_action_type_lead,
-      CAST(cost_per_action_type_complete_registration AS FLOAT64) as cost_per_action_type_complete_registration,
+      CAST(conversions_offsite_conversion_fb_pixel_custom_file_download AS FLOAT64) as conv_file_download,
+      CAST(conversions_offsite_conversion_fb_pixel_custom_register_click AS FLOAT64) as conv_register_click,
+      CAST(conversions_offsite_conversion_fb_pixel_custom_contacts AS FLOAT64) as conv_contacts,
+      CAST(actions_offsite_conversion_fb_pixel_custom AS FLOAT64) as conv_total_custom,
+      CAST(actions_post_engagement AS FLOAT64) as actions_post_engagement,
       CAST(video_thruplay_watched_actions AS FLOAT64) as video_thruplay_watched_actions,
       CAST(video_p25_watched_actions AS FLOAT64) as video_p25_watched_actions,
       CAST(video_p50_watched_actions AS FLOAT64) as video_p50_watched_actions,
@@ -2470,7 +2468,7 @@ function renderMetaNoData(el, sub) {
           Windsor.ai is configured and will sync data tonight at 00:00 UTC. Once data arrives, all tabs will populate automatically.
         </div>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px;margin-bottom:16px">
-          ${['Spend','Reach','Impressions','Link Clicks','Downloads','Contacts','Register Intent'].map(l=>`
+          ${['Spend','Reach','Impressions','Link Clicks','Downloads','Contacts','Register Click'].map(l=>`
             <div style="background:var(--bg2);border-radius:10px;padding:12px 14px">
               <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">${l}</div>
               <div style="font-size:22px;font-weight:400;font-family:'Cormorant Garamond',serif;color:var(--text)">—</div>
@@ -2509,14 +2507,14 @@ function renderMetaTab(el, sub, rows) {
     const totClicks = rows.reduce((a,r)=>a+cn(r.link_clicks),0);
     const totImpr = rows.reduce((a,r)=>a+cn(r.impressions),0);
     const totCTR = totImpr>0?(totClicks/totImpr*100).toFixed(2):0;
-    const totDL = rows.reduce((a,r)=>a+cn(r.conversions_offsite_conversion_fb_pixel_custom_file_download),0);
-    const totCo = rows.reduce((a,r)=>a+cn(r.actions_lead)+cn(r.actions_offsite_conversion_fb_pixel_lead),0);
-    const totReg = rows.reduce((a,r)=>a+cn(r.actions_complete_registration),0);
+    const totDL = rows.reduce((a,r)=>a+cn(r.conv_file_download),0);
+    const totCo = rows.reduce((a,r)=>a+cn(r.conv_contacts),0);
+    const totReg = rows.reduce((a,r)=>a+cn(r.conv_register_click),0);
     const ilRows = rows.filter(r=>prog(r)==='igniting');
     const leRows = rows.filter(r=>prog(r)==='evolution');
     el.innerHTML = `
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:10px;margin-bottom:16px">
-        ${[['Spend', totSpend>=1000 ? '$'+(totSpend/1000).toFixed(1)+'K' : '$'+totSpend.toFixed(0), ''],['Reach',fmt(totReach),''],['Impressions',fmt(totImpr),''],['Link Clicks',fmt(totClicks),''],['CTR',totCTR+'%',''],['Conv Rate',totClicks>0&&totDL>0?(totDL/totClicks*100).toFixed(1)+'%':'—',''],['Downloads',fmt(totDL),''],['Cost/Download',totDL>0?'$'+(totSpend/totDL).toFixed(2):'—',''],['Contacts',fmt(totCo),''],['Register Intent',fmt(totReg),'']].map(([l,v,s])=>`
+        ${[['Spend', totSpend>=1000 ? '$'+(totSpend/1000).toFixed(1)+'K' : '$'+totSpend.toFixed(0), ''],['Reach',fmt(totReach),''],['Impressions',fmt(totImpr),''],['Link Clicks',fmt(totClicks),''],['CTR',totCTR+'%',''],['Conv Rate',totClicks>0&&totDL>0?(totDL/totClicks*100).toFixed(1)+'%':'—',''],['Downloads',fmt(totDL),''],['Cost/Download',totDL>0?'$'+(totSpend/totDL).toFixed(2):'—',''],['Contacts',fmt(totCo),''],['Register Click',fmt(totReg),'']].map(([l,v,s])=>`
           <div style="background:var(--bg2);border-radius:10px;padding:12px 14px">
             <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">${l}</div>
             <div style="font-size:22px;font-weight:400;font-family:'Cormorant Garamond',serif;color:var(--text)">${v}</div>
@@ -2527,9 +2525,9 @@ function renderMetaTab(el, sub, rows) {
         ${[['igniting','Igniting Leadership','#185FA5','#0C447C',ilRows],['evolution','Leader Evolution','#0F6E56','#085041',leRows]].map(([p,label,c,tc,pRows])=>{
           const sp=pRows.reduce((a,r)=>a+cn(r.spend),0);
           const pct2=totSpend>0?(sp/totSpend*100).toFixed(0):0;
-          const dl=pRows.reduce((a,r)=>a+cn(r.conversions_offsite_conversion_fb_pixel_custom_file_download),0);
-          const co=pRows.reduce((a,r)=>a+cn(r.actions_lead)+cn(r.actions_offsite_conversion_fb_pixel_lead),0);
-          const ri=pRows.reduce((a,r)=>a+cn(r.actions_complete_registration),0);
+          const dl=pRows.reduce((a,r)=>a+cn(r.conv_file_download),0);
+          const co=pRows.reduce((a,r)=>a+cn(r.conv_contacts),0);
+          const ri=pRows.reduce((a,r)=>a+cn(r.conv_register_click),0);
           const re=pRows.reduce((a,r)=>a+cn(r.reach),0);
           return `<div style="background:white;border:0.5px solid var(--border);border-radius:10px;border-top:3px solid ${c};padding:14px 16px">
             <div style="font-size:10px;font-weight:500;color:${tc};text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px">${label}</div>
@@ -2538,7 +2536,7 @@ function renderMetaTab(el, sub, rows) {
               <span style="font-size:11px;color:var(--text3)">${pct2}% of spend</span>
             </div>
             <div style="height:3px;background:var(--bg2);border-radius:2px;margin-bottom:12px"><div style="height:3px;width:${pct2}%;background:${c};border-radius:2px"></div></div>
-            ${[['Reach',fmt(re)],['Downloads',fmt(dl)],['Contacts',fmt(co)],['Register Intent',fmt(ri)]].map(([l,v])=>'<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:12px;border-bottom:0.5px solid var(--border)"><span style="color:var(--text3)">'+l+'</span><span style="font-weight:500">'+v+'</span></div>').join('')}
+            ${[['Reach',fmt(re)],['Downloads',fmt(dl)],['Contacts',fmt(co)],['Register Click',fmt(ri)]].map(([l,v])=>'<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:12px;border-bottom:0.5px solid var(--border)"><span style="color:var(--text3)">'+l+'</span><span style="font-weight:500">'+v+'</span></div>').join('')}
           </div>`;
         }).join('')}
       </div>
@@ -2553,9 +2551,9 @@ function renderMetaTab(el, sub, rows) {
             const k=r.campaign||'Unknown';
             if(!grp[k]) grp[k]={campaign:k,spend:0,reach:0,dl:0,co:0,ri:0,pr:prog(r)};
             grp[k].spend+=cn(r.spend); grp[k].reach+=cn(r.reach);
-            grp[k].dl+=cn(r.conversions_offsite_conversion_fb_pixel_custom_file_download);
-            grp[k].co+=cn(r.actions_lead)+cn(r.actions_offsite_conversion_fb_pixel_lead);
-            grp[k].ri+=cn(r.actions_complete_registration);
+            grp[k].dl+=cn(r.conv_file_download);
+            grp[k].co+=cn(r.conv_contacts);
+            grp[k].ri+=cn(r.conv_register_click);
           });
           return Object.values(grp).sort((a,b)=>b.spend-a.spend).slice(0,12).map(r=>{
             const f=funnel(r.campaign);
@@ -2587,9 +2585,9 @@ function renderMetaTab(el, sub, rows) {
     const re=progRows.reduce((a,r)=>a+cn(r.reach),0);
     const cl=progRows.reduce((a,r)=>a+cn(r.link_clicks),0);
     const im=progRows.reduce((a,r)=>a+cn(r.impressions),0);
-    const dl=progRows.reduce((a,r)=>a+cn(r.conversions_offsite_conversion_fb_pixel_custom_file_download),0);
-    const co=progRows.reduce((a,r)=>a+cn(r.actions_lead)+cn(r.actions_offsite_conversion_fb_pixel_lead),0);
-    const ri=progRows.reduce((a,r)=>a+cn(r.actions_complete_registration),0);
+    const dl=progRows.reduce((a,r)=>a+cn(r.conv_file_download),0);
+    const co=progRows.reduce((a,r)=>a+cn(r.conv_contacts),0);
+    const ri=progRows.reduce((a,r)=>a+cn(r.conv_register_click),0);
     const ctrVal=im>0?(cl/im*100).toFixed(2):0;
     const cvRate=cl>0&&dl>0?(dl/cl*100).toFixed(1):0;
     const uniqueCamps = new Set(progRows.map(r=>r.campaign)).size;
@@ -2617,7 +2615,7 @@ function renderMetaTab(el, sub, rows) {
             adsetGrp[k].impressions+=cn(r.impressions);
             adsetGrp[k].clicks+=cn(r.link_clicks);
             adsetGrp[k].reach+=cn(r.reach);
-            adsetGrp[k].dl+=cn(r.conversions_offsite_conversion_fb_pixel_custom_file_download);
+            adsetGrp[k].dl+=cn(r.conv_file_download);
           });
           const adsets=Object.values(adsetGrp).sort((a,b)=>b.spend-a.spend);
           const maxSpend=adsets[0]?.spend||1;
@@ -2656,9 +2654,9 @@ function renderMetaTab(el, sub, rows) {
             const k=r.campaign||'Unknown';
             if(!grp2[k]) grp2[k]={campaign:k,spend:0,dl:0,co:0,ri:0};
             grp2[k].spend+=cn(r.spend);
-            grp2[k].dl+=cn(r.conversions_offsite_conversion_fb_pixel_custom_file_download);
-            grp2[k].co+=cn(r.actions_lead)+cn(r.actions_offsite_conversion_fb_pixel_lead);
-            grp2[k].ri+=cn(r.actions_complete_registration);
+            grp2[k].dl+=cn(r.conv_file_download);
+            grp2[k].co+=cn(r.conv_contacts);
+            grp2[k].ri+=cn(r.conv_register_click);
           });
           return Object.values(grp2).sort((a,b)=>b.spend-a.spend).map(r=>{
             const f=funnel(r.campaign);
@@ -2687,9 +2685,9 @@ function renderMetaTab(el, sub, rows) {
         stageData[f].reach+=cn(r.reach);
         stageData[f].impressions+=cn(r.impressions);
         stageData[f].clicks+=cn(r.link_clicks);
-        stageData[f].dl+=cn(r.conversions_offsite_conversion_fb_pixel_custom_file_download);
-        stageData[f].co+=cn(r.actions_lead)+cn(r.actions_offsite_conversion_fb_pixel_lead);
-        stageData[f].ri+=cn(r.actions_complete_registration);
+        stageData[f].dl+=cn(r.conv_file_download);
+        stageData[f].co+=cn(r.conv_contacts);
+        stageData[f].ri+=cn(r.conv_register_click);
         stageData[f].rows.push(r);
       }
     });
@@ -2741,9 +2739,9 @@ function renderMetaTab(el, sub, rows) {
       const g=adGrp[k];
       g.spend+=cn(r.spend); g.impressions+=cn(r.impressions);
       g.clicks+=cn(r.link_clicks); g.reach+=cn(r.reach);
-      g.dl+=cn(r.conversions_offsite_conversion_fb_pixel_custom_file_download);
-      g.co+=cn(r.actions_lead)+cn(r.actions_offsite_conversion_fb_pixel_lead);
-      g.ri+=cn(r.actions_complete_registration);
+      g.dl+=cn(r.conv_file_download);
+      g.co+=cn(r.conv_contacts);
+      g.ri+=cn(r.conv_register_click);
       g.post_eng+=cn(r.actions_post_engagement);
       g.video_views+=cn(r.actions_video_view);
       g.thruplay+=cn(r.video_thruplay_watched_actions);
@@ -2788,9 +2786,9 @@ function renderMetaTab(el, sub, rows) {
       const g=creativeGrp[k];
       g.spend+=cn(r.spend); g.impressions+=cn(r.impressions);
       g.clicks+=cn(r.link_clicks); g.reach+=cn(r.reach);
-      g.dl+=cn(r.conversions_offsite_conversion_fb_pixel_custom_file_download);
-      g.co+=cn(r.actions_lead)+cn(r.actions_offsite_conversion_fb_pixel_lead);
-      g.ri+=cn(r.actions_complete_registration);
+      g.dl+=cn(r.conv_file_download);
+      g.co+=cn(r.conv_contacts);
+      g.ri+=cn(r.conv_register_click);
       g.post_eng+=cn(r.actions_post_engagement);
       if(!g.adsets.includes(r.adset_name)) g.adsets.push(r.adset_name||'');
       g.rows.push(r);
@@ -2877,9 +2875,9 @@ function renderMetaTab(el, sub, rows) {
       const g=adsetGrp[k];
       g.spend+=cn(r.spend); g.reach+=cn(r.reach);
       g.impressions+=cn(r.impressions); g.clicks+=cn(r.link_clicks);
-      g.dl+=cn(r.conversions_offsite_conversion_fb_pixel_custom_file_download);
-      g.co+=cn(r.actions_lead)+cn(r.actions_offsite_conversion_fb_pixel_lead);
-      g.ri+=cn(r.actions_complete_registration);
+      g.dl+=cn(r.conv_file_download);
+      g.co+=cn(r.conv_contacts);
+      g.ri+=cn(r.conv_register_click);
       g.post_eng+=cn(r.actions_post_engagement);
       if(cn(r.frequency)>0){g.freq_sum+=cn(r.frequency);g.freq_count++;}
     });
@@ -2913,12 +2911,15 @@ function renderMetaTab(el, sub, rows) {
 function renderMetaHealth(el) {
   const checks = [
     ['ok','Windsor.ai → BigQuery','Connected · syncs daily'],
-    ['warn','Meta Pixel · file_download','Active — verify firing on download events'],
-    ['warn','Meta Pixel · Contact','Active — verify on form submissions'],
-    ['warn','Meta Pixel · register_click','Proxy for bottom-funnel until Humanitix connected'],
+    ['err','Windsor · register_click field','Add conversions_offsite_conversion_fb_pixel_custom_register_click to Windsor sync — MOF conversions currently missing'],
+    ['err','Windsor · Contacts field','Add conversions_offsite_conversion_fb_pixel_custom_contacts to Windsor sync'],
+    ['ok','Meta Pixel · file_download','Syncing correctly — downloads match Ads Manager'],
+    ['warn','Meta Pixel · register_click','Pixel active — field missing from Windsor sync (see above)'],
+    ['warn','Meta Pixel · Contacts','Pixel active — field missing from Windsor sync (see above)'],
     ['err','Meta Pixel · purchase (Humanitix)','Not connected — ROAS unmeasured until live'],
     ['err','UTM parameters on ad links','Missing — add utm_source, utm_medium, utm_campaign'],
     ['ok','Campaign naming · TOF/MOF/BOF','Auto-detected correctly'],
+    ['ok','Program matching · Igniting/Evolution','Ad names matched correctly via regex'],
   ];
   const bg = {ok:'#E8F5EE',warn:'#FEF3DC',err:'#FDECEA'};
   const dot = {ok:'#2d6a4f',warn:'#b5860b',err:'#c0392b'};

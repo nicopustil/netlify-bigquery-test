@@ -2432,7 +2432,8 @@ async function loadMeta(sub) {
   if (!loaded['meta_data']) {
     loaded['meta_data'] = true;
     const days = activeDays || 30;
-    const campQ = `SELECT date, campaign, adset_name, ad_name,
+    // Try full query with new fields first; fall back if Windsor hasn't synced them yet
+    const campQFull = `SELECT date, campaign, adset_name, ad_name,
       CAST(spend AS FLOAT64) as spend,
       CAST(impressions AS FLOAT64) as impressions,
       CAST(clicks AS FLOAT64) as clicks,
@@ -2453,7 +2454,38 @@ async function loadMeta(sub) {
       FROM \`${P}.google_ads_lv.meta_ads_daily\`
       WHERE date >= DATE_SUB(CURRENT_DATE(), INTERVAL ${days} DAY)
       ORDER BY date DESC, spend DESC LIMIT 500`;
-    const rows = await bq(campQ);
+    const campQFallback = `SELECT date, campaign, adset_name, ad_name,
+      CAST(spend AS FLOAT64) as spend,
+      CAST(impressions AS FLOAT64) as impressions,
+      CAST(clicks AS FLOAT64) as clicks,
+      CAST(link_clicks AS FLOAT64) as link_clicks,
+      CAST(reach AS FLOAT64) as reach,
+      CAST(ctr AS FLOAT64) as ctr,
+      CAST(frequency AS FLOAT64) as frequency,
+      CAST(conversions_offsite_conversion_fb_pixel_custom_file_download AS FLOAT64) as conv_file_download,
+      NULL as conv_register_click,
+      NULL as conv_contacts,
+      CAST(actions_offsite_conversion_fb_pixel_custom AS FLOAT64) as conv_total_custom,
+      CAST(actions_post_engagement AS FLOAT64) as actions_post_engagement,
+      CAST(video_thruplay_watched_actions AS FLOAT64) as video_thruplay_watched_actions,
+      CAST(video_p25_watched_actions AS FLOAT64) as video_p25_watched_actions,
+      CAST(video_p50_watched_actions AS FLOAT64) as video_p50_watched_actions,
+      CAST(video_p75_watched_actions AS FLOAT64) as video_p75_watched_actions,
+      CAST(video_p100_watched_actions AS FLOAT64) as video_p100_watched_actions
+      FROM \`${P}.google_ads_lv.meta_ads_daily\`
+      WHERE date >= DATE_SUB(CURRENT_DATE(), INTERVAL ${days} DAY)
+      ORDER BY date DESC, spend DESC LIMIT 500`;
+    // Try full query; if new columns don't exist yet fall back gracefully
+    let rows = [];
+    try {
+      const r = await fetch('/api/bigquery',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:campQFull})});
+      const j = await r.json();
+      if(j.ok) { rows = j.rows||[]; }
+      else if(j.error && j.error.includes('Unrecognized name: conversions_offsite_conversion_fb_pixel_custom_register_click')) {
+        console.warn('Meta: register_click/contacts not in BQ yet — Windsor sync pending. Using fallback.');
+        rows = await bq(campQFallback);
+      } else { throw new Error(j.error); }
+    } catch(e) { console.error('Meta query error:',e); rows = await bq(campQFallback); }
     globalData.metaRows = rows;
   }
   renderMetaTab(el, sub, globalData.metaRows || []);

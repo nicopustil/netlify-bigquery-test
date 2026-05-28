@@ -2819,18 +2819,20 @@ function renderMetaTab(el, sub, rows) {
     // Filter state
     const filtProg = el.dataset.filtProg || el.closest('.tab-content')?.dataset.filtProg || 'all';
 
-    // Group by creative (ad_name) not by ad+adset
+    // Group by ad_name + adset_name to show each combination
     const creativeGrp={};
     rows.forEach(r=>{
-      const k=r.ad_name||'Unknown';
+      const k=(r.ad_name||'Unknown')+'|||'+(r.adset_name||'');
       if(!creativeGrp[k]) creativeGrp[k]={
-        ad_name:k, prog:prog(r),
+        ad_name:r.ad_name||'Unknown',
+        adset_name:r.adset_name||'',
+        prog:prog(r),
         spend:0,impressions:0,clicks:0,reach:0,
         dl:0,co:0,ri:0,post_eng:0,
         quality:r.quality_ranking||'',
         eng_rank:r.engagement_rate_ranking||'',
         conv_rank:r.conversion_rate_ranking||'',
-        adsets:[],
+        adsets:[r.adset_name||''],
         rows:[]
       };
       const g=creativeGrp[k];
@@ -2840,7 +2842,6 @@ function renderMetaTab(el, sub, rows) {
       g.co+=cn(r.conv_contacts);
       g.ri+=cn(r.conv_register_click);
       g.post_eng+=cn(r.actions_post_engagement);
-      if(!g.adsets.includes(r.adset_name)) g.adsets.push(r.adset_name||'');
       g.rows.push(r);
     });
 
@@ -2868,13 +2869,13 @@ function renderMetaTab(el, sub, rows) {
         </div>
       </div>
       <div style="background:white;border:0.5px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:16px">
-        <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:10px;font-weight:500">Summary — ${creatives.length} creatives</div>
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:10px;font-weight:500">Summary — ${creatives.length} ad combinations</div>
         <div style="font-size:11px;color:var(--text3);margin-bottom:10px">Spend, downloads and clicks are exact totals. Reach is summed — actual unique reach is lower due to overlap.</div>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:8px">
           ${[['Spend','$'+fSpend.toFixed(0)],['Reach',fmt(fReach)],['Impressions',fmt(fImpr)],['Link Clicks',fmt(fClicks)],['CTR',fCTR+'%'],['Conv Rate',fCVR>0?fCVR+'%':'—'],['Downloads',fmt(fDL)],['Cost/Download',fCPDL],['Post Engagement',fmt(fEng)]].map(([l,v])=>'<div style="background:var(--bg2);border-radius:8px;padding:8px 10px"><div style="font-size:10px;color:var(--text3);margin-bottom:2px">'+l+'</div><div style="font-size:15px;font-weight:500">'+v+'</div></div>').join('')}
         </div>
       </div>
-      <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:12px;font-weight:500">${creatives.length} creatives · sorted by spend</div>
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:12px;font-weight:500">${creatives.length} ad combinations · sorted by spend</div>
       ${creatives.map(a=>{
         const ctr=a.impressions>0?(a.clicks/a.impressions*100).toFixed(2):0;
         const cvr=a.clicks>0&&a.dl>0?(a.dl/a.clicks*100).toFixed(1):0;
@@ -2885,7 +2886,7 @@ function renderMetaTab(el, sub, rows) {
         const avgCTR=fImpr>0?(fClicks/fImpr*100):0;
         const effColor=ctr>avgCTR*1.2?'#0F6E56':ctr<avgCTR*0.8?'#c0392b':'#b5860b';
         const effLabel=ctr>avgCTR*1.2?'Above avg CTR':ctr<avgCTR*0.8?'Below avg CTR':'Avg CTR';
-        const adsetList=a.adsets.map(s=>s.replace('_FileDownload','').replace('_',' ')).join(', ');
+        const adsetList=(a.adset_name||'').replace('_FileDownload','').replace(/_/g,' ');
         const imgSrc = AD_IMAGES[a.ad_name] || '';
         const img = imgSrc ? '<img src="'+imgSrc+'" style="width:120px;height:120px;object-fit:cover;border-radius:8px;flex-shrink:0" onerror="this.style.display=\'none\'">' : '';
         const metrics = [['Impressions',fmt(a.impressions)],['Link Clicks',fmt(a.clicks)],['Downloads',fmt(a.dl)],['Cost/Download',cpdl],['Post Engagement',fmt(a.post_eng)]].map(([l,v])=>'<div style="background:var(--bg2);border-radius:8px;padding:8px 10px"><div style="font-size:10px;color:var(--text3);margin-bottom:2px">'+l+'</div><div style="font-size:14px;font-weight:500">'+v+'</div></div>').join('');

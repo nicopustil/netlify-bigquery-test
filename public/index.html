@@ -2545,8 +2545,25 @@ function renderMetaTab(el, sub, rows) {
     const ilRows = rows.filter(r=>prog(r)==='igniting');
     const leRows = rows.filter(r=>prog(r)==='evolution');
     el.innerHTML = `
+      <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:16px">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:12px;font-weight:500">Events tracked</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;gap:12px;align-items:flex-start">
+            <span style="font-size:18px;line-height:1">📥</span>
+            <div><div style="font-size:12px;font-weight:500;color:var(--text);font-family:monospace">file_download</div><div style="font-size:11px;color:var(--text3);margin-top:2px">Brochure downloaded from the landing page</div></div>
+          </div>
+          <div style="display:flex;gap:12px;align-items:flex-start">
+            <span style="font-size:18px;line-height:1">🎟️</span>
+            <div><div style="font-size:12px;font-weight:500;color:var(--text);font-family:monospace">register_click</div><div style="font-size:11px;color:var(--text3);margin-top:2px">Click on Register button → redirects to Humanitix</div></div>
+          </div>
+          <div style="display:flex;gap:12px;align-items:flex-start">
+            <span style="font-size:18px;line-height:1">📋</span>
+            <div><div style="font-size:12px;font-weight:500;color:var(--text);font-family:monospace">Contact</div><div style="font-size:11px;color:var(--text3);margin-top:2px">Contact form submitted on the landing page</div><div style="font-size:10px;color:#b5860b;margin-top:3px;font-style:italic">⚠️ Not available via Meta API — report separately</div></div>
+          </div>
+        </div>
+      </div>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:10px;margin-bottom:16px">
-        ${[['Spend', totSpend>=1000 ? '$'+(totSpend/1000).toFixed(1)+'K' : '$'+totSpend.toFixed(0), ''],['Reach',fmt(totReach),''],['Impressions',fmt(totImpr),''],['Link Clicks',fmt(totClicks),''],['CTR',totCTR+'%',''],['Conv Rate',totClicks>0&&totDL>0?(totDL/totClicks*100).toFixed(1)+'%':'—',''],['Downloads',fmt(totDL),''],['Cost/Download',totDL>0?'$'+(totSpend/totDL).toFixed(2):'—',''],['Contacts',fmt(totCo),''],['Register Click',fmt(totReg),'']].map(([l,v,s])=>`
+        ${[['Spend', totSpend>=1000 ? '$'+(totSpend/1000).toFixed(1)+'K' : '$'+totSpend.toFixed(0), ''],['Reach',fmt(totReach),''],['Impressions',fmt(totImpr),''],['Link Clicks',fmt(totClicks),''],['CTR',totCTR+'%',''],['Conv Rate',totClicks>0&&totDL>0?(totDL/totClicks*100).toFixed(1)+'%':'—',''],['Downloads',fmt(totDL),''],['Cost/Download',totDL>0?'$'+(totSpend/totDL).toFixed(2):'—',''],['Contacts',fmt(totCo),'Not available via Meta API'],['Register Click',fmt(totReg),'']].map(([l,v,s])=>`
           <div style="background:var(--bg2);border-radius:10px;padding:12px 14px">
             <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">${l}</div>
             <div style="font-size:22px;font-weight:400;font-family:'Cormorant Garamond',serif;color:var(--text)">${v}</div>

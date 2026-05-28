@@ -2816,7 +2816,7 @@ function renderMetaTab(el, sub, rows) {
     const sumCPDL=sumDL>0?'$'+(sumSpend/sumDL).toFixed(2):'—';
 
     // Filter state
-    const filtProg = el.dataset.filtProg || 'all';
+    const filtProg = el.dataset.filtProg || el.closest('.tab-content')?.dataset.filtProg || 'all';
 
     // Group by creative (ad_name) not by ad+adset
     const creativeGrp={};

@@ -2454,6 +2454,7 @@ async function loadMeta(sub) {
       CAST(video_p100_watched_actions AS FLOAT64) as video_p100_watched_actions
       FROM \`${P}.google_ads_lv.meta_ads_daily\`
       WHERE date >= DATE_SUB(CURRENT_DATE(), INTERVAL ${days} DAY)
+      QUALIFY ROW_NUMBER() OVER (PARTITION BY date, campaign, adset_name, ad_name ORDER BY spend DESC) = 1
       ORDER BY date DESC, spend DESC LIMIT 500`;
     const campQFallback = `SELECT date, campaign, adset_name, ad_name,
       CAST(spend AS FLOAT64) as spend,
@@ -2475,6 +2476,7 @@ async function loadMeta(sub) {
       CAST(video_p100_watched_actions AS FLOAT64) as video_p100_watched_actions
       FROM \`${P}.google_ads_lv.meta_ads_daily\`
       WHERE date >= DATE_SUB(CURRENT_DATE(), INTERVAL ${days} DAY)
+      QUALIFY ROW_NUMBER() OVER (PARTITION BY date, campaign, adset_name, ad_name ORDER BY spend DESC) = 1
       ORDER BY date DESC, spend DESC LIMIT 500`;
     // Try full query; if new columns don't exist yet fall back gracefully
     let rows = [];

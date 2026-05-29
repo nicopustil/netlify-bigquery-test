@@ -1511,7 +1511,7 @@ function renderCampaigns(campaignsData, sourceRows){
     const key = isNumericId ? '_meta_no_utm' : rawKey;
     if (!metaNamedMap[key]) metaNamedMap[key] = {
       ...r, sessions: 0, keyEvents: 0, revenue: 0, engRate: 0, _count: 0,
-      _displayName: isNumericId ? 'Meta (sin nombre de campaña)' : null,
+      _displayName: isNumericId ? 'Meta (no campaign name)' : null,
       _sources: new Set()
     };
     metaNamedMap[key].sessions += parseFloat(r.sessions||0);
@@ -1664,7 +1664,7 @@ function renderCampaigns(campaignsData, sourceRows){
 
   const sections = [
     {title:'Google Ads', note:'LV Pmax · Search campaigns · Brand', rows:googleRows, cols:['sessions','bar','eng','conv','convRate','rev'], color:'#4285f4', tableNote:null},
-    {title:'Meta · Paid', note:'fb / paid · ig / paid · paid-social UTM', rows:meta, cols:['sessions','bar','eng','conv','convRate'], color:'#1877f2', tableNote:'Key events = brochure downloads + form submissions + begin checkout. No purchase tracking — Humanitix no acepta Meta Pixel.'},
+    {title:'Meta · Paid', note:'fb / paid · ig / paid · paid-social UTM', rows:meta, cols:['sessions','bar','eng','conv','convRate'], color:'#1877f2', tableNote:'Key events = brochure downloads + form submissions + begin checkout. No purchase tracking — Humanitix doesn\'t accept Meta Pixel.'},
     {title:'Facebook Referral & Organic', note:'facebook.com · instagram.com · m.facebook.com · shared links', rows:organicSocialSources, cols:['sessions','bar','eng','conv'], color:'#4267B2', tableNote:null},
     {title:'LinkedIn', note:'linkedin.com / referral · organic · paid social', rows:linkedin, cols:['sessions','bar','eng','conv'], color:'#0077b5', tableNote:linkedin.length>0&&linkedin.every(r=>parseFloat(r.keyEvents||0)===0)?'Sessions arriving from LinkedIn. If running LinkedIn Ads, ensure UTM parameters are set on all ad links (utm_source=linkedin&utm_medium=paid-social).':null},
     {title:'Email', note:'mailchimp · ortto · MyMail · newsletter campaigns', rows:email, cols:['sessions','bar','eng','conv'], color:'#0a7c59', tableNote:emailNote},

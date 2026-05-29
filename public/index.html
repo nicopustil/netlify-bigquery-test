@@ -1488,41 +1488,65 @@ function renderCampaigns(campaignsData, sourceRows){
     (r.source||'').includes('cpc') || r.channel==='Paid Search' || r.channel==='Cross-network'
   );
 
-  // ── META PAID: deduplicate by campaign name
-  const metaPaidSources = ['fb / paid','ig / paid'];
-  const metaCampaignsRaw = campaignsData.filter(r=>
-    metaPaidSources.includes(r.source) || r.channel==='Paid Social'
-  );
-  // Deduplicate by campaign name - sum sessions/keyEvents/revenue
-  const metaCampMap = {};
-  metaCampaignsRaw.forEach(r => {
-    const key = r.campaign || r.source || 'unknown';
-    if (!metaCampMap[key]) metaCampMap[key] = {...r, sessions: 0, keyEvents: 0, revenue: 0, engRate: 0, _count: 0};
-    metaCampMap[key].sessions += parseFloat(r.sessions||0);
-    metaCampMap[key].keyEvents += parseFloat(r.keyEvents||0);
-    metaCampMap[key].revenue += parseFloat(r.revenue||0);
-    metaCampMap[key].engRate += parseFloat(r.engRate||0);
-    metaCampMap[key]._count++;
+  // ── META PAID: includes fb/ig paid sources + paid-social medium + Paid Social channel
+  function parseSrcMed(r){
+    // source field is "sessionSourceMedium" = "source / medium"
+    const parts = (r.source||'').split(' / ');
+    return {src: (parts[0]||'').toLowerCase().trim(), med: (parts[1]||'').toLowerCase().trim()};
+  }
+  function isMetaPaid(r){
+    const {src, med} = parseSrcMed(r);
+    if(med==='paid-social' && (src.includes('facebook')||src.includes('fb')||src.includes('instagram')||src.includes('ig'))) return true;
+    if(['fb / paid','ig / paid'].includes(r.source)) return true;
+    if(r.channel==='Paid Social') return true;
+    if((src.includes('facebook')||src.includes('fb')||src.includes('ig')||src.includes('instagram')) && (src.includes('paid')||med.includes('paid'))) return true;
+    return false;
+  }
+  // Named Meta campaigns from Query 1 — grouped by campaign name (sums all sources per campaign)
+  const metaNamedRaw = campaignsData.filter(r => isMetaPaid(r));
+  const metaNamedMap = {};
+  metaNamedRaw.forEach(r => {
+    const rawKey = r.campaign || 'unknown';
+    const isNumericId = /^\d{10,}$/.test(rawKey.trim());
+    const key = isNumericId ? '_meta_no_utm' : rawKey;
+    if (!metaNamedMap[key]) metaNamedMap[key] = {
+      ...r, sessions: 0, keyEvents: 0, revenue: 0, engRate: 0, _count: 0,
+      _displayName: isNumericId ? 'Meta (sin nombre de campaña)' : null,
+      _sources: new Set()
+    };
+    metaNamedMap[key].sessions += parseFloat(r.sessions||0);
+    metaNamedMap[key].keyEvents += parseFloat(r.keyEvents||0);
+    metaNamedMap[key].revenue += parseFloat(r.revenue||0);
+    metaNamedMap[key].engRate += parseFloat(r.engRate||0);
+    metaNamedMap[key]._count++;
+    metaNamedMap[key]._sources.add(r.source);
   });
-  // Average engagement rate
-  Object.values(metaCampMap).forEach(r => { r.engRate = r._count > 0 ? r.engRate / r._count : 0; });
-  const metaCampaigns = Object.values(metaCampMap).sort((a,b) => b.sessions - a.sessions);
-  const metaSources = sourceRows.filter(r=>
-    metaPaidSources.includes(r.source) || r.channel==='Paid Social'
-  );
-  const metaCampSources = new Set(metaCampaigns.map(r=>r.source));
-  const metaSourceOnly = metaSources.filter(r=>!metaCampSources.has(r.source));
-  const meta = [...metaCampaigns, ...metaSourceOnly];
+  Object.values(metaNamedMap).forEach(r => {
+    r.engRate = r._count > 0 ? r.engRate / r._count : 0;
+    // Show all sources as subtitle
+    r._sourcesLabel = [...r._sources].join(' · ');
+  });
 
-  // ── META ORGANIC SOCIAL: m.facebook.com, l.facebook.com, instagram.com, etc.
-  // All Meta/Facebook traffic — paid (UTM) + organic/referral
-  const organicSocialSources = sourceRows.filter(r=>
-    r.channel==='Organic Social' ||
-    r.channel==='Paid Social' ||
-    (r.source||'').includes('facebook') ||
-    (r.source||'').includes('instagram') ||
-    (r.source||'').toLowerCase().includes('meta')
-  ).filter(r=>!(r.source||'').includes('linkedin'));
+  // Unnamed Meta sources from Query 2 — only those NOT already covered by a named campaign
+  const namedMetaSources = new Set(metaNamedRaw.map(r => r.source));
+  const metaUnnamed = sourceRows.filter(r => isMetaPaid(r) && !namedMetaSources.has(r.source));
+
+  const meta = [
+    ...Object.values(metaNamedMap).sort((a,b) => b.sessions - a.sessions),
+    ...metaUnnamed.sort((a,b) => parseFloat(b.sessions||0) - parseFloat(a.sessions||0)),
+  ];
+
+  // ── META ORGANIC SOCIAL: m.facebook.com, l.facebook.com, instagram.com, etc. (no paid medium)
+  const organicSocialSources = sourceRows.filter(r=>{
+    const src = (r.source||'').toLowerCase();
+    const isPaid = isMetaPaid(r);
+    return !isPaid && (
+      r.channel==='Organic Social' ||
+      src.includes('facebook') ||
+      src.includes('instagram') ||
+      src.toLowerCase().includes('meta')
+    ) && !src.includes('linkedin');
+  });
 
   // ── EMAIL: mailchimp, ortto, MyMail, email medium — from both queries
   const emailCampaigns = campaignsData.filter(r=>
@@ -1544,6 +1568,7 @@ function renderCampaigns(campaignsData, sourceRows){
     ...meta.map(r=>r.source),
     ...organicSocialSources.map(r=>r.source),
     ...email.map(r=>r.source),
+    ...linkedin.map(r=>r.source),
   ]);
   const refs = [
     ...campaignsData.filter(r=>r.channel==='Referral' && !usedSources.has(r.source) && !(r.source||'').includes('vercel.app')),
@@ -1559,7 +1584,7 @@ function renderCampaigns(campaignsData, sourceRows){
       sessions: {label:'Sessions',   w:'80px',  align:'right'},
       bar:      {label:'',           w:'100px', align:'left'},
       eng:      {label:'Engagement', w:'90px',  align:'right'},
-      conv:     {label:'Conversions',w:'90px',  align:'right'},
+      conv:     {label:'Key events', w:'90px',  align:'right'},
       convRate: {label:'Conv rate',  w:'80px',  align:'right'},
       rev:      {label:'Revenue',    w:'80px',  align:'right'},
     };
@@ -1597,7 +1622,10 @@ function renderCampaigns(campaignsData, sourceRows){
       });
 
       return `<div style="display:grid;grid-template-columns:1fr ${cols.map(c=>colDefs[c].w).join(' ')};gap:0;padding:8px 0;border-bottom:1px solid var(--bg2);align-items:center;font-size:12px">
-        <span style="color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:8px">${name||'Unknown'}</span>
+        <div style="overflow:hidden;padding-right:8px">
+          <div style="color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${name||'Unknown'}</div>
+          ${(r._sourcesLabel || (r.source && !r._fromSource)) ? `<div style="font-size:10px;color:var(--text3);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r._sourcesLabel || r.source}</div>` : ''}
+        </div>
         ${cells.join('')}
       </div>`;
     }).join('');
@@ -1628,14 +1656,15 @@ function renderCampaigns(campaignsData, sourceRows){
   // ── Google: use real campaign name mapping
   const googleRows = google.map(r=>({...r, _displayName: googleCampName(r.campaign||r.source)}));
 
-  // ── LinkedIn: organic social referral
-  const linkedin = sourceRows.filter(r=>
-    (r.source||'').includes('linkedin')
-  );
+  // ── LinkedIn: organic + lnkd.in referral
+  const linkedin = [
+    ...sourceRows.filter(r=>(r.source||'').includes('linkedin')||(r.source||'').includes('lnkd.in')),
+    ...campaignsData.filter(r=>(r.source||'').includes('linkedin')||(r.source||'').includes('lnkd.in')),
+  ];
 
   const sections = [
     {title:'Google Ads', note:'LV Pmax · Search campaigns · Brand', rows:googleRows, cols:['sessions','bar','eng','conv','convRate','rev'], color:'#4285f4', tableNote:null},
-    {title:'Meta · Paid', note:'fb / paid · ig / paid · Paid Social campaigns', rows:meta, cols:['sessions','bar','eng','conv','convRate'], color:'#1877f2', tableNote:metaNote},
+    {title:'Meta · Paid', note:'fb / paid · ig / paid · paid-social UTM', rows:meta, cols:['sessions','bar','eng','conv','convRate'], color:'#1877f2', tableNote:'Key events = brochure downloads + form submissions + begin checkout. No purchase tracking — Humanitix no acepta Meta Pixel.'},
     {title:'Facebook Referral & Organic', note:'facebook.com · instagram.com · m.facebook.com · shared links', rows:organicSocialSources, cols:['sessions','bar','eng','conv'], color:'#4267B2', tableNote:null},
     {title:'LinkedIn', note:'linkedin.com / referral · organic · paid social', rows:linkedin, cols:['sessions','bar','eng','conv'], color:'#0077b5', tableNote:linkedin.length>0&&linkedin.every(r=>parseFloat(r.keyEvents||0)===0)?'Sessions arriving from LinkedIn. If running LinkedIn Ads, ensure UTM parameters are set on all ad links (utm_source=linkedin&utm_medium=paid-social).':null},
     {title:'Email', note:'mailchimp · ortto · MyMail · newsletter campaigns', rows:email, cols:['sessions','bar','eng','conv'], color:'#0a7c59', tableNote:emailNote},

@@ -217,7 +217,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
   <button class="tab" style="font-size:11px;padding:7px 12px 9px" onclick="switchSub('analytics','engagement',this)">Engagement</button>
   <button class="tab" style="font-size:11px;padding:7px 12px 9px" onclick="switchSub('analytics','programs',this)">Programs</button>
   <button class="tab" style="font-size:11px;padding:7px 12px 9px" onclick="switchSub('analytics','campaigns',this)">Campaigns</button>
-  <button class="tab" style="font-size:11px;padding:7px 12px 9px" onclick="switchSub('analytics','path',this)">Path</button>
+
 </div>
 
 <!-- META SUBTABS -->
@@ -411,7 +411,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
   <!-- PROGRAMS -->
   <div class="tab-content" id="tab-programs">
     <div class="panel">
-      <div class="panel-title">Revenue trend by program <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">Humanitix · weekly · last 90 days</span>
+      <div class="panel-title">Downloads trend by program <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">Brochure downloads · weekly · last 90 days</span>
         <div style="display:flex;gap:12px">
           <span style="display:flex;align-items:center;gap:4px;font-size:11px;color:#1d3557;font-weight:400;text-transform:none;letter-spacing:0"><span style="width:10px;height:3px;background:#1d3557;border-radius:2px;display:inline-block"></span>Igniting</span>
           <span style="display:flex;align-items:center;gap:4px;font-size:11px;color:#2d6a4f;font-weight:400;text-transform:none;letter-spacing:0"><span style="width:10px;height:3px;background:#2d6a4f;border-radius:2px;display:inline-block"></span>Women's</span>
@@ -420,10 +420,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
       </div>
       <canvas id="prog-trend-chart" style="width:100%;height:180px"></canvas>
     </div>
-    <div class="panel">
-      <div class="panel-title">Purchase count trend <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">tickets sold per week</span></div>
-      <canvas id="prog-purchases-chart" style="width:100%;height:130px"></canvas>
-    </div>
+
     <div class="panel">
       <div class="panel-title">Program funnel <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">visit → tickets → Humanitix checkout</span></div>
       <div id="prog-funnel"></div>
@@ -943,7 +940,7 @@ async function loadAll(){
         const y=padT+chartH*(1-f);
         ctx.beginPath(); ctx.moveTo(padL,y); ctx.lineTo(W-padR,y); ctx.stroke();
         ctx.fillStyle='#a09890'; ctx.font='9px DM Sans';
-        ctx.fillText('$'+(maxVal*f/1000).toFixed(0)+'K', 2, y+3);
+        ctx.fillText(maxVal>0?(maxVal*f).toFixed(0):'0', 2, y+3);
       });
     }
     ctx.fillStyle='#a09890'; ctx.font='9px DM Sans'; ctx.textAlign='center';
@@ -1341,10 +1338,8 @@ function renderPrograms(progFunnelData, progFunnelPrev, trendData){
 
   const allWeeks=[...new Set(trendData.map(r=>r.week))].sort();
   const PROG_NAMES=['Igniting Leadership','Leader Evolution'];
-  const revSeries=PROG_NAMES.map(name=>({name,values:allWeeks.map(w=>{const row=trendData.find(r=>r.program===name&&r.week===w);return parseFloat(row?.revenue||0);})}));
-  const purchSeries=PROG_NAMES.map(name=>({name,values:allWeeks.map(w=>{const row=trendData.find(r=>r.program===name&&r.week===w);return parseFloat(row?.purchases||0);})}));
-  const maxRev=Math.max(...revSeries.flatMap(s=>s.values))||1;
-  const maxPurch=Math.max(...purchSeries.flatMap(s=>s.values))||1;
+  const dlSeries=PROG_NAMES.map(name=>({name,values:allWeeks.map(w=>{const row=trendData.find(r=>r.program===name&&r.week===w);return parseFloat(row?.purchases||0);})}));
+  const maxDL=Math.max(...dlSeries.flatMap(s=>s.values))||1;
 
   function drawTrendChart(canvasId, weeks, series, maxVal, height, showGrid){
     const canvas = document.getElementById(canvasId);
@@ -1364,7 +1359,7 @@ function renderPrograms(progFunnelData, progFunnelPrev, trendData){
         const y=padT+chartH*(1-f);
         ctx.beginPath(); ctx.moveTo(padL,y); ctx.lineTo(W-padR,y); ctx.stroke();
         ctx.fillStyle='#a09890'; ctx.font='9px DM Sans';
-        ctx.fillText('$'+(maxVal*f/1000).toFixed(0)+'K', 2, y+3);
+        ctx.fillText(maxVal>0?(maxVal*f).toFixed(0):'0', 2, y+3);
       });
     }
     ctx.fillStyle='#a09890'; ctx.font='9px DM Sans'; ctx.textAlign='center';
@@ -1410,8 +1405,7 @@ function renderPrograms(progFunnelData, progFunnelPrev, trendData){
   }
 
   setTimeout(()=>{
-    drawTrendChart('prog-trend-chart',allWeeks,revSeries,maxRev,180,true);
-    drawTrendChart('prog-purchases-chart',allWeeks,purchSeries,maxPurch,130,false);
+    drawTrendChart('prog-trend-chart',allWeeks,dlSeries,maxDL,180,true);
   },100);
 
   const progFunnelEl=document.getElementById('prog-funnel');
@@ -1494,16 +1488,28 @@ function renderCampaigns(campaignsData, sourceRows){
     (r.source||'').includes('cpc') || r.channel==='Paid Search' || r.channel==='Cross-network'
   );
 
-  // ── META PAID: fb/paid + ig/paid (named campaigns) + source rows for paid social
+  // ── META PAID: deduplicate by campaign name
   const metaPaidSources = ['fb / paid','ig / paid'];
-  const metaCampaigns = campaignsData.filter(r=>
+  const metaCampaignsRaw = campaignsData.filter(r=>
     metaPaidSources.includes(r.source) || r.channel==='Paid Social'
   );
+  // Deduplicate by campaign name - sum sessions/keyEvents/revenue
+  const metaCampMap = {};
+  metaCampaignsRaw.forEach(r => {
+    const key = r.campaign || r.source || 'unknown';
+    if (!metaCampMap[key]) metaCampMap[key] = {...r, sessions: 0, keyEvents: 0, revenue: 0, engRate: 0, _count: 0};
+    metaCampMap[key].sessions += parseFloat(r.sessions||0);
+    metaCampMap[key].keyEvents += parseFloat(r.keyEvents||0);
+    metaCampMap[key].revenue += parseFloat(r.revenue||0);
+    metaCampMap[key].engRate += parseFloat(r.engRate||0);
+    metaCampMap[key]._count++;
+  });
+  // Average engagement rate
+  Object.values(metaCampMap).forEach(r => { r.engRate = r._count > 0 ? r.engRate / r._count : 0; });
+  const metaCampaigns = Object.values(metaCampMap).sort((a,b) => b.sessions - a.sessions);
   const metaSources = sourceRows.filter(r=>
     metaPaidSources.includes(r.source) || r.channel==='Paid Social'
   );
-  // Merge: use campaign rows if they exist, otherwise fall back to source rows
-  // Avoid double-counting: if a source already appears in campaign rows, skip source row
   const metaCampSources = new Set(metaCampaigns.map(r=>r.source));
   const metaSourceOnly = metaSources.filter(r=>!metaCampSources.has(r.source));
   const meta = [...metaCampaigns, ...metaSourceOnly];
@@ -1631,7 +1637,7 @@ function renderCampaigns(campaignsData, sourceRows){
     {title:'Google Ads', note:'LV Pmax · Search campaigns · Brand', rows:googleRows, cols:['sessions','bar','eng','conv','convRate','rev'], color:'#4285f4', tableNote:null},
     {title:'Meta · Paid', note:'fb / paid · ig / paid · Paid Social campaigns', rows:meta, cols:['sessions','bar','eng','conv','convRate'], color:'#1877f2', tableNote:metaNote},
     {title:'Facebook Referral & Organic', note:'facebook.com · instagram.com · m.facebook.com · shared links', rows:organicSocialSources, cols:['sessions','bar','eng','conv'], color:'#4267B2', tableNote:null},
-    {title:'LinkedIn', note:'linkedin.com / referral · organic · no paid campaigns detected', rows:linkedin, cols:['sessions','bar','eng','conv'], color:'#0077b5', tableNote:linkedin.length>0&&linkedin.every(r=>parseFloat(r.keyEvents||0)===0)?'Sessions arriving from LinkedIn posts and profiles. No paid LinkedIn campaigns detected — if running LinkedIn Ads, add UTM parameters to ad links.':null},
+    {title:'LinkedIn', note:'linkedin.com / referral · organic · paid social', rows:linkedin, cols:['sessions','bar','eng','conv'], color:'#0077b5', tableNote:linkedin.length>0&&linkedin.every(r=>parseFloat(r.keyEvents||0)===0)?'Sessions arriving from LinkedIn. If running LinkedIn Ads, ensure UTM parameters are set on all ad links (utm_source=linkedin&utm_medium=paid-social).':null},
     {title:'Email', note:'mailchimp · ortto · MyMail · newsletter campaigns', rows:email, cols:['sessions','bar','eng','conv'], color:'#0a7c59', tableNote:emailNote},
     {title:'Referral sources', note:'sessions · engagement · conversions', rows:refs.slice(0,12), cols:['sessions','bar','eng','conv','rev'], color:'#7c3aed', tableNote:null},
   ].filter(s=>s.rows.length>0);

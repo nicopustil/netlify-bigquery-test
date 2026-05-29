@@ -2366,12 +2366,13 @@ function renderLinkedInTab(el, sub, rows) {
 
 // ── LOAD META ─────────────────────────────────────────────────────────────────
 const AD_IMAGES = {
-  'Reach: Evolve A': '/LV_EVOLVE_A.png',
-  'Reach: Evolve B': '/LV_EVOLVE_B.png',
-  'Reach: Ignite A': '/LV_IGNITE_1.png',
-  'Reach: Ignite B': '/LV_IGNITE_2.png',
-  'Consideration Ignite': '/LV_IGNITE_1.png',
-  'Consideration Evolve 2': '/LV_EVOLVE_A.png',
+  'Reach: Ignite A': 'LV_REACH_AD_IGNITE_1_4_5.png',
+  'Reach: Ignite B': 'LV_REACH_AD_IGNITE_2_4_5.png',
+  'Reach: Evolve A': 'LV_REACH%20AD_EVOLVE%201_4_5.png',
+  'Reach: Evolve B': 'LV_REACH_AD_EVOLVE_2_4_5.png',
+  'Consideration Ignite': 'LV_CONSID_AD_IGNITE1_4_5.png',
+  'Consideration Evolve 1': 'LV_CONSID_AD_EVOLVE1_4_5.png',
+  'Consideration Evolve 2': 'LV_CONSID_AD_EVOLVE_2_4_5.png',
 };
 const META_PROG = {
   igniting: kw => /igniting|ilp|ignite/i.test(kw),
@@ -2429,10 +2430,12 @@ async function loadMeta(sub) {
   }
 
   // Has data — load from BigQuery Windsor table
-  if (!loaded['meta_data']) {
-    loaded['meta_data'] = true;
+  const metaCacheKey = 'meta_data_' + (activeDays||30);
+  if (!loaded[metaCacheKey]) {
+    loaded[metaCacheKey] = true;
     const days = activeDays || 30;
-    const campQ = `SELECT date, campaign, adset_name, ad_name,
+    // Try full query with new fields first; fall back if Windsor hasn't synced them yet
+    const campQFull = `SELECT date, campaign, adset_name, ad_name,
       CAST(spend AS FLOAT64) as spend,
       CAST(impressions AS FLOAT64) as impressions,
       CAST(clicks AS FLOAT64) as clicks,
@@ -2452,8 +2455,41 @@ async function loadMeta(sub) {
       CAST(video_p100_watched_actions AS FLOAT64) as video_p100_watched_actions
       FROM \`${P}.google_ads_lv.meta_ads_daily\`
       WHERE date >= DATE_SUB(CURRENT_DATE(), INTERVAL ${days} DAY)
+      QUALIFY ROW_NUMBER() OVER (PARTITION BY date, campaign, adset_name, ad_name ORDER BY spend DESC) = 1
       ORDER BY date DESC, spend DESC LIMIT 500`;
-    const rows = await bq(campQ);
+    const campQFallback = `SELECT date, campaign, adset_name, ad_name,
+      CAST(spend AS FLOAT64) as spend,
+      CAST(impressions AS FLOAT64) as impressions,
+      CAST(clicks AS FLOAT64) as clicks,
+      CAST(link_clicks AS FLOAT64) as link_clicks,
+      CAST(reach AS FLOAT64) as reach,
+      CAST(ctr AS FLOAT64) as ctr,
+      CAST(frequency AS FLOAT64) as frequency,
+      CAST(conversions_offsite_conversion_fb_pixel_custom_file_download AS FLOAT64) as conv_file_download,
+      NULL as conv_register_click,
+      NULL as conv_contacts,
+      CAST(actions_offsite_conversion_fb_pixel_custom AS FLOAT64) as conv_total_custom,
+      CAST(actions_post_engagement AS FLOAT64) as actions_post_engagement,
+      CAST(video_thruplay_watched_actions AS FLOAT64) as video_thruplay_watched_actions,
+      CAST(video_p25_watched_actions AS FLOAT64) as video_p25_watched_actions,
+      CAST(video_p50_watched_actions AS FLOAT64) as video_p50_watched_actions,
+      CAST(video_p75_watched_actions AS FLOAT64) as video_p75_watched_actions,
+      CAST(video_p100_watched_actions AS FLOAT64) as video_p100_watched_actions
+      FROM \`${P}.google_ads_lv.meta_ads_daily\`
+      WHERE date >= DATE_SUB(CURRENT_DATE(), INTERVAL ${days} DAY)
+      QUALIFY ROW_NUMBER() OVER (PARTITION BY date, campaign, adset_name, ad_name ORDER BY spend DESC) = 1
+      ORDER BY date DESC, spend DESC LIMIT 500`;
+    // Try full query; if new columns don't exist yet fall back gracefully
+    let rows = [];
+    try {
+      const r = await fetch('/api/bigquery',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:campQFull})});
+      const j = await r.json();
+      if(j.ok) { rows = j.rows||[]; }
+      else if(j.error && j.error.includes('Unrecognized name: conversions_offsite_conversion_fb_pixel_custom_register_click')) {
+        console.warn('Meta: register_click/contacts not in BQ yet — Windsor sync pending. Using fallback.');
+        rows = await bq(campQFallback);
+      } else { throw new Error(j.error); }
+    } catch(e) { console.error('Meta query error:',e); rows = await bq(campQFallback); }
     globalData.metaRows = rows;
   }
   renderMetaTab(el, sub, globalData.metaRows || []);
@@ -2513,8 +2549,25 @@ function renderMetaTab(el, sub, rows) {
     const ilRows = rows.filter(r=>prog(r)==='igniting');
     const leRows = rows.filter(r=>prog(r)==='evolution');
     el.innerHTML = `
+      <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:16px">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:12px;font-weight:500">Events tracked</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;gap:12px;align-items:flex-start">
+            <span style="font-size:18px;line-height:1">📥</span>
+            <div><div style="font-size:12px;font-weight:500;color:var(--text);font-family:monospace">file_download</div><div style="font-size:11px;color:var(--text3);margin-top:2px">Brochure downloaded from the landing page</div></div>
+          </div>
+          <div style="display:flex;gap:12px;align-items:flex-start">
+            <span style="font-size:18px;line-height:1">🎟️</span>
+            <div><div style="font-size:12px;font-weight:500;color:var(--text);font-family:monospace">register_click</div><div style="font-size:11px;color:var(--text3);margin-top:2px">Click on Register button → redirects to Humanitix</div></div>
+          </div>
+          <div style="display:flex;gap:12px;align-items:flex-start">
+            <span style="font-size:18px;line-height:1">📋</span>
+            <div><div style="font-size:12px;font-weight:500;color:var(--text);font-family:monospace">Contact</div><div style="font-size:11px;color:var(--text3);margin-top:2px">Contact form submitted on the landing page</div><div style="font-size:10px;color:#b5860b;margin-top:3px;font-style:italic">⚠️ Not available via Meta API — report separately</div></div>
+          </div>
+        </div>
+      </div>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:10px;margin-bottom:16px">
-        ${[['Spend', totSpend>=1000 ? '$'+(totSpend/1000).toFixed(1)+'K' : '$'+totSpend.toFixed(0), ''],['Reach',fmt(totReach),''],['Impressions',fmt(totImpr),''],['Link Clicks',fmt(totClicks),''],['CTR',totCTR+'%',''],['Conv Rate',totClicks>0&&totDL>0?(totDL/totClicks*100).toFixed(1)+'%':'—',''],['Downloads',fmt(totDL),''],['Cost/Download',totDL>0?'$'+(totSpend/totDL).toFixed(2):'—',''],['Contacts',fmt(totCo),''],['Register Click',fmt(totReg),'']].map(([l,v,s])=>`
+        ${[['Spend', totSpend>=1000 ? '$'+(totSpend/1000).toFixed(1)+'K' : '$'+totSpend.toFixed(0), ''],['Reach',fmt(totReach),''],['Impressions',fmt(totImpr),''],['Link Clicks',fmt(totClicks),''],['CTR',totCTR+'%',''],['Conv Rate',totClicks>0&&totDL>0?(totDL/totClicks*100).toFixed(1)+'%':'—',''],['Downloads',fmt(totDL),''],['Cost/Download',totDL>0?'$'+(totSpend/totDL).toFixed(2):'—',''],['Contacts',fmt(totCo),'Not available via Meta API'],['Register Click',fmt(totReg),'']].map(([l,v,s])=>`
           <div style="background:var(--bg2);border-radius:10px;padding:12px 14px">
             <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">${l}</div>
             <div style="font-size:22px;font-weight:400;font-family:'Cormorant Garamond',serif;color:var(--text)">${v}</div>
@@ -2767,20 +2820,22 @@ function renderMetaTab(el, sub, rows) {
     const sumCPDL=sumDL>0?'$'+(sumSpend/sumDL).toFixed(2):'—';
 
     // Filter state
-    const filtProg = el.dataset.filtProg || 'all';
+    const filtProg = el.dataset.filtProg || el.closest('.tab-content')?.dataset.filtProg || 'all';
 
-    // Group by creative (ad_name) not by ad+adset
+    // Group by ad_name + adset_name to show each combination
     const creativeGrp={};
     rows.forEach(r=>{
-      const k=r.ad_name||'Unknown';
+      const k=(r.ad_name||'Unknown')+'|||'+(r.adset_name||'');
       if(!creativeGrp[k]) creativeGrp[k]={
-        ad_name:k, prog:prog(r),
+        ad_name:r.ad_name||'Unknown',
+        adset_name:r.adset_name||'',
+        prog:prog(r),
         spend:0,impressions:0,clicks:0,reach:0,
         dl:0,co:0,ri:0,post_eng:0,
         quality:r.quality_ranking||'',
         eng_rank:r.engagement_rate_ranking||'',
         conv_rank:r.conversion_rate_ranking||'',
-        adsets:[],
+        adsets:[r.adset_name||''],
         rows:[]
       };
       const g=creativeGrp[k];
@@ -2790,7 +2845,6 @@ function renderMetaTab(el, sub, rows) {
       g.co+=cn(r.conv_contacts);
       g.ri+=cn(r.conv_register_click);
       g.post_eng+=cn(r.actions_post_engagement);
-      if(!g.adsets.includes(r.adset_name)) g.adsets.push(r.adset_name||'');
       g.rows.push(r);
     });
 
@@ -2818,13 +2872,13 @@ function renderMetaTab(el, sub, rows) {
         </div>
       </div>
       <div style="background:white;border:0.5px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:16px">
-        <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:10px;font-weight:500">Summary — ${creatives.length} creatives</div>
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:10px;font-weight:500">Summary — ${creatives.length} ad combinations</div>
         <div style="font-size:11px;color:var(--text3);margin-bottom:10px">Spend, downloads and clicks are exact totals. Reach is summed — actual unique reach is lower due to overlap.</div>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:8px">
           ${[['Spend','$'+fSpend.toFixed(0)],['Reach',fmt(fReach)],['Impressions',fmt(fImpr)],['Link Clicks',fmt(fClicks)],['CTR',fCTR+'%'],['Conv Rate',fCVR>0?fCVR+'%':'—'],['Downloads',fmt(fDL)],['Cost/Download',fCPDL],['Post Engagement',fmt(fEng)]].map(([l,v])=>'<div style="background:var(--bg2);border-radius:8px;padding:8px 10px"><div style="font-size:10px;color:var(--text3);margin-bottom:2px">'+l+'</div><div style="font-size:15px;font-weight:500">'+v+'</div></div>').join('')}
         </div>
       </div>
-      <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:12px;font-weight:500">${creatives.length} creatives · sorted by spend</div>
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:12px;font-weight:500">${creatives.length} ad combinations · sorted by spend</div>
       ${creatives.map(a=>{
         const ctr=a.impressions>0?(a.clicks/a.impressions*100).toFixed(2):0;
         const cvr=a.clicks>0&&a.dl>0?(a.dl/a.clicks*100).toFixed(1):0;
@@ -2835,7 +2889,7 @@ function renderMetaTab(el, sub, rows) {
         const avgCTR=fImpr>0?(fClicks/fImpr*100):0;
         const effColor=ctr>avgCTR*1.2?'#0F6E56':ctr<avgCTR*0.8?'#c0392b':'#b5860b';
         const effLabel=ctr>avgCTR*1.2?'Above avg CTR':ctr<avgCTR*0.8?'Below avg CTR':'Avg CTR';
-        const adsetList=a.adsets.map(s=>s.replace('_FileDownload','').replace('_',' ')).join(', ');
+        const adsetList=(a.adset_name||'').replace('_FileDownload','').replace(/_/g,' ');
         const imgSrc = AD_IMAGES[a.ad_name] || '';
         const img = imgSrc ? '<img src="'+imgSrc+'" style="width:120px;height:120px;object-fit:cover;border-radius:8px;flex-shrink:0" onerror="this.style.display=\'none\'">' : '';
         const metrics = [['Impressions',fmt(a.impressions)],['Link Clicks',fmt(a.clicks)],['Downloads',fmt(a.dl)],['Cost/Download',cpdl],['Post Engagement',fmt(a.post_eng)]].map(([l,v])=>'<div style="background:var(--bg2);border-radius:8px;padding:8px 10px"><div style="font-size:10px;color:var(--text3);margin-bottom:2px">'+l+'</div><div style="font-size:14px;font-weight:500">'+v+'</div></div>').join('');

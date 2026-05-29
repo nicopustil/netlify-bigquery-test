@@ -1562,6 +1562,12 @@ function renderCampaigns(campaignsData, sourceRows){
   const emailSourceOnly = emailSources.filter(r=>!emailCampSources.has(r.source));
   const email = [...emailCampaigns, ...emailSourceOnly];
 
+  // ── LinkedIn: organic + lnkd.in referral
+  const linkedin = [
+    ...sourceRows.filter(r=>(r.source||'').includes('linkedin')||(r.source||'').includes('lnkd.in')),
+    ...campaignsData.filter(r=>(r.source||'').includes('linkedin')||(r.source||'').includes('lnkd.in')),
+  ];
+
   // ── REFERRALS: everything else not already categorised
   const usedSources = new Set([
     ...google.map(r=>r.source),
@@ -1655,12 +1661,6 @@ function renderCampaigns(campaignsData, sourceRows){
 
   // ── Google: use real campaign name mapping
   const googleRows = google.map(r=>({...r, _displayName: googleCampName(r.campaign||r.source)}));
-
-  // ── LinkedIn: organic + lnkd.in referral
-  const linkedin = [
-    ...sourceRows.filter(r=>(r.source||'').includes('linkedin')||(r.source||'').includes('lnkd.in')),
-    ...campaignsData.filter(r=>(r.source||'').includes('linkedin')||(r.source||'').includes('lnkd.in')),
-  ];
 
   const sections = [
     {title:'Google Ads', note:'LV Pmax · Search campaigns · Brand', rows:googleRows, cols:['sessions','bar','eng','conv','convRate','rev'], color:'#4285f4', tableNote:null},

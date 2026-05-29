@@ -2430,8 +2430,9 @@ async function loadMeta(sub) {
   }
 
   // Has data — load from BigQuery Windsor table
-  if (!loaded['meta_data']) {
-    loaded['meta_data'] = true;
+  const metaCacheKey = 'meta_data_' + (activeDays||30) + '_' + (dateFrom||'') + '_' + (dateTo||'');
+  if (!loaded[metaCacheKey]) {
+    loaded[metaCacheKey] = true;
     const days = activeDays || 30;
     // Try full query with new fields first; fall back if Windsor hasn't synced them yet
     const campQFull = `SELECT date, campaign, adset_name, ad_name,
